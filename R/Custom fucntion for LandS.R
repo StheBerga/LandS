@@ -234,3 +234,36 @@ Kmax_aim_LB <- function(kmax.cycle = kmax.cycle){
   return(plot_kmax_cycle)
 }
 
+#' This function returns the filename to be outputted
+#'
+#' @param filename name of the file
+#' @param extention file extention
+#' @param output the main output path
+#' @param datetime whether to print the datetime in a cute format
+#'
+#' @return
+#' @export
+#'
+#' @examples
+filename_LB <- function(filename = "Prova",
+                        extention = ".png",
+                        output = path_output,
+                        datetime = F){
+  if (datetime == F){
+    print(paste0(output, "/", filename, extention))
+  }else {
+    return(paste0(output, "/", filename, "_", format(Sys.time(), "%m_%d_%Y__%H_%M"), extention))
+  }
+
+}
+
+#' Function to get the Sys.time() in a cute and nice format
+#'
+#' @return The Sys.time() in a cute format
+#' @export
+#'
+#' @examples
+Sys_Time_LB <- function()
+{
+  format(Sys.time(), "%m_%d_%Y__%H_%M", zero.print = F)
+}

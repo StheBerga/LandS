@@ -12,7 +12,7 @@ KM_LB(
   title = "Prova",
   xlab = "Time in months",
   ylab = "Probaility of Surv",
-  xlim = c(0, max(data[, tEvent])),
+  xlim = c(0, max(data[, tEvent], na.rm = T)),
   breaks_by = 3
 )
 }
