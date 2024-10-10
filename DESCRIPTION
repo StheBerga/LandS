@@ -1,0 +1,11 @@
+Package: LandS
+Type: Package
+Title: Biostatistic Tools for DCP
+Version: 1.0
+Author: Stefano Bergamini and Luca Lalli 
+Maintainer: Nobody OfCourse <stefano.bergamini@istitutotumori.mi.it>
+Description: This package provides useful functions in daily clinical pratice for biostatistics
+License: No you can steal it when you want
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
