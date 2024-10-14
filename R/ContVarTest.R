@@ -42,58 +42,6 @@ cont_var_test_LB <- function (data,
     start_time <<- Sys.time()
   }
 
-  formatz_p <- function(value){
-    if(is.data.frame(value)==T){
-      new_frame <- value
-
-      for(i in 1:dim(value)[1]){
-
-        if(is.na(value[i, 1]) == T) {
-
-          new_frame[i, 1] = NA
-        }
-
-        else if(value[i, 1] >= 0.0001){
-          new_frame[i, 1] <- format(round(value[i,1], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-        }else if (value[i, 1] < 0.0001){
-          new_frame[i, 1] <- "<0.0001"
-        }
-      }
-      return(new_frame)
-    }else if (is.vector(value) == TRUE){
-      new_vett <- c()
-
-      for (i in 1:length(value)) {
-
-
-        if (is.na(value[i])){
-
-          p <- NA
-
-        }else if (value[i] > 0.0001){
-
-          p <- format(round(value[i], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-
-        }else if (value[i] < 0.0001){
-
-          p <- "<0.0001"
-        }
-        new_vett <- c(new_vett,p)
-      }
-      return(new_vett)
-    }else{
-
-      if(is.na(value) == T) {
-
-        value = NA
-      }
-      else if(value >= 0.0001){
-        value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-      }else if(value < 0.0001){
-        value <- " <0.0001"}
-      return(value)
-    }
-  }
 
   # Progress bar
   pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
@@ -397,8 +345,7 @@ cont_var_test_LB <- function (data,
           }
         }
 
-        Dumb_test_df <- inner_join(Dumb_test_df, Friedman_test_df[, c("Var", "Friedman")], by = "Var") %>%
-          select(Var, Friedman, vett_comparison)
+        Dumb_test_df <-  dplyr::inner_join(Dumb_test_df, Friedman_test_df[, c("Var", "Friedman")], by = "Var") %>% dplyr::select("Var", "Friedman", dplyr::all_of(vett_comparison))
 
         Dumb_test_df_form <- Dumb_test_df
 
@@ -617,4 +564,5 @@ cont_var_test_LB <- function (data,
       }
       return(res)
     }
+  invisible(gc())
 }
