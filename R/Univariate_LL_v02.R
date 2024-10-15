@@ -14,7 +14,7 @@ univariate_LL <- function(db, vars, ptime, pevent, dec_HR = 4){
   workdata <- db
 
   assign("dist",
-         rms::datadist(db, adjto.cat = "first"),
+         rms::datadist(db[, vars], adjto.cat = "first"),
          envir = .GlobalEnv)
   options(datadist = "dist")
   options(contrasts=c("contr.treatment", "contr.treatment"))

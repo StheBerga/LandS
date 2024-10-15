@@ -1,0 +1,776 @@
+\nonstopmode{}
+\documentclass[a4paper]{book}
+\usepackage[times,inconsolata,hyper]{Rd}
+\usepackage{makeidx}
+\makeatletter\@ifl@t@r\fmtversion{2018/04/01}{}{\usepackage[utf8]{inputenc}}\makeatother
+% \usepackage{graphicx} % @USE GRAPHICX@
+\makeindex{}
+\begin{document}
+\chapter*{}
+\begin{center}
+{\textbf{\huge Package `LandS'}}
+\par\bigskip{\large \today}
+\end{center}
+\ifthenelse{\boolean{Rd@use@hyper}}{\hypersetup{pdftitle = {LandS: Biostatistic Tools for DCP}}}{}
+\begin{description}
+\raggedright{}
+\item[Type]\AsIs{Package}
+\item[Title]\AsIs{Biostatistic Tools for DCP}
+\item[Version]\AsIs{1.0.1}
+\item[Author]\AsIs{Stefano Bergamini and Luca Lalli }
+\item[Maintainer]\AsIs{Nobody OfCourse }\email{stefano.bergamini@istitutotumori.mi.it}\AsIs{}
+\item[Description]\AsIs{This package provides useful functions in daily clinical pratice for biostatistics}
+\item[License]\AsIs{No you can steal it when you want}
+\item[Encoding]\AsIs{UTF-8}
+\item[LazyData]\AsIs{true}
+\item[RoxygenNote]\AsIs{7.3.2}
+\end{description}
+\Rdcontents{Contents}
+\HeaderA{Boxplot\_LB}{This function creates a list of boxplot}{Boxplot.Rul.LB}
+%
+\begin{Description}
+This function creates a list of boxplot
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+Boxplot_LB(
+  data,
+  variables,
+  group,
+  ID_lines = FALSE,
+  Posthoc = FALSE,
+  Point = F,
+  Median_line = F,
+  rm.outliers = F,
+  alpha_box = 0.1,
+  width_box = 0.2,
+  size_median_line = 0.8,
+  lwd_box = 0.1,
+  lwd_ID_line = 0.2,
+  alpha_ID_line = 0.3,
+  alpha_point = 0.3,
+  size_point = 0.3,
+  Test_results = NULL,
+  threshold_posthoc = 0.1,
+  axis_y_title = NULL,
+  axis_x_title = NULL,
+  size_axis_x = 6,
+  size_axis_y = 6,
+  ID = "ID",
+  legend_cod = NULL,
+  breaks_axis_x = levels(data[, group]),
+  labels_axis_x = levels(data[, group]),
+  grid = TRUE,
+  PPTX = FALSE,
+  pptx_width = 7.5,
+  pptx_height = 5.5,
+  extra = F,
+  extra_text = NULL,
+  palette_boxplot = c("salmon", "royalblue", "forestgreen", "gold"),
+  palette_title = "black",
+  size_title = 12,
+  target = paste0(path_out, "/Boxplot.pptx"),
+  ratio = 1,
+  telegram = "none"
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{data}] dataframe
+
+\item[\code{variables}] vector containing all variables of interest
+
+\item[\code{group}] factor variable splitting the data
+
+\item[\code{ID\_lines}] whether to print the lines for paired observations
+
+\item[\code{Posthoc}] whether to display Posthoc tests
+
+\item[\code{Point}] whether to display observation points
+
+\item[\code{Median\_line}] whether to display the line connecting medians
+
+\item[\code{rm.outliers}] whether to remove outliers from display
+
+\item[\code{alpha\_box}] alpha parameter for the boxes
+
+\item[\code{width\_box}] box's width
+
+\item[\code{size\_median\_line}] median linewidth
+
+\item[\code{lwd\_box}] box linewidth
+
+\item[\code{lwd\_ID\_line}] linewidth for paired observations
+
+\item[\code{alpha\_ID\_line}] alpha for paired observations
+
+\item[\code{alpha\_point}] alpha for points
+
+\item[\code{size\_point}] size for points
+
+\item[\code{Test\_results}] dataframe for global and posthoc tests, see cont\_var\_test\_LB
+
+\item[\code{threshold\_posthoc}] threshold for displaying posthoc tests
+
+\item[\code{size\_axis\_x}] axis y title dimension
+
+\item[\code{size\_axis\_y}] axis x title dimension
+
+\item[\code{ID}] ID variable
+
+\item[\code{telegram}] 
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Una lista di boxplot
+\end{Value}
+\HeaderA{cont\_var\_test\_LB}{Test for continuous variables splitted by categories}{cont.Rul.var.Rul.test.Rul.LB}
+%
+\begin{Description}
+The most powerful function ever created. You can perform the 4 major tests and the posthoc tests for Friedman and Kruskal-Wallis.
+If you are dumb (option dumb = T) you can also perform posthoc tests without correcting for test multiplicity.
+Please do not try this at home/work and consider asking a statistician before performing any test.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+cont_var_test_LB(
+  data,
+  variables,
+  paired = FALSE,
+  group,
+  dumb = FALSE,
+  ID = "ID",
+  num_dec = 2,
+  excel = F,
+  excel_path = paste0(path_out, "/Results.xlsx"),
+  telegram = "none"
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{data}] dataframe
+
+\item[\code{variables}] vector containing all variables of interest
+
+\item[\code{paired}] FALSE/TRUE
+
+\item[\code{group}] factor variable splitting the data
+
+\item[\code{dumb}] FALSE are you dumb? Hope not
+
+\item[\code{ID}] ID variabl (Default = "ID")
+
+\item[\code{num\_dec}] Decimal number for mean and SD (Default = 2)
+
+\item[\code{excel}] export fuction results as multiple Excel sheets
+
+\item[\code{excel\_path}] path where you want your Excel
+
+\item[\code{telegram}] send a telegram message
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Una lista con dataset
+\end{Value}
+%
+\begin{Examples}
+\begin{ExampleCode}
+cont_var_test_LB(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = F)
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{correlazioni\_LB}{This function computes the correlation coefficients and prints the pairs from the heightest coefficient}{correlazioni.Rul.LB}
+%
+\begin{Description}
+This function computes the correlation coefficients and prints the pairs from the heightest coefficient
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+correlazioni_LB(
+  dataset,
+  lista_vars,
+  method = "spearman",
+  rho_dec = 3,
+  pval_dec = 4
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{dataset}] dataframe
+
+\item[\code{lista\_vars}] vector of numeric variables to be computed the correlation
+
+\item[\code{method}] method to compute the correlation coefficient (Default = "spearman")
+
+\item[\code{rho\_dec}] number of decimal for rho (Default = 3)
+
+\item[\code{pval\_dec}] number of decimal for the pvalue (Default = 4)
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Una lista con dataset
+\end{Value}
+\HeaderA{filename\_LB}{This function returns the filename to be outputted}{filename.Rul.LB}
+%
+\begin{Description}
+This function returns the filename to be outputted
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+filename_LB(
+  filename = "Prova",
+  extention = ".png",
+  output = path_output,
+  datetime = F
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{filename}] name of the file
+
+\item[\code{extention}] file extention
+
+\item[\code{output}] the main output path
+
+\item[\code{datetime}] whether to print the datetime in a cute format
+\end{ldescription}
+\end{Arguments}
+\HeaderA{formatz\_p}{Function to get a formatted p-value for a number o a vector of numbers}{formatz.Rul.p}
+%
+\begin{Description}
+Function to get a formatted p-value for a number o a vector of numbers
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+formatz_p(value)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{value}] a number or a vector of numbers to be formatted
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+a number or a vector of numbers formatted with 4 digits
+\end{Value}
+%
+\begin{Examples}
+\begin{ExampleCode}
+formatz_p(c(1.000, 0.75643242, 0.000032431, 0.00214))
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{Kmax\_aim\_LB}{Function to print the histogram of the AIM::cv.cox.main output}{Kmax.Rul.aim.Rul.LB}
+%
+\begin{Description}
+Function to print the histogram of the AIM::cv.cox.main output
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+Kmax_aim_LB(kmax.cycle = kmax.cycle)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{kmax.cycle}] The vector of values of the best biomarkers
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+an histogram
+\end{Value}
+\HeaderA{KM\_LB}{This function allows to create a KM survival curve overall or splitted by a categorical variable}{KM.Rul.LB}
+%
+\begin{Description}
+This function allows to create a KM survival curve overall or splitted by a categorical variable
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+KM_LB(
+  Event = "OS_EVENT",
+  tEvent = "OS",
+  strata = 1,
+  data = data,
+  title = "Prova",
+  xlab = "Time in months",
+  ylab = "Probaility of Surv",
+  xlim = c(0, max(data[, tEvent], na.rm = T)),
+  breaks_by = 3
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{Event}] Event variable
+
+\item[\code{tEvent}] Survival Time Variable
+
+\item[\code{strata}] Variable to stratify (Default = 1)
+
+\item[\code{data}] dataframe
+
+\item[\code{title}] Graph title (Default = "Prova")
+
+\item[\code{xlab}] x-axis title (Default = "Time in months")
+
+\item[\code{ylab}] y-axis title (Default = "Probaility of Surv")
+
+\item[\code{xlim}] limits of x-axis (Default is from 0 to maximum observed time)
+
+\item[\code{breaks\_by}] breaks of risk table(Default = 3)
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+a KM graph
+\end{Value}
+\HeaderA{Lineplots\_LB}{Function to build the lineplots}{Lineplots.Rul.LB}
+%
+\begin{Description}
+Function to build the lineplots
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+Lineplots_LB(
+  data,
+  variables,
+  time,
+  group = 1,
+  split = F,
+  lw_reg = 1,
+  size_point = 0.6,
+  size_title = 12,
+  col_title = 1,
+  size_axis_x = 5,
+  size_axis_y = 6,
+  size_title_grid = 7,
+  breaks = unique(data[, time]),
+  label = unique(data[, time]),
+  ylim = c(0.2, 0.8),
+  Posthoc = F,
+  Friedman = F,
+  Test_results = Test_results,
+  grid = T,
+  ratio = 1,
+  extra = F,
+  extra_text = NULL,
+  PPTX = F,
+  pptx_width = 8.5,
+  pptx_height = 5.5,
+  threshold_posthoc = 0.1,
+  check = F,
+  target = paste0(path, "/file.pptx"),
+  col_lines = c("salmon", "royalblue")
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{data}] dataset
+
+\item[\code{variables}] vector of variables
+
+\item[\code{time}] x-axis variable
+
+\item[\code{group}] factor variable to group
+
+\item[\code{split}] whether to split in two windows the lines
+
+\item[\code{lw\_reg}] lwd of regression line
+
+\item[\code{size\_point}] size of points
+
+\item[\code{size\_title}] size of title
+
+\item[\code{col\_title}] colour of title
+
+\item[\code{size\_axis\_x}] x-axis text size
+
+\item[\code{size\_axis\_y}] y-axis text size
+
+\item[\code{size\_title\_grid}] size of title in the grid
+
+\item[\code{breaks}] breaks of x-axis
+
+\item[\code{label}] labels of x-axis
+
+\item[\code{ylim}] ylim to display in the graph
+
+\item[\code{Posthoc}] whether to display posthoc tests
+
+\item[\code{Friedman}] friedman overall test dataset
+
+\item[\code{Test\_results}] posthoc test dataset
+
+\item[\code{grid}] whether to build a grid or a pptx
+
+\item[\code{ratio}] graph ratio
+
+\item[\code{extra}] do you want to add extra option?
+
+\item[\code{extra\_text}] write your additional options
+
+\item[\code{PPTX}] whether to build a pptx or a grid
+
+\item[\code{pptx\_width}] inch
+
+\item[\code{pptx\_height}] inch
+
+\item[\code{threshold\_posthoc}] threshold to display posthoc brackets
+
+\item[\code{check}] check the correctness of your graph
+
+\item[\code{target}] where do you want your pptx to be saved
+
+\item[\code{col\_lines}] splitted lines colour
+\end{ldescription}
+\end{Arguments}
+\HeaderA{LL\_Descrittive}{Function to build, starting from a dataset, the descriptive statistics of every variable}{LL.Rul.Descrittive}
+%
+\begin{Description}
+Function to build, starting from a dataset, the descriptive statistics of every variable
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+LL_Descrittive(dataset, path = NULL)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{dataset}] dataframe
+
+\item[\code{path}] where do you want it to be saved
+\end{ldescription}
+\end{Arguments}
+\HeaderA{LL\_fisher\_gt\_flex}{Function to build coloumn marginal statistics and Fisher test}{LL.Rul.fisher.Rul.gt.Rul.flex}
+%
+\begin{Description}
+Function to build coloumn marginal statistics and Fisher test
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+LL_fisher_gt_flex(data, row_var, col_var, label_row_var, label_col_var)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{data}] dataframe
+
+\item[\code{row\_var}] row variable
+
+\item[\code{col\_var}] column variable
+
+\item[\code{label\_row\_var}] label for row
+
+\item[\code{label\_col\_var}] label for column
+\end{ldescription}
+\end{Arguments}
+\HeaderA{LL\_Npsurv\_format}{Function to get a cute format of npsurv output.}{LL.Rul.Npsurv.Rul.format}
+%
+\begin{Description}
+Function to get a cute format of npsurv output.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+LL_Npsurv_format(fit.npsurv)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{fit.npsurv}] A npsurv(Surv(time, event) \textasciitilde{} cov\_factor, data) object
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A cute format of npsurv output
+\end{Value}
+\HeaderA{LL\_Tapply\_f}{Function for an easy application of the tapply}{LL.Rul.Tapply.Rul.f}
+%
+\begin{Description}
+Function for an easy application of the tapply
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+LL_Tapply_f(data, var_quant, var_cat, digits = 2)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{data}] dataframe
+
+\item[\code{var\_quant}] quantitative variable
+
+\item[\code{var\_cat}] categorial variable
+
+\item[\code{digits}] digits to display
+\end{ldescription}
+\end{Arguments}
+\HeaderA{multivariate\_LL}{Function to create a multivariate cph model with a vector of variables}{multivariate.Rul.LL}
+%
+\begin{Description}
+Function to create a multivariate cph model with a vector of variables
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+multivariate_LL(db, vars, ptime, pevent, dec_HR = 4)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{db}] A dataframe
+
+\item[\code{vars}] Vector of variables to be included in the multivariate model
+
+\item[\code{ptime}] Survival Time variable
+
+\item[\code{pevent}] Event variable
+
+\item[\code{dec\_HR}] digits of HR (Default = 4)
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+the multivariate model
+\end{Value}
+\HeaderA{New\_Project\_LB}{Function to create a new project in the default folder}{New.Rul.Project.Rul.LB}
+%
+\begin{Description}
+Function to create a new project in the default folder
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+New_Project_LB(name_project, pc = c("Luca", "Stefano"))
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{name\_project}] The name of the Project
+
+\item[\code{pc}] Which pc are we operating
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Returns a folder in Projects with Analisi, Dati and Output subfolders
+\end{Value}
+\HeaderA{output.aim.f}{Function to print the output of the AIM function with Biomarker, Direction and Cutoff as a data frame model}{output.aim.f}
+%
+\begin{Description}
+Function to print the output of the AIM function with Biomarker, Direction and Cutoff as a data frame model
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+output.aim.f(res.index, aim.data)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{res.index}] An output from the AIM package function
+
+\item[\code{aim.data}] Data where the function was run on
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A dataframe-like object
+\end{Value}
+\HeaderA{PDF\_print\_LB}{Function to print the PDF with the grid.arrange function}{PDF.Rul.print.Rul.LB}
+%
+\begin{Description}
+Function to print the PDF with the grid.arrange function
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+PDF_print_LB(
+  plot_list,
+  path_print = path_print,
+  nrow = 8,
+  ncol = 6,
+  variables = vett_all_markers
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{plot\_list}] The list you want to be plotted
+
+\item[\code{path\_print}] The path where you want your PDF to be printed
+
+\item[\code{nrow}] Rows of your grid
+
+\item[\code{ncol}] Columns of your grid
+
+\item[\code{variables}] Number of total graphs to be printed
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A pdf in the path\_output
+\end{Value}
+\HeaderA{Stringa\_LL}{Funzione che riceve in input le posizioni dei nomi di un dataframe e crea una stringa di tali nomi separati da virgola o da altro segno/simbolo}{Stringa.Rul.LL}
+%
+\begin{Description}
+Funzione che riceve in input le posizioni dei nomi di un dataframe e crea una stringa di tali nomi separati da virgola o da altro segno/simbolo
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+Stringa_LL(data, vet, sep = ",")
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{data}] datafrane
+
+\item[\code{vet}] vector of positions for names in the dataset
+
+\item[\code{sep}] symbol to separate names from each other
+\end{ldescription}
+\end{Arguments}
+\HeaderA{Sys\_Time\_LB}{Function to get the Sys.time() in a cute and nice format}{Sys.Rul.Time.Rul.LB}
+%
+\begin{Description}
+Function to get the Sys.time() in a cute and nice format
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+Sys_Time_LB()
+\end{verbatim}
+\end{Usage}
+%
+\begin{Value}
+The Sys.time() in a cute format
+\end{Value}
+\HeaderA{telegram\_mess\_LB}{Function to send a Telegram message with BiostatUO9 bot. NB: must create a start\_time before running it}{telegram.Rul.mess.Rul.LB}
+%
+\begin{Description}
+Function to send a Telegram message with BiostatUO9 bot. NB: must create a start\_time before running it
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+telegram_mess_LB(
+  process_time = {
+    
+    format(lubridate::seconds_to_period(round(as.numeric(difftime(Sys.time(), start_time,
+    units = "secs")))), "%H:%M:%S")
+ },
+  dest = "both",
+  script = 0,
+  rm_start_time = T
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{process\_time}] Just don't modify it
+
+\item[\code{dest}] Who is going to receive the message
+
+\item[\code{script}] The title of the message
+
+\item[\code{rm\_start\_time}] If you want the start\_time item to be removed after the message is sent
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Nothing
+\end{Value}
+\HeaderA{univariate\_LL}{This function allows you to create the univariate regression model for a vector of variables}{univariate.Rul.LL}
+%
+\begin{Description}
+This function allows you to create the univariate regression model for a vector of variables
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+univariate_LL(db, vars, ptime, pevent, dec_HR = 4)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{db}] dataframe
+
+\item[\code{vars}] vector with variables name
+
+\item[\code{ptime}] Survival Time variable
+
+\item[\code{pevent}] Event variable
+
+\item[\code{dec\_HR}] digits of HR (Default = 4)
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+a dataframe with all univariate models
+\end{Value}
+\HeaderA{vett.quoted}{Funzione che permette partendo da un vettore, di riscrivere quel vettore in varie forme}{vett.quoted}
+%
+\begin{Description}
+Funzione che permette partendo da un vettore, di riscrivere quel vettore in varie forme
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+vett.quoted(vettore, sym = ", ", quote = T)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{vettore}] Starting vector
+
+\item[\code{sym}] Symbol of separation (Default ", ")
+
+\item[\code{quote}] Vector elements to be quoted or not (Default = T)
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+Una stringa di elementi formattati al meglio
+\end{Value}
+\printindex{}
+\end{document}
