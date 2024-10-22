@@ -157,14 +157,14 @@ telegram_mess_LB <- function(process_time = {
 #' @param path_print The path where you want your PDF to be printed
 #' @param nrow Rows of your grid
 #' @param ncol Columns of your grid
-#' @param variables Number of total graphs to be printed
 #'
 #' @return A pdf in the path_output
 #' @export
 #'
 #' @examples
-PDF_print_LB <- function(plot_list, path_print = path_print, nrow = 8, ncol = 6, variables = vett_all_markers){
+PDF_print_LB <- function(plot_list, path_print = path_print, nrow = 8, ncol = 6){
 
+  variables = length(plot_list)
   npag <- ceiling(length(variables)/(nrow*ncol))
   graphs <- list()
 

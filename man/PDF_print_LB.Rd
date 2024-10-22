@@ -4,13 +4,7 @@
 \alias{PDF_print_LB}
 \title{Function to print the PDF with the grid.arrange function}
 \usage{
-PDF_print_LB(
-  plot_list,
-  path_print = path_print,
-  nrow = 8,
-  ncol = 6,
-  variables = vett_all_markers
-)
+PDF_print_LB(plot_list, path_print = path_print, nrow = 8, ncol = 6)
 }
 \arguments{
 \item{plot_list}{The list you want to be plotted}
@@ -20,8 +14,6 @@ PDF_print_LB(
 \item{nrow}{Rows of your grid}
 
 \item{ncol}{Columns of your grid}
-
-\item{variables}{Number of total graphs to be printed}
 }
 \value{
 A pdf in the path_output
