@@ -23,6 +23,8 @@ Boxplot_LB(
   size_point = 0.3,
   Test_results = NULL,
   threshold_posthoc = 0.1,
+  posthoc_test_size = 3.88,
+  Overall = F,
   axis_y_title = NULL,
   axis_x_title = NULL,
   size_axis_x = 6,
@@ -82,13 +84,17 @@ Boxplot_LB(
 
 \item{threshold_posthoc}{threshold for displaying posthoc tests}
 
+\item{Overall}{}
+
+\item{axis_y_title}{axis y title}
+
+\item{axis_x_title}{axis x title}
+
 \item{size_axis_x}{axis y title dimension}
 
 \item{size_axis_y}{axis x title dimension}
 
 \item{ID}{ID variable}
-
-\item{telegram}{}
 }
 \value{
 Una lista di boxplot

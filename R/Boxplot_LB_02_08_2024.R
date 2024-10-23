@@ -18,8 +18,8 @@
 #' @param size_point size for points
 #' @param Test_results dataframe for global and posthoc tests, see cont_var_test_LB
 #' @param threshold_posthoc threshold for displaying posthoc tests
-#' @param axis_y_title
-#' @param axis_x_title
+#' @param axis_y_title axis y title
+#' @param axis_x_title axis x title
 #' @param size_axis_x axis y title dimension
 #' @param size_axis_y axis x title dimension
 #' @param ID ID variable
@@ -38,6 +38,8 @@
 #' @param target
 #' @param ratio
 #' @param telegram
+#' @param posthoc_test_size
+#' @param Overall
 #'
 #' @return Una lista di boxplot
 #' @export
@@ -61,6 +63,8 @@ Boxplot_LB <- function(data,
                        size_point = 0.3,
                        Test_results = NULL,
                        threshold_posthoc = 0.1,
+                       posthoc_test_size = 3.88,
+                       Overall = F,
                        axis_y_title = NULL,
                        axis_x_title = NULL,
                        size_axis_x  = 6,
@@ -86,35 +90,7 @@ Boxplot_LB <- function(data,
     start_time <<- Sys.time()
   }
 
-  formatz_p <- function(value){
-    if(is.data.frame(value)==T){
-      new_frame <- value
-      for(i in 1:dim(value)[1]){
-        if(value[i,1]> 0.0001){
-          new_frame[i,1] <- format(round(value[i,1], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-        }else{
-          new_frame[i,1] <- "<0.0001"
-        }
-      }
-      return(new_frame)
-    }else{
-      if(value > 0.0001){
-        value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-      }else{
-        value <- " <0.0001"}
-      return(value)
-    }
-  }
-
-  formatz_p_vett <- function(vett){
-    new_vett <- c()
-    for (i in 1:length(vett)) {
-      p <- formatz_p(vett[i])
-      new_vett <- c(new_vett,p)
-    }
-    return(new_vett)
-  }
-
+  # Themes ----
   theme_PPTX <- theme(axis.text.x = element_text(size= 14, colour = "black", vjust=-0.0),
                       plot.margin = margin(2, 2, 2, 2, "mm"),
                       axis.text.y = element_text(size= 14, colour = "black"),
@@ -140,10 +116,11 @@ Boxplot_LB <- function(data,
           panel.spacing.x = unit(1.5, "mm"),
           aspect.ratio = ratio)
 
-
+  # Function ----
   boxplot <- list()
   pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
   pb$tick(0)
+
 
   for (i in variables){
 
@@ -152,19 +129,13 @@ Boxplot_LB <- function(data,
     } else {
       col_title <- "black"
     }
-    # postmodel <- Test_results[Test_results[, 1] == i, ]
-    # posthoc_df <- as.data.frame(t(combn(levels(data[, group]),2)))
-    # colnames(posthoc_df) <- c("group1", "group2")
-    # posthoc_df$y <- i
-    # posthoc_df$pval <- NA
-    # posthoc_df$pval <- as.numeric(as.vector(postmodel[, (ncol(postmodel)+1-nrow(posthoc_df)):ncol(postmodel)]))
-    # posthoc_df <- posthoc_df[!posthoc_df$pval >= threshold_posthoc, ]
-    #
-    # if(nrow(posthoc_df) == 0) {}else{
-    # posthoc_df$pval <- formatz_p_vett(posthoc_df$pval)
-    # }
 
     k <- which(variables == i)
+
+    if (Posthoc == T){
+
+      posthoc_df <- LandS::posthoc_df_LB(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i)
+    }
 
     A = tapply(data[, i], data[, group], quantile, c(0.75), na.rm = T)
     B = tapply(data[, i], data[, group], quantile, c(0.25), na.rm = T)
@@ -193,8 +164,6 @@ Boxplot_LB <- function(data,
                   alpha = alpha_ID_line, linewidth = lwd_ID_line, colour = "black")}+
 
       {if (Median_line)
-        # stat_summary(aes_string(y = data[, i], group = group),
-        #              geom = "line", fun = median, linewidth = 1.5, colour = "red", linetype = "dashed", show.legend = F)
         stat_summary(aes_string(y = data[, i], group = 1), geom = "line", fun = median,
                      linewidth = size_median_line, colour = "red", linetype = "solid", show.legend = F)
       }+
@@ -216,21 +185,18 @@ Boxplot_LB <- function(data,
       scale_x_discrete(breaks = breaks_axis_x, labels = labels_axis_x)+
 
 
-      # {if (Posthoc)
-      #   if (nrow(posthoc_df) > 0)
-      #     stat_pvalue_manual(posthoc_df, label = "pval",
-      #                        y.position = max(tapply(data[,i], data[, group], quantile, na.rm = T, probs = 0.60)+
-      #                                           tapply(data[,i], data[, group], IQR, na.rm = T)),
-      #                        step.increase = 0.05)
-      # }+
-      #
-      # {if (as.numeric(postmodel[, 2]) < 0.05)
-      #   annotate("text", x = -Inf, y = Inf, hjust = -0.1, vjust = 1.5, label = paste0("p: ", formatz_p(postmodel[, 2])), colour = "red")
-      # }+
-      #
-      # {if (as.numeric(postmodel[, 2]) >= 0.05)
-      #   annotate("text", x = -Inf, y = Inf, hjust = -0.1, vjust = 1.5, label = paste0("p: ", formatz_p(postmodel[, 2])), colour = "black")
-      # }+
+      {if (Posthoc)
+        if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
+          stat_pvalue_manual(posthoc_df, label = "p = {pval}",
+                             y.position = max(tapply(data[,i], data[, group], quantile, na.rm = T, probs = 0.75)+
+                                                tapply(data[,i], data[, group], IQR, na.rm = T)),
+                             step.increase = 0.08, size = posthoc_test_size)
+      }+
+
+      {if (Overall)
+        annotate(geom = "text", x = -Inf, y = Inf, hjust = -.1, vjust = 1.5, size = posthoc_test_size,
+                 label = LandS::formatz_p(Test_results[, 2][Test_results[, 1] == i]), colour = "black")
+      }+
 
       {if (extra)
         extra_text(i)}+
@@ -277,7 +243,6 @@ Boxplot_LB <- function(data,
     if(telegram != "none"){
       telegram_mess_LB(dest = telegram, script = "Boxplot")
     }
-
     return(boxplot)
   }
 

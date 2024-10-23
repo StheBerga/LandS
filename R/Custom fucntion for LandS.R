@@ -162,26 +162,20 @@ telegram_mess_LB <- function(process_time = {
 #' @export
 #'
 #' @examples
-PDF_print_LB <- function(plot_list, path_print = path_print, nrow = 8, ncol = 6){
-
-  variables = length(plot_list)
-  npag <- ceiling(length(variables)/(nrow*ncol))
+PDF_print_LB <- function (plot_list, path_print = path_print, nrow = 8, ncol = 6)
+{
+  variables <- length(plot_list)
+  npag <- ceiling(variables/(nrow * ncol))
   graphs <- list()
-
-  for (i in 1:npag){
-
-    graphs[[i]] <- grid.arrange(grobs=plot_list[(((i-1)*nrow*ncol)+1):min(length(variables),
-                                                                          (i*nrow*ncol))], nrow=nrow, ncol=ncol,  top=paste0("Pag. ", i))
-
+  for (i in 1:npag) {
+    graphs[[i]] <- grid.arrange(grobs = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
+                                nrow = nrow, ncol = ncol, top = paste0("Pag. ", i))
   }
-
   message("Grid arrange Done!")
-
   pdf(file = path_print, width = 21, height = 29.7)
   for (i in 1:length(graphs)) {
     plot(graphs[[i]])
   }
-
   dev.off()
 }
 
@@ -266,4 +260,34 @@ filename_LB <- function(filename = "Prova",
 Sys_Time_LB <- function()
 {
   format(Sys.time(), "%m_%d_%Y__%H_%M", zero.print = F)
+}
+
+
+#' Function for Boxplot_LB
+#'
+#' @param Test_results Test_results
+#' @param data data
+#' @param group group
+#' @param threshold_posthoc threshold posthoc tests
+#' @param i i
+#'
+#' @return nothing
+#' @export
+#'
+#' @examples
+posthoc_df_LB <- function(Test_results, data, group, threshold_posthoc, i){
+
+  postmodel <- Test_results[Test_results[, 1] == i, ]
+  posthoc_df <- as.data.frame(t(combn(levels(data[, group]),2)))
+  colnames(posthoc_df) <- c("group1", "group2")
+  posthoc_df$y <- i
+  posthoc_df$pval <- NA
+  posthoc_df$pval <- as.numeric(as.vector(postmodel[, (ncol(postmodel)+1-nrow(posthoc_df)):ncol(postmodel)]))
+  posthoc_df <- posthoc_df[!posthoc_df$pval >= threshold_posthoc, ]
+
+  if(nrow(posthoc_df) == 0) {}else{
+    posthoc_df$pval <- LandS::formatz_p(posthoc_df$pval)
+  }
+  return(posthoc_df)
+
 }
