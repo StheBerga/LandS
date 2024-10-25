@@ -5,24 +5,20 @@
 \title{Function to send a Telegram message with BiostatUO9 bot. NB: must create a start_time before running it}
 \usage{
 telegram_mess_LB(
-  process_time = {
-    
-    format(lubridate::seconds_to_period(round(as.numeric(difftime(Sys.time(), start_time,
-    units = "secs")))), "\%H:\%M:\%S")
- },
   dest = "both",
   script = 0,
-  rm_start_time = T
+  rm_start_time = TRUE,
+  timestamp = TRUE
 )
 }
 \arguments{
-\item{process_time}{Just don't modify it}
-
 \item{dest}{Who is going to receive the message}
 
 \item{script}{The title of the message}
 
 \item{rm_start_time}{If you want the start_time item to be removed after the message is sent}
+
+\item{timestamp}{Do you want the time in your message}
 }
 \value{
 Nothing

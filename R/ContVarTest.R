@@ -42,26 +42,32 @@ cont_var_test_LB <- function (data,
     start_time <<- Sys.time()
   }
 
-
   # Progress bar
   pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
   pb$tick(0)
 
+  # Check if data is a data frame
+  if("tbl_df" %in% base::class(data)){
+    stop(paste0(base::substitute(data), " is not a data frame, please make it a data frame!"))
+  }
+
   # Error check: split variable numeric
   if(!is.factor(data[, group])){
-    message("Group variable is not factor, please make it factor")
-    stop()
+    stop(paste0("Variable ", group, " is not factor, please make it factor"))
+  }
+
+  # Error check: T/F assigned to something else
+  if(T != TRUE | F != FALSE){
+    stop("T or F are not assigned as TRUE or FALSE. Check your .GlobalEnv")
   }
 
   # Error check: split variable with just one level
   if(nlevels(data[,group]) == 1){
-    message("Group variable has just 1 level")
-    stop()
+    stop(paste0("Variable ", group, " has just 1 level"))
   }
 
   # Split variable dicotomica
   if(nlevels(data[, group]) == 2){
-
 
     # Mann-Whitney Test
     if (paired == FALSE){
@@ -85,7 +91,7 @@ cont_var_test_LB <- function (data,
       res <- list()
       tabella_formatted <- tabella
       for(z in colnames(tabella_formatted)[ncol(tabella_formatted)]){
-        tabella_formatted[,z] <- formatz_p(tabella_formatted[,z])
+        tabella_formatted[,z] <- LandS::formatz_p(tabella_formatted[,z])
       }
       tabella_p <- tabella[, c(1,4)]
 
@@ -126,7 +132,7 @@ cont_var_test_LB <- function (data,
       res <- list()
       tabella_formatted <- tabella
       for(z in colnames(tabella_formatted)[ncol(tabella_formatted)]){
-        tabella_formatted[,z] <- formatz_p(tabella_formatted[,z])
+        tabella_formatted[,z] <- LandS::formatz_p(tabella_formatted[,z])
       }
 
       tabella_p <- tabella[, c(1,4)]
@@ -185,8 +191,8 @@ cont_var_test_LB <- function (data,
         if(nrow(tmp) > 0 ) {
 
           for (o in 1:n_lev_group){
-            Friedman_test_df[Friedman_test_df$Var == i, 1+o] <- paste0(round(tapply(tmp[, i], tmp[, group], mean, na.rm=T)[levels_groups[o]], num_dec), " (",
-                                                                       round(tapply(tmp[, i], tmp[, group], sd,   na.rm=T)[levels_groups[o]], num_dec), ")")
+            Friedman_test_df[Friedman_test_df$Var == i, 1+o] <- paste0(round(tapply(data[, i], data[, group], mean, na.rm=T)[levels_groups[o]], num_dec), " (",
+                                                                       round(tapply(data[, i], data[, group], sd,   na.rm=T)[levels_groups[o]], num_dec), ")")
           }
           # Friedman test
           Friedman_test_df[Friedman_test_df$Var == i, "Friedman"] <- as.numeric(friedman.test(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID])$p.val)
@@ -262,7 +268,7 @@ cont_var_test_LB <- function (data,
       Friedman_test_df_form <- Friedman_test_df
 
       for(z in colnames(Friedman_test_df_form)[(2+n_lev_group):ncol(Friedman_test_df_form)]){
-        Friedman_test_df_form[,z] <- formatz_p(Friedman_test_df_form[,z])
+        Friedman_test_df_form[,z] <- LandS::formatz_p(Friedman_test_df_form[,z])
       }
 
       Friedman_ph_p <- Friedman_test_df[, c(1, (2+n_lev_group):ncol(Friedman_test_df))]
@@ -350,7 +356,7 @@ cont_var_test_LB <- function (data,
         Dumb_test_df_form <- Dumb_test_df
 
         for(z in colnames(Dumb_test_df_form)[2:ncol(Dumb_test_df_form)]){
-          Dumb_test_df_form[,z] <- formatz_p(Dumb_test_df_form[,z])
+          Dumb_test_df_form[,z] <- LandS::formatz_p(Dumb_test_df_form[,z])
         }
 
         res[[1]] <- Friedman_test_df

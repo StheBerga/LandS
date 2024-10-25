@@ -4,7 +4,13 @@
 \alias{PDF_print_LB}
 \title{Function to print the PDF with the grid.arrange function}
 \usage{
-PDF_print_LB(plot_list, path_print = path_print, nrow = 8, ncol = 6)
+PDF_print_LB(
+  plot_list,
+  path_print = path_print,
+  nrow = 8,
+  ncol = 6,
+  ext = c("tiff", "jpeg", "pdf", "svg", "png")
+)
 }
 \arguments{
 \item{plot_list}{The list you want to be plotted}

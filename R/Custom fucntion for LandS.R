@@ -110,18 +110,20 @@ New_Project_LB <- function(name_project, pc = c("Luca", "Stefano")){
 
 #' Function to send a Telegram message with BiostatUO9 bot. NB: must create a start_time before running it
 #'
-#' @param process_time Just don't modify it
 #' @param dest Who is going to receive the message
 #' @param script The title of the message
 #' @param rm_start_time If you want the start_time item to be removed after the message is sent
+#' @param timestamp Do you want the time in your message
 #'
 #' @return Nothing
 #' @export
 #'
 #' @examples
-telegram_mess_LB <- function(process_time = {
-  format(lubridate::seconds_to_period(round(as.numeric(difftime(Sys.time(), start_time, units = "secs")))), "%H:%M:%S")
-}, dest = "both", script = 0, rm_start_time = T){
+telegram_mess_LB <- function(dest = "both", script = 0, rm_start_time = TRUE, timestamp = TRUE){
+
+  if(timestamp){
+    process_time <- format(lubridate::seconds_to_period(round(as.numeric(difftime(Sys.time(), start_time, units = "secs")))), "%H:%M:%S")
+  }
 
   bot = telegram.bot::Bot(token = telegram.bot::bot_token("BiostatUO9_bot"))
   updates = bot$getUpdates()
@@ -133,19 +135,34 @@ telegram_mess_LB <- function(process_time = {
 
   for (i in chat_id) {
 
-    if(script == 0){
-      bot$sendMessage(chat_id = i,
-                      text = paste0("Lo script ha runnato correttamente in ", process_time))
-    } else {
+    if(timestamp){
 
-      bot$sendMessage(chat_id = i,
-                      text = paste0("Lo script ", script,  " ha runnato correttamente in ", process_time))
+      if(script == 0){
+        bot$sendMessage(chat_id = i,
+                        text = paste0("Lo script ha runnato correttamente in ", process_time))
+      } else {
+
+        bot$sendMessage(chat_id = i,
+                        text = paste0("Lo script ", script,  " ha runnato correttamente in ", process_time))
+
+      }
+
+    }else{
+
+      if(script == 0){
+        bot$sendMessage(chat_id = i,
+                        text = paste0("Lo script ha runnato correttamente"))
+      } else {
+
+        bot$sendMessage(chat_id = i, text = script)
+
+      }
 
     }
 
   }
 
-  if(rm_start_time == T){
+  if(rm_start_time == T & timestamp == T){
     rm(start_time, envir = .GlobalEnv)
   }
 }
@@ -162,6 +179,8 @@ telegram_mess_LB <- function(process_time = {
 #' @export
 #'
 #' @examples
+
+# Rifatta con modifiche da Luca sotto (da rivedere le dimensioni finali e forse meglio utilizzare plot_grid con ggsave)
 PDF_print_LB <- function (plot_list, path_print = path_print, nrow = 8, ncol = 6)
 {
   variables <- length(plot_list)
@@ -173,6 +192,38 @@ PDF_print_LB <- function (plot_list, path_print = path_print, nrow = 8, ncol = 6
   }
   message("Grid arrange Done!")
   pdf(file = path_print, width = 21, height = 29.7)
+  for (i in 1:length(graphs)) {
+    plot(graphs[[i]])
+  }
+  dev.off()
+}
+
+
+PDF_print_LB <- function (plot_list, path_print = path_print,
+                          nrow = 8, ncol = 6, ext = c("tiff", "jpeg", "pdf", "svg", "png"))
+{
+  variables <- length(plot_list)
+  npag <- ceiling(variables/(nrow * ncol))
+  graphs <- list()
+  for (i in 1:npag) {
+    graphs[[i]] <- grid.arrange(grobs = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
+                                nrow = nrow, ncol = ncol, top = paste0("Pag. ", i))
+  }
+  message("Grid arrange Done!")
+
+  if(ext == "tiff"){
+
+
+  }
+
+  if(ext == "jpeg"){jpeg(file = path_print, width = 21, height = 29.7)}
+
+  if(ext == "pdf"){pdf(file = path_print, width = 21, height = 29.7)}
+
+  if(ext == "svg"){svg(file = path_print, width = 21, height = 29.7)}
+
+  if(ext == "png"){png(file = path_print, width = 21, height = 29.7)}
+
   for (i in 1:length(graphs)) {
     plot(graphs[[i]])
   }
@@ -290,4 +341,52 @@ posthoc_df_LB <- function(Test_results, data, group, threshold_posthoc, i){
   }
   return(posthoc_df)
 
+}
+
+#' Distribution function
+#'
+#'
+#'
+#' @param data a dataframe
+#' @param var variable
+#' @param split does the variable need to be splitted
+#' @param split_rule the splitting rule
+#'
+#' @return a plot with the variable
+#' @export
+#'
+#' @examples Distribution_LB(data = mtcars, var = "mpg", split = TRUE, split_rule = 23)
+Distribution_LB <- function(data, var, split = FALSE, split_rule = NULL){
+
+  require(ggplot2)
+
+  ggplot(data = data, aes_string(x = data[, var], y = 1))+
+    {if (split == FALSE)
+      geom_point(size = 1.5)}+
+
+    {if (split == TRUE)
+      geom_point(aes(colour = data[, var] > split_rule), size = 1.5)}+
+
+    {if (split == TRUE)
+      geom_vline(xintercept = split_rule, linetype = 2)}+
+
+    scale_colour_manual(values=c("salmon", "cornflowerblue"))+
+
+    {if (split == FALSE)
+      labs(x = NULL, y = NULL)}+
+
+    {if (split == TRUE)
+      labs(x = paste0("Cutoff: ", split_rule), y = NULL)}+
+
+    # coord_fixed(ratio = 50/2)+
+    theme(plot.title = element_text(hjust = 0.5, size = 6, face = "bold"),
+          axis.text.x = element_text(size = 12, colour = "black"),
+          axis.text.y.left = element_blank(),
+          axis.ticks.y.left = element_blank(),
+          panel.background = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "bottom",
+          legend.title = element_blank(),
+          panel.border = element_rect(linetype = "solid", colour = "black", size=0.2, fill=NA))
 }
