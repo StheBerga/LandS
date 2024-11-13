@@ -14,7 +14,7 @@ correlazioni_LB <- function(dataset, lista_vars, method = "spearman", rho_dec = 
   options(width=10000)
   options(max.print=99999)
   options(scipen = 99999)
-  library(dplyr)
+  require(dplyr)
 
   data_tmp <- dplyr::select(dataset, all_of(lista_vars))
 

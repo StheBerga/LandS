@@ -31,12 +31,13 @@ cont_var_test_LB <- function (data,
                               telegram = "none")
 {
   options(warn=-1)
-  library(MASS)
-  library(progress)
-  library(PMCMRplus)
-  library(rlang)
-  library(gtsummary)
-  library(dplyr)
+  require(MASS)
+  require(progress)
+  require(PMCMRplus)
+  require(rlang)
+  require(gtsummary)
+  require(dplyr)
+  require()
 
   if(telegram != "none"){
     start_time <<- Sys.time()
@@ -561,12 +562,12 @@ cont_var_test_LB <- function (data,
   }
   if (excel == FALSE){
     if(telegram != "none"){
-      telegram_mess_LB(dest = telegram, script = "Boxplot")
+      LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
     }
     return(res)}else{
       writexl::write_xlsx(res, path = excel_path)
       if(telegram != "none"){
-        telegram_mess_LB(dest = telegram, script = "Boxplot")
+        LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
       }
       return(res)
     }

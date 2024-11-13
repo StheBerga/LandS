@@ -85,6 +85,8 @@ Boxplot_LB <- function(data,
                        target = paste0(path_out, "/Boxplot.pptx"), ratio = 1,
                        telegram = "none")
 {
+  require(ggplot2)
+  require(officer)
 
   if(telegram != "none"){
     start_time <<- Sys.time()
@@ -118,7 +120,7 @@ Boxplot_LB <- function(data,
 
   # Function ----
   boxplot <- list()
-  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
+  pb <- progress::progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
   pb$tick(0)
 
 
@@ -187,7 +189,7 @@ Boxplot_LB <- function(data,
 
       {if (Posthoc)
         if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
-          stat_pvalue_manual(posthoc_df, label = "p = {pval}",
+          ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pval}",
                              y.position = max(tapply(data[,i], data[, group], quantile, na.rm = T, probs = 0.75)+
                                                 tapply(data[,i], data[, group], IQR, na.rm = T)),
                              step.increase = 0.08, size = posthoc_test_size)
@@ -235,13 +237,13 @@ Boxplot_LB <- function(data,
     message("Done printing :)")
 
     if(telegram != "none"){
-      telegram_mess_LB(dest = telegram, script = "Boxplot")
+      LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
     }
 
   } else {
 
     if(telegram != "none"){
-      telegram_mess_LB(dest = telegram, script = "Boxplot")
+      LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
     }
     return(boxplot)
   }

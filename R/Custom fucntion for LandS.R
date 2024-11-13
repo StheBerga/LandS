@@ -174,60 +174,64 @@ telegram_mess_LB <- function(dest = "both", script = 0, rm_start_time = TRUE, ti
 #' @param path_print The path where you want your PDF to be printed
 #' @param nrow Rows of your grid
 #' @param ncol Columns of your grid
+#' @param ext File extention
+#' @param width_pg page width in cm
+#' @param height_pg page height in cm
+#' @param return if you want to assign your grid
 #'
 #' @return A pdf in the path_output
 #' @export
 #'
 #' @examples
 
-# Rifatta con modifiche da Luca sotto (da rivedere le dimensioni finali e forse meglio utilizzare plot_grid con ggsave)
-PDF_print_LB <- function (plot_list, path_print = path_print, nrow = 8, ncol = 6)
+Print_LB <- function (plot_list, path_print = path_print,
+                      nrow = 8, ncol = 6, ext = c("pdf", "svg", "png", "emf", "tiff", "jpeg"),
+                      width_pg = 21, height_pg = 29.7, return = FALSE)
 {
+  require(ggplot2)
+
+  path_print <- paste0(path_print, ".", ext)
   variables <- length(plot_list)
-  npag <- ceiling(variables/(nrow * ncol))
   graphs <- list()
-  for (i in 1:npag) {
-    graphs[[i]] <- grid.arrange(grobs = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
-                                nrow = nrow, ncol = ncol, top = paste0("Pag. ", i))
+
+  if (ext == "pdf"){
+    npag <- ceiling(variables/(nrow * ncol))
+    for (i in 1:npag) {
+
+      graphs[[i]] <- cowplot::plot_grid(plotlist = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
+                                        nrow = nrow, ncol = ncol)
+
+      graphs[[i]] <- graphs[[i]] + theme_minimal() +
+        labs(title = paste0("Pag. ", i)) + theme(plot.title = element_text(hjust = .5, face = "bold"))
+
+    }
+  } else {
+
+    graphs[[1]] <- cowplot::plot_grid(plotlist = plot_list, nrow = nrow, ncol = ncol)
+
   }
-  message("Grid arrange Done!")
-  pdf(file = path_print, width = 21, height = 29.7)
+  message(paste0("Grid arrange Done! \nSaving in ", ext))
+
+  if(ext == "tiff"){tiff(filename = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
+
+  if(ext == "jpeg"){jpeg(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
+
+  if(ext == "pdf"){pdf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
+
+  if(ext == "svg"){svg(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
+
+  if(ext == "png"){png(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
+
+  if(ext == "emf"){devEMF::emf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
+
   for (i in 1:length(graphs)) {
     plot(graphs[[i]])
   }
   dev.off()
-}
 
-
-PDF_print_LB <- function (plot_list, path_print = path_print,
-                          nrow = 8, ncol = 6, ext = c("tiff", "jpeg", "pdf", "svg", "png"))
-{
-  variables <- length(plot_list)
-  npag <- ceiling(variables/(nrow * ncol))
-  graphs <- list()
-  for (i in 1:npag) {
-    graphs[[i]] <- grid.arrange(grobs = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
-                                nrow = nrow, ncol = ncol, top = paste0("Pag. ", i))
+  if (return == TRUE){
+    return(graphs)
   }
-  message("Grid arrange Done!")
-
-  if(ext == "tiff"){
-
-
-  }
-
-  if(ext == "jpeg"){jpeg(file = path_print, width = 21, height = 29.7)}
-
-  if(ext == "pdf"){pdf(file = path_print, width = 21, height = 29.7)}
-
-  if(ext == "svg"){svg(file = path_print, width = 21, height = 29.7)}
-
-  if(ext == "png"){png(file = path_print, width = 21, height = 29.7)}
-
-  for (i in 1:length(graphs)) {
-    plot(graphs[[i]])
-  }
-  dev.off()
 }
 
 #' Function to print the output of the AIM function with Biomarker, Direction and Cutoff as a data frame model
@@ -259,6 +263,8 @@ output.aim.f <- function(res.index, aim.data){
 #'
 #' @examples
 Kmax_aim_LB <- function(kmax.cycle = kmax.cycle){
+  require(ggplot)
+
   df_kmax_cycle <- as.data.frame(table(kmax.cycle))
   df_kmax_cycle$Perc <- round(prop.table(table(kmax.cycle))*100,1)
   plot_kmax_cycle <- ggplot(data=df_kmax_cycle, aes(x=kmax.cycle, y=Perc)) +

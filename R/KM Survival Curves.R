@@ -24,53 +24,57 @@ KM_LB <- function(Event = "OS_EVENT",
                   xlim = c(0, max(data[, tEvent], na.rm = T)),
                   breaks_by = 3){
 
-frm <- formula(paste0("Surv(", tEvent, ",", Event, ")~", strata))
-fit = surv_fit(frm, data = data)
+  require(survival)
+  require(survminer)
+  require(ggplot2)
 
-if (strata != 1){pval = T}else{pval = F}
+  frm <- formula(paste0("Surv(", tEvent, ",", Event, ")~", strata))
+  fit = surv_fit(frm, data = data)
 
-KM.fit <- ggsurvplot(fit = fit,
-                     title = title,
-                     data = data,
-                     risk.table = T,
-                     tables.height=0.25,
-                     palette="jco",
-                     pval = pval,
-                     pval.size=5,
-                     pval.coord=c(2, 0.1),
-                     conf.int = F,
-                     xlim = xlim,
-                     xlab = xlab,
-                     ylab = ylab,
-                     legend.title="",
-                     break.time.by = breaks_by,
-                     surv.scale = "percent",
-                     risk.table.title="",
-                     risk.table.y.text.col = T,
-                     risk.table.y.text = F,
-                     risk.table.fontsize= 4,
-                     censor=F,
-                     size=1.0)
+  if (strata != 1){pval = T}else{pval = F}
 
-KM.fit$plot <- KM.fit$plot+
-  coord_cartesian(expand = F)+
-  theme(plot.title = element_text(size=12, hjust = 0.5, face = "bold", vjust = -3),
-        plot.subtitle = element_text(size=6, color = "black"),
-        legend.key.width = unit(0.7,"cm"),
-        legend.key.height = unit(0.1,"cm"),
-        axis.title.y = element_text(size = 11,  face = "plain", color = "black"),
-        axis.title.x = element_blank(),
-        legend.text = element_text(face = "bold")
-  )
+  KM.fit <- ggsurvplot(fit = fit,
+                       title = title,
+                       data = data,
+                       risk.table = T,
+                       tables.height=0.25,
+                       palette="jco",
+                       pval = pval,
+                       pval.size=5,
+                       pval.coord=c(2, 0.1),
+                       conf.int = F,
+                       xlim = xlim,
+                       xlab = xlab,
+                       ylab = ylab,
+                       legend.title="",
+                       break.time.by = breaks_by,
+                       surv.scale = "percent",
+                       risk.table.title="",
+                       risk.table.y.text.col = T,
+                       risk.table.y.text = F,
+                       risk.table.fontsize= 4,
+                       censor=F,
+                       size=1.0)
 
-KM.fit$table <- KM.fit$table +
-  theme(axis.text.x = element_text(size = 6,  face = "bold", color = "black"),
-        axis.title.y = element_text(size = 6,  face = "plain"),
-        axis.title.x = element_text(size = 11,  face = "plain"),
-        plot.margin = margin(0, 1.1, 0, 0, "cm")
-  )
-KM.fit$table$theme$axis.text.x.bottom <- element_text(size = 11, face = "plain")
-return(KM.fit)
+  KM.fit$plot <- KM.fit$plot+
+    coord_cartesian(expand = F)+
+    theme(plot.title = element_text(size=12, hjust = 0.5, face = "bold", vjust = -3),
+          plot.subtitle = element_text(size=6, color = "black"),
+          legend.key.width = unit(0.7,"cm"),
+          legend.key.height = unit(0.1,"cm"),
+          axis.title.y = element_text(size = 11,  face = "plain", color = "black"),
+          axis.title.x = element_blank(),
+          legend.text = element_text(face = "bold")
+    )
+
+  KM.fit$table <- KM.fit$table +
+    theme(axis.text.x = element_text(size = 6,  face = "bold", color = "black"),
+          axis.title.y = element_text(size = 6,  face = "plain"),
+          axis.title.x = element_text(size = 11,  face = "plain"),
+          plot.margin = margin(0, 1.1, 0, 0, "cm")
+    )
+  KM.fit$table$theme$axis.text.x.bottom <- element_text(size = 11, face = "plain")
+  return(KM.fit)
 }
 
 
