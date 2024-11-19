@@ -12,6 +12,8 @@ cont_var_test_LB(
   dumb = FALSE,
   ID = "ID",
   num_dec = 2,
+  p.adjust.method = c("bonferroni", "BH", "BY", "fdr", "none", "holm", "hochberg",
+    "hommel"),
   excel = F,
   excel_path = paste0(path_out, "/Results.xlsx"),
   telegram = "none"
@@ -31,6 +33,8 @@ cont_var_test_LB(
 \item{ID}{ID variabl (Default = "ID")}
 
 \item{num_dec}{Decimal number for mean and SD (Default = 2)}
+
+\item{p.adjust.method}{correction method, a character string. Can be abbreviated.}
 
 \item{excel}{export fuction results as multiple Excel sheets}
 

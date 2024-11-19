@@ -14,6 +14,7 @@
 #' @param excel export fuction results as multiple Excel sheets
 #' @param excel_path path where you want your Excel
 #' @param telegram send a telegram message
+#' @param p.adjust.method correction method, a character string. Can be abbreviated.
 #'
 #' @return Una lista con dataset
 #' @export
@@ -26,6 +27,7 @@ cont_var_test_LB <- function (data,
                               dumb = FALSE,
                               ID = "ID",
                               num_dec = 2,
+                              p.adjust.method = c("bonferroni", "BH", "BY", "fdr", "none", "holm", "hochberg", "hommel"),
                               excel = F,
                               excel_path = paste0(path_out, "/Results.xlsx"),
                               telegram = "none")
@@ -37,7 +39,6 @@ cont_var_test_LB <- function (data,
   require(rlang)
   require(gtsummary)
   require(dplyr)
-  require()
 
   if(telegram != "none"){
     start_time <<- Sys.time()
@@ -199,7 +200,7 @@ cont_var_test_LB <- function (data,
           Friedman_test_df[Friedman_test_df$Var == i, "Friedman"] <- as.numeric(friedman.test(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID])$p.val)
 
           # Post hoc test
-          df_posthoc <- as.data.frame(PMCMRplus::frdAllPairsExactTest(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID], p.adjust.method = "bonferroni")$p.value)
+          df_posthoc <- as.data.frame(PMCMRplus::frdAllPairsExactTest(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID], p.adjust.method = p.adjust.method)$p.value)
           df_posthoc_pairs <- as.data.frame(matrix(NA, nrow = nlevels(data[, group]), ncol = nlevels(data[, group])+1))
           colnames(df_posthoc_pairs) <- c("Var", levels(data[, group]))
           df_posthoc_pairs$Var <- levels(data[, group])
@@ -405,7 +406,7 @@ cont_var_test_LB <- function (data,
         KW_test_df[KW_test_df$Var == i, "Kruskal_Wallis"] <- as.numeric(kruskal.test(x = data[, i], g = data[, group])$p.val)
 
         # Post hoc test
-        df_posthoc <- as.data.frame(PMCMRplus::kwAllPairsDunnTest(x = data[, i], g = data[, group], p.adjust.method = "bonferroni")$p.value)
+        df_posthoc <- as.data.frame(PMCMRplus::kwAllPairsDunnTest(x = data[, i], g = data[, group], p.adjust.method = p.adjust.method)$p.value)
         df_posthoc_pairs <- as.data.frame(matrix(NA, nrow = nlevels(data[, group]), ncol = nlevels(data[, group])+1))
         colnames(df_posthoc_pairs) <- c("Var", levels(data[, group]))
         df_posthoc_pairs$Var <- levels(data[, group])

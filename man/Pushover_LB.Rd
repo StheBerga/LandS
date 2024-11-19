@@ -11,7 +11,8 @@ Pushover_LB(
   priority = 0,
   app = "ayje1n4x8fi64bupdn5shjnwd8ut95",
   title = "RStudio",
-  attachment = NULL
+  attachment = NULL,
+  start_time = NULL
 )
 }
 \arguments{
@@ -21,13 +22,15 @@ Pushover_LB(
 
 \item{timestamp}{If you want the time printed in your notification, if TRUE it requires a start_time in the .GlobalEnv}
 
-\item{priority}{[-2; 2] Priority of your notification}
+\item{priority}{Priority of your notification (-2; 2)}
 
 \item{app}{Your app API key}
 
 \item{title}{Your title notification}
 
 \item{attachment}{Path to an image, if you want to attach it}
+
+\item{start_time}{Start time (Default = NULL)}
 }
 \description{
 Sending a Pushover notification on your device

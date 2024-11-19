@@ -84,28 +84,59 @@ vett.quoted <- function(vettore, sym = ", ", quote = T){
 # Funzione per creare progetto e sottocartelle
 #' Function to create a new project in the default folder
 #'
-#' @param name_project The name of the Project
-#' @param pc Which pc are we operating
+#' @param project_name The name of the Project
+#' @param rstudio If `TRUE`, calls [use_rstudio()] to make the new package or
+#'   project into an [RStudio
+#'   Project](https://r-pkgs.org/workflow101.html#sec-workflow101-rstudio-projects).
+#'    If `FALSE` and a non-package project, a sentinel `.here` file is placed so
+#'   that the directory can be recognized as a project by the
+#'   [here](https://here.r-lib.org) or
+#'   [rprojroot](https://rprojroot.r-lib.org) packages.
+#' @param open If `TRUE`, [activates][proj_activate()] the new project:
+#'
+#'   * If using RStudio desktop, the package is opened in a new session.
+#'   * If on RStudio server, the current RStudio project is activated.
+#'   * Otherwise, the working directory and active project is changed.
+#'
 #'
 #' @return Returns a folder in Projects with Analisi, Dati and Output subfolders
 #' @export
 #'
 #' @examples
-New_Project_LB <- function(name_project, pc = c("Luca", "Stefano")){
+New_Project_LB <- function(project_name, rstudio = rstudioapi::isAvailable(), open = rlang::is_interactive())
+{
+  require(usethis); require(fs)
 
-  if (pc == "Luca"){
-    path_project = "//fileserversvc/biomimmunol/Projects/"
-  } else if (pc == "Stefano"){
-    path_project = "/Volumes/biomimmunol/Projects/"
+  if(Sys.info()["machine"] == "x86-64"){
+    root <- "//fileserversvc/biomimmunol/Projects/"
+  } else if (Sys.info()["machine"] == "arm64"){
+    root <- "/Volumes/biomimmunol/Projects/"
   }
-
-  main_path <- paste0(path_project, name_project)
-  dir.create(path = main_path)
-  dir.create(path = paste0(main_path, "/Analisi"))
-  dir.create(path = paste0(main_path, "/Dati"))
-  dir.create(path = paste0(main_path, "/Output"))
-  dir.create(path = paste0(main_path, "/Dati/Original"))
-
+  path <- usethis:::user_path_prep(paste0(root, project_name))
+  name <- fs::path_file(path_abs(path))
+  usethis:::challenge_nested_project(path_dir(path), name)
+  usethis:::challenge_home_directory(path)
+  usethis:::create_directory(path)
+  usethis:::local_project(path, force = TRUE)
+  usethis::use_directory("Analisi")
+  usethis::use_directory("Dati")
+  usethis::use_directory("Dati/Original")
+  usethis::use_directory("Output")
+  if (rstudio) {
+    use_rstudio()
+  }
+  else {
+    ui_bullets(c(v = "Writing a sentinel file {.path {pth('.here')}}.",
+                 `_` = "Build robust paths within your project via {.fun here::here}.",
+                 i = "Learn more at {.url https://here.r-lib.org}."))
+    file_create(proj_path(".here"))
+  }
+  if (open) {
+    if (proj_activate(proj_get())) {
+      withr::deferred_clear()
+    }
+  }
+  invisible(proj_get())
 }
 
 #' Function to send a Telegram message with BiostatUO9 bot. NB: must create a start_time before running it
@@ -403,33 +434,30 @@ Distribution_LB <- function(data, var, split = FALSE, split_rule = NULL){
 #' @param dest Who is going to receive the notification (Default = both)
 #' @param script Text of your message
 #' @param timestamp If you want the time printed in your notification, if TRUE it requires a start_time in the .GlobalEnv
-#' @param priority [-2; 2] Priority of your notification
+#' @param priority Priority of your notification (-2; 2)
 #' @param app Your app API key
 #' @param title Your title notification
 #' @param attachment Path to an image, if you want to attach it
+#' @param start_time Start time (Default = NULL)
 #'
 #' @return
 #' @export
 #'
 #' @examples
-Pushover_LB <- function (dest = "both", script = 0, timestamp = TRUE,
-                         priority = 0, app = "ayje1n4x8fi64bupdn5shjnwd8ut95",
-                         title = "RStudio", attachment = NULL)
-{
-
-  chat_id <- switch(dest, both = c("grrzfbyxunvhecu46cr5m8mdiv9pno"),
+Pushover_LB <- function(dest = "both", script = 0, timestamp = TRUE, priority = 0,
+                        app = "ayje1n4x8fi64bupdn5shjnwd8ut95", title = "RStudio",
+                        attachment = NULL, start_time = NULL) {
+  chat_id <- switch(dest,
+                    both = c("grrzfbyxunvhecu46cr5m8mdiv9pno"),
                     Ste = "uwtaoa255uoeauaktnh8cprn6xw3aa",
                     Luca = "u6gu5qc6aujne8csirhbqmghsxzsud")
 
   if (timestamp) {
-
-    if(exists("start_time")){
-
-      start_time = start_time
-      process_time <- format(lubridate::seconds_to_period(round(as.numeric(difftime(Sys.time(),
-                                                                                    start_time, units = "secs")))), "%H:%M:%S")
-    }else{
-      stop("Object 'start_time' not found")
+    if (!is.null(start_time)) {
+      process_time <- format(lubridate::seconds_to_period(
+        round(as.numeric(difftime(Sys.time(), start_time, units = "secs")))), "%H:%M:%S")
+    } else {
+      stop("Argument 'start_time' must be provided when 'timestamp' is TRUE.")
     }
 
     for (i in chat_id) {
@@ -437,22 +465,21 @@ Pushover_LB <- function (dest = "both", script = 0, timestamp = TRUE,
         pushoverr::pushover(user = i, app = app,
                             message = paste0("Lo script ha runnato correttamente in ", process_time),
                             priority = priority, title = title, attachment = attachment)
-      }
-      else {
+      } else {
         pushoverr::pushover(user = i, app = app,
                             message = paste0("Lo script ", script, " ha runnato correttamente in ", process_time),
                             priority = priority, title = title, attachment = attachment)
       }
     }
-
-  }else{
+  } else {
     for (i in chat_id) {
       if (script == 0) {
         pushoverr::pushover(user = i, app = app,
                             message = paste0("Lo script ha runnato correttamente"),
                             priority = priority, title = title, attachment = attachment)
-      }else{
-        pushoverr::pushover(user = i, app = app, message = script, priority = priority, title = title, attachment = attachment)
+      } else {
+        pushoverr::pushover(user = i, app = app,
+                            message = script, priority = priority, title = title, attachment = attachment)
       }
     }
   }
