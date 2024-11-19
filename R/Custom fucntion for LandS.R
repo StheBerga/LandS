@@ -403,7 +403,7 @@ Distribution_LB <- function(data, var, split = FALSE, split_rule = NULL){
 #' @param dest Who is going to receive the notification (Default = both)
 #' @param script Text of your message
 #' @param timestamp If you want the time printed in your notification, if TRUE it requires a start_time in the .GlobalEnv
-#' @param priority [-2; 2] Priority of your notification
+#' @param priority Priority of your notification (-2; 2)
 #' @param app Your app API key
 #' @param title Your title notification
 #' @param attachment Path to an image, if you want to attach it

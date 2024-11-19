@@ -21,7 +21,7 @@ Pushover_LB(
 
 \item{timestamp}{If you want the time printed in your notification, if TRUE it requires a start_time in the .GlobalEnv}
 
-\item{priority}{[-2; 2] Priority of your notification}
+\item{priority}{Priority of your notification (-2; 2)}
 
 \item{app}{Your app API key}
 
