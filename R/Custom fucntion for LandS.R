@@ -396,3 +396,64 @@ Distribution_LB <- function(data, var, split = FALSE, split_rule = NULL){
           legend.title = element_blank(),
           panel.border = element_rect(linetype = "solid", colour = "black", size=0.2, fill=NA))
 }
+
+
+#' Sending a Pushover notification on your device
+#'
+#' @param dest Who is going to receive the notification (Default = both)
+#' @param script Text of your message
+#' @param timestamp If you want the time printed in your notification, if TRUE it requires a start_time in the .GlobalEnv
+#' @param priority [-2; 2] Priority of your notification
+#' @param app Your app API key
+#' @param title Your title notification
+#' @param attachment Path to an image, if you want to attach it
+#'
+#' @return
+#' @export
+#'
+#' @examples
+Pushover_LB <- function (dest = "both", script = 0, timestamp = TRUE,
+                         priority = 0, app = "ayje1n4x8fi64bupdn5shjnwd8ut95",
+                         title = "RStudio", attachment = NULL)
+{
+
+  chat_id <- switch(dest, both = c("grrzfbyxunvhecu46cr5m8mdiv9pno"),
+                    Ste = "uwtaoa255uoeauaktnh8cprn6xw3aa",
+                    Luca = "u6gu5qc6aujne8csirhbqmghsxzsud")
+
+  if (timestamp) {
+
+    if(exists("start_time")){
+
+      start_time = start_time
+      process_time <- format(lubridate::seconds_to_period(round(as.numeric(difftime(Sys.time(),
+                                                                                    start_time, units = "secs")))), "%H:%M:%S")
+    }else{
+      stop("Object 'start_time' not found")
+    }
+
+    for (i in chat_id) {
+      if (script == 0) {
+        pushoverr::pushover(user = i, app = app,
+                            message = paste0("Lo script ha runnato correttamente in ", process_time),
+                            priority = priority, title = title, attachment = attachment)
+      }
+      else {
+        pushoverr::pushover(user = i, app = app,
+                            message = paste0("Lo script ", script, " ha runnato correttamente in ", process_time),
+                            priority = priority, title = title, attachment = attachment)
+      }
+    }
+
+  }else{
+    for (i in chat_id) {
+      if (script == 0) {
+        pushoverr::pushover(user = i, app = app,
+                            message = paste0("Lo script ha runnato correttamente"),
+                            priority = priority, title = title, attachment = attachment)
+      }else{
+        pushoverr::pushover(user = i, app = app, message = script, priority = priority, title = title, attachment = attachment)
+      }
+    }
+  }
+}
