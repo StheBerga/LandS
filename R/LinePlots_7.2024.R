@@ -29,6 +29,7 @@
 #' @param check check the correctness of your graph
 #' @param target where do you want your pptx to be saved
 #' @param col_lines splitted lines colour
+#' @param stat_line statistic method for the line
 #'
 #' @return
 #' @export
@@ -39,6 +40,7 @@ Lineplots_LB <- function(data,
                          time,
                          group = 1,
                          split=F,
+                         stat_line = "median",
                          lw_reg = 1,
                          size_point = 0.6,
                          size_title = 12,
@@ -190,11 +192,23 @@ Lineplots_LB <- function(data,
     }
 
     # Stat line and other graphical adjustments
-    gg <- gg +
-      stat_summary(geom = "line", fun = median, linewidth = lw_reg, show.legend = F) +
+    if(stat_line == "median"){
+
+      gg <- gg +
+        stat_summary(geom = "line", fun = median, linewidth = lw_reg, show.legend = F) +
+        stat_summary(geom = "ribbon", fun.min = function(z) {quantile(z, 0.25)},
+                     fun.max = function(z) {quantile(z, 0.75)},
+                     linewidth = NA, alpha = 0.05, show.legend = F)
+
+    }else if(stat_line == "mean"){
+
+          gg <- gg +
+      stat_summary(geom = "line", fun = mean, linewidth = lw_reg, show.legend = F) +
       stat_summary(geom = "ribbon", fun.min = function(z) {quantile(z, 0.25)},
                                     fun.max = function(z) {quantile(z, 0.75)},
                    linewidth = NA, alpha = 0.05, show.legend = F)
+
+    }
 
     if (check) {
       gg <- gg +
