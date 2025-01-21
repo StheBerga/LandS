@@ -10,10 +10,12 @@ Lineplots_LB(
   time,
   group = 1,
   split = F,
+  stat_line = "median",
   lw_reg = 1,
   size_point = 0.6,
   size_title = 12,
   col_title = 1,
+  ribbon = T,
   size_axis_x = 5,
   size_axis_y = 6,
   size_title_grid = 7,
@@ -24,6 +26,7 @@ Lineplots_LB(
   Friedman = F,
   Test_results = Test_results,
   grid = T,
+  alpha_line = 1,
   ratio = 1,
   extra = F,
   extra_text = NULL,
@@ -47,6 +50,8 @@ Lineplots_LB(
 
 \item{split}{whether to split in two windows the lines}
 
+\item{stat_line}{statistic method for the line}
+
 \item{lw_reg}{lwd of regression line}
 
 \item{size_point}{size of points}
@@ -54,6 +59,8 @@ Lineplots_LB(
 \item{size_title}{size of title}
 
 \item{col_title}{colour of title}
+
+\item{ribbon}{whether to show or not ribbons}
 
 \item{size_axis_x}{x-axis text size}
 
@@ -74,6 +81,8 @@ Lineplots_LB(
 \item{Test_results}{posthoc test dataset}
 
 \item{grid}{whether to build a grid or a pptx}
+
+\item{alpha_line}{alpha value line}
 
 \item{ratio}{graph ratio}
 
