@@ -8,101 +8,101 @@ Lineplots_LB(
   data,
   variables,
   time,
-  group = 1,
-  split = F,
-  stat_line = "median",
-  lw_reg = 1,
-  size_point = 0.6,
-  size_title = 12,
-  col_title = 1,
-  ribbon = T,
-  size_axis_x = 5,
-  size_axis_y = 6,
-  size_title_grid = 7,
   breaks = unique(data[, time]),
   label = unique(data[, time]),
-  ylim = c(0.2, 0.8),
-  Posthoc = F,
-  Friedman = F,
-  Test_results = Test_results,
-  grid = T,
+  group = 1,
+  col_lines = c("salmon", "royalblue"),
+  stat_line = "median",
+  lw_reg = 1,
   alpha_line = 1,
+  ylim = c(0.2, 0.8),
+  ribbon = T,
+  alpha_ribbon = 0.05,
+  col_title = FALSE,
+  colour_title = NULL,
+  size_title = 7,
+  size_axis_x = 5,
+  size_axis_y = 6,
+  Overall = F,
+  Test_results = Test_results,
+  Posthoc = F,
+  threshold_posthoc = 0.1,
+  posthoc_test_size = 2,
+  grid = T,
   ratio = 1,
-  extra = F,
-  extra_text = NULL,
   PPTX = F,
   pptx_width = 8.5,
   pptx_height = 5.5,
-  threshold_posthoc = 0.1,
-  check = F,
   target = paste0(path, "/file.pptx"),
-  col_lines = c("salmon", "royalblue")
+  extra = F,
+  extra_text = NULL
 )
 }
 \arguments{
-\item{data}{dataset}
+\item{data}{A long-formatted dataframe}
 
-\item{variables}{vector of variables}
+\item{variables}{Vector of variables to plot}
 
-\item{time}{x-axis variable}
+\item{time}{Numeric variable to plot on the x-axis}
 
-\item{group}{factor variable to group}
+\item{breaks}{Numeric vector with x-axis breaks. Default: unique(data[, time])}
 
-\item{split}{whether to split in two windows the lines}
+\item{label}{Vector with x-axis labels. Must be the same length of breaks. Default: unique(data[, time])}
 
-\item{stat_line}{statistic method for the line}
+\item{group}{Factor variable to group the lines}
 
-\item{lw_reg}{lwd of regression line}
+\item{col_lines}{Colours for the lines. Default: "salmon" & "royalblue"}
 
-\item{size_point}{size of points}
+\item{stat_line}{Statistic method for the line. "median" or "mean"}
 
-\item{size_title}{size of title}
+\item{lw_reg}{Linewidth for regression line}
 
-\item{col_title}{colour of title}
+\item{alpha_line}{Alpha for regression line}
 
-\item{ribbon}{whether to show or not ribbons}
+\item{ylim}{Limits for the y-axis to plot. Default: c(0.20, 0.80)}
 
-\item{size_axis_x}{x-axis text size}
+\item{ribbon}{Whether to show or not ribbons}
 
-\item{size_axis_y}{y-axis text size}
+\item{alpha_ribbon}{Alpha for ribbons. Default = 0.05}
 
-\item{size_title_grid}{size of title in the grid}
+\item{col_title}{Whether to personalize the colour of title. Default = FALSE}
 
-\item{breaks}{breaks of x-axis}
+\item{colour_title}{A function to personalize the colour of title. See vignette for more.}
 
-\item{label}{labels of x-axis}
+\item{size_title}{Size of title. If grid recommended 7, if PPTX recommended 20}
 
-\item{ylim}{ylim to display in the graph}
+\item{size_axis_x}{x-axis text size. If grid recommended 5, if PPTX recommended 14}
 
-\item{Posthoc}{whether to display posthoc tests}
+\item{size_axis_y}{y-axis text size. If grid recommended 6, if PPTX recommended 14}
 
-\item{Friedman}{friedman overall test dataset}
+\item{Overall}{Whether to add overall test. Default = FALSE. See vignette for more.}
 
-\item{Test_results}{posthoc test dataset}
+\item{Test_results}{Dataframe for overall and posthoc tests. See vignette for more.}
 
-\item{grid}{whether to build a grid or a pptx}
+\item{Posthoc}{Whether to add posthoc tests with brackets.  Default = FALSE. See vignette for more.}
 
-\item{alpha_line}{alpha value line}
+\item{threshold_posthoc}{Threshold to display posthoc brackets}
 
-\item{ratio}{graph ratio}
+\item{posthoc_test_size}{Size for annotations of posthoc p-values. Default = 2}
 
-\item{extra}{do you want to add extra option?}
+\item{grid}{Whether to build a grid pdf or a PPTX file. Default = TRUE}
 
-\item{extra_text}{write your additional options}
+\item{ratio}{Graph ratio when grid = TRUE}
 
-\item{PPTX}{whether to build a pptx or a grid}
+\item{PPTX}{Whether to build PPTX or a grid pdf file. Default = FALSE. Must change grid = FALSE}
 
-\item{pptx_width}{inch}
+\item{pptx_width}{Graph dimensions for PPTX in inches}
 
-\item{pptx_height}{inch}
+\item{pptx_height}{Graph dimensions for PPTX in inches}
 
-\item{threshold_posthoc}{threshold to display posthoc brackets}
+\item{target}{Path where to save the PPTX file}
 
-\item{check}{check the correctness of your graph}
+\item{extra}{Whether to add an extra text function. Default = FALSE}
 
-\item{target}{where do you want your pptx to be saved}
-
-\item{col_lines}{splitted lines colour}
+\item{extra_text}{A function to add extra functions to the graphs. See vignette for more.}
+}
+\value{
+When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target folder
 }
 \description{
 Function to build the lineplots

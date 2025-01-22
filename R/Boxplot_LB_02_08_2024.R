@@ -40,6 +40,8 @@
 #' @param telegram
 #' @param posthoc_test_size
 #' @param Overall
+#' @param notch add notch to boxplot
+#' @param notchwidth width of the notch
 #'
 #' @return Una lista di boxplot
 #' @export
@@ -65,6 +67,8 @@ Boxplot_LB <- function(data,
                        threshold_posthoc = 0.1,
                        posthoc_test_size = 3.88,
                        Overall = F,
+                       notch = F,
+                       notchwidth = 0.5,
                        axis_y_title = NULL,
                        axis_x_title = NULL,
                        size_axis_x  = 6,
@@ -152,10 +156,11 @@ Boxplot_LB <- function(data,
       data[, "Y"][data[, i] < ymin] <- NA
     }else{}
 
-    boxplot[[k]] <- ggplot(data = data, aes_string(x = data[, group])) +
-
-      geom_boxplot(aes_string(y = data[, i], fill = data[, group]),
-                   width = width_box, alpha = alpha_box, outlier.shape = NA, lwd = lwd_box, show.legend = F)+
+    boxplot[[k]] <- ggplot(data = data, aes_string(x = data[,
+                                                            group])) + geom_boxplot(aes_string(y = data[, i], fill = data[, group]),
+                                                                                    width = width_box, alpha = alpha_box,
+                                                                                    notch = notch, notchwidth = notchwidth,
+                                                                                    outlier.shape = NA, lwd = lwd_box, show.legend = F) +
 
       {if (Point)
         geom_point(aes_string(y = data[, "Y"]),
@@ -190,9 +195,9 @@ Boxplot_LB <- function(data,
       {if (Posthoc)
         if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
           ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pval}",
-                             y.position = max(tapply(data[,i], data[, group], quantile, na.rm = T, probs = 0.75)+
-                                                tapply(data[,i], data[, group], IQR, na.rm = T)),
-                             step.increase = 0.08, size = posthoc_test_size)
+                                     y.position = max(tapply(data[,i], data[, group], quantile, na.rm = T, probs = 0.75)+
+                                                        tapply(data[,i], data[, group], IQR, na.rm = T)),
+                                     step.increase = 0.08, size = posthoc_test_size)
       }+
 
       {if (Overall)

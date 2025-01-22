@@ -25,6 +25,8 @@ Boxplot_LB(
   threshold_posthoc = 0.1,
   posthoc_test_size = 3.88,
   Overall = F,
+  notch = F,
+  notchwidth = 0.5,
   axis_y_title = NULL,
   axis_x_title = NULL,
   size_axis_x = 6,
@@ -84,7 +86,9 @@ Boxplot_LB(
 
 \item{threshold_posthoc}{threshold for displaying posthoc tests}
 
-\item{Overall}{}
+\item{notch}{add notch to boxplot}
+
+\item{notchwidth}{width of the notch}
 
 \item{axis_y_title}{axis y title}
 

@@ -484,3 +484,35 @@ Pushover_LB <- function(dest = "both", script = 0, timestamp = TRUE, priority = 
     }
   }
 }
+
+
+
+#' Title
+#'
+#' @param Test_results Test_results
+#' @param data data
+#' @param Time Time
+#' @param threshold_posthoc Threshold ph tests
+#' @param i i
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+Posthoc_lineplots_LB <- function (Test_results, data, time, threshold_posthoc, i) {
+  require(dplyr)
+  postmodel <- Test_results[Test_results[, 1] == i, ]
+  posthoc_df <- combn(levels(factor(data[, time])), 2) %>%
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c("group1", "group2")) %>%
+    mutate(across(1:2, as.numeric))
+  posthoc_df$y <- i
+  posthoc_df$pval <- NA
+  posthoc_df$pval <- as.numeric(as.vector(postmodel[, (ncol(postmodel) + 1 - nrow(posthoc_df)):ncol(postmodel)]))
+  posthoc_df <- posthoc_df[!posthoc_df$pval >= threshold_posthoc, ]
+  if (nrow(posthoc_df) == 0) {
+  } else {
+    posthoc_df$pval <- LandS::formatz_p(posthoc_df$pval)
+  }
+  return(posthoc_df)
+}

@@ -1,50 +1,53 @@
 #' Function to build the lineplots
 #'
-#' @param data dataset
-#' @param variables vector of variables
-#' @param time x-axis variable
-#' @param group factor variable to group
-#' @param split whether to split in two windows the lines
-#' @param lw_reg lwd of regression line
-#' @param ribbon whether to show or not ribbons
-#' @param size_point size of points
-#' @param size_title size of title
-#' @param col_title colour of title
-#' @param alpha_line alpha value line
-#' @param size_axis_x x-axis text size
-#' @param size_axis_y y-axis text size
-#' @param size_title_grid size of title in the grid
-#' @param breaks breaks of x-axis
-#' @param label labels of x-axis
-#' @param ylim ylim to display in the graph
-#' @param Posthoc whether to display posthoc tests
-#' @param Friedman friedman overall test dataset
-#' @param Test_results posthoc test dataset
-#' @param grid whether to build a grid or a pptx
-#' @param ratio graph ratio
-#' @param extra do you want to add extra option?
-#' @param extra_text write your additional options
-#' @param PPTX whether to build a pptx or a grid
-#' @param pptx_width inch
-#' @param pptx_height inch
-#' @param threshold_posthoc threshold to display posthoc brackets
-#' @param check check the correctness of your graph
-#' @param target where do you want your pptx to be saved
-#' @param col_lines splitted lines colour
-#' @param stat_line statistic method for the line
+#' @param data A long-formatted dataframe
+#' @param variables Vector of variables to plot
+#' @param time Numeric variable to plot on the x-axis
+#' @param breaks Numeric vector with x-axis breaks. Default: unique(data[, time])
+#' @param label Vector with x-axis labels. Must be the same length of breaks. Default: unique(data[, time])
+#' @param group Factor variable to group the lines
+#' @param col_lines Colours for the lines. Default: "salmon" & "royalblue"
+#' @param stat_line Statistic method for the line. "median" or "mean"
+#' @param lw_reg Linewidth for regression line
+#' @param alpha_line Alpha for regression line
+#' @param ylim Limits for the y-axis to plot. Default: c(0.20, 0.80)
+#' @param ribbon Whether to show or not ribbons
+#' @param alpha_ribbon Alpha for ribbons. Default = 0.05
+#' @param col_title Whether to personalize the colour of title. Default = FALSE
+#' @param colour_title A function to personalize the colour of title. See vignette for more.
+#' @param size_title Size of title. If grid recommended 7, if PPTX recommended 20
+#' @param size_axis_x x-axis text size. If grid recommended 5, if PPTX recommended 14
+#' @param size_axis_y y-axis text size. If grid recommended 6, if PPTX recommended 14
+#' @param Overall Whether to add overall test. Default = FALSE. See vignette for more.
+#' @param Test_results Dataframe for overall and posthoc tests. See vignette for more.
+#' @param Posthoc Whether to add posthoc tests with brackets.  Default = FALSE. See vignette for more.
+#' @param threshold_posthoc Threshold to display posthoc brackets
+#' @param posthoc_test_size Size for annotations of posthoc p-values. Default = 2
+#' @param grid Whether to build a grid pdf or a PPTX file. Default = TRUE
+#' @param ratio Graph ratio when grid = TRUE
+#' @param PPTX Whether to build PPTX or a grid pdf file. Default = FALSE. Must change grid = FALSE
+#' @param pptx_width Graph dimensions for PPTX in inches
+#' @param pptx_height Graph dimensions for PPTX in inches
+#' @param target Path where to save the PPTX file
+#' @param extra Whether to add an extra text function. Default = FALSE
+#' @param extra_text A function to add extra functions to the graphs. See vignette for more.
 #'
-#' @return
+#' @returns When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target folder
 #' @export
 #'
 #' @examples
-Lineplots_LB <- function (data, variables, time, group = 1, split = F, stat_line = "median",
-                          lw_reg = 1, size_point = 0.6, size_title = 12, col_title = 1, ribbon = T,
-                          size_axis_x = 5, size_axis_y = 6, size_title_grid = 7, breaks = unique(data[,
-                                                                                                      time]), label = unique(data[, time]), ylim = c(0.2, 0.8),
-                          Posthoc = F, Friedman = F, Test_results = Test_results, grid = T, alpha_line = 1,
-                          ratio = 1, extra = F, extra_text = NULL, PPTX = F, pptx_width = 8.5,
-                          pptx_height = 5.5, threshold_posthoc = 0.1, check = F, target = paste0(path,
-                                                                                                 "/file.pptx"), col_lines = c("salmon", "royalblue"))
+Lineplots_LB <- function (data, variables,
+                          time, breaks = unique(data[, time]), label = unique(data[, time]),
+                          group = 1, col_lines = c("salmon", "royalblue"),
+                          stat_line = "median", lw_reg = 1, alpha_line = 1, ylim = c(0.2, 0.8),
+                          ribbon = T, alpha_ribbon = 0.05,
+                          col_title = FALSE, colour_title = NULL,
+                          size_title = 7, size_axis_x = 5, size_axis_y = 6,
+                          Overall = F, Test_results = Test_results,
+                          Posthoc = F, threshold_posthoc = 0.1, posthoc_test_size = 2,
+                          grid = T, ratio = 1,
+                          PPTX = F, pptx_width = 8.5, pptx_height = 5.5, target = paste0(path, "/file.pptx"),
+                          extra = F, extra_text = NULL)
 {
   require(ggplot2)
   require(ggpubr)
@@ -58,195 +61,171 @@ Lineplots_LB <- function (data, variables, time, group = 1, split = F, stat_line
   require(officer)
   require(rvg)
   require(progress)
-  if (Posthoc == F) {
+
+  if (Posthoc == FALSE & Overall == FALSE) {
     Test_results = data.frame(matrix(NA))
   }
-  themegrid <- theme(axis.text.x = element_text(size = size_axis_x,
-                                                colour = "black", vjust = -0), plot.margin = margin(2,
-                                                                                                    2, 2, 2, "mm"), axis.text.y = element_text(size = size_axis_y,
-                                                                                                                                               colour = "black"), panel.border = element_rect(linetype = "solid",
-                                                                                                                                                                                              colour = "black", linewidth = 0.1, fill = NA), axis.ticks = element_line(linewidth = 0.1),
+
+  # Define themes
+  themegrid <- theme(axis.text.x = element_text(size = size_axis_x, colour = "black", vjust = -0),
+                     plot.margin = margin(2, 2, 2, 2, "mm"),
+                     axis.text.y = element_text(size = size_axis_y, colour = "black"),
+                     panel.border = element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
+                     axis.ticks = element_line(linewidth = 0.1),
                      axis.ticks.length = unit(0.25, "mm"), panel.background = element_blank(),
                      panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                     legend.title = element_blank(), panel.spacing.x = unit(1.5,
-                                                                            "mm"), aspect.ratio = ratio)
-  themePPTX <- theme(axis.text.x = element_text(size = 14,
-                                                colour = "black", vjust = -0), plot.margin = margin(2,
-                                                                                                    2, 2, 2, "mm"), axis.text.y = element_text(size = 14,
-                                                                                                                                               colour = "black"), panel.border = element_rect(linetype = "solid",
-                                                                                                                                                                                              colour = "black", linewidth = 0.1, fill = NA), axis.ticks = element_line(linewidth = 0.1),
+                     legend.title = element_blank(), panel.spacing.x = unit(1.5, "mm"), aspect.ratio = ratio)
+
+  themePPTX <- theme(axis.text.x = element_text(size = size_axis_x, colour = "black", vjust = -0),
+                     plot.margin = margin(2, 2, 2, 2, "mm"), axis.text.y = element_text(size = size_axis_y, colour = "black"),
+                     panel.border = element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
+                     axis.ticks = element_line(linewidth = 0.1),
                      axis.ticks.length = unit(0.25, "mm"), panel.background = element_blank(),
-                     panel.grid.major.y = element_blank(), panel.grid.major.x = element_line(colour = "grey70",
-                                                                                             linewidth = 0.1, linetype = 2), panel.grid.minor = element_blank(),
-                     legend.key.width = unit(2, "cm"), panel.spacing.x = unit(1.5,
-                                                                              "mm"))
-  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)",
-                         total = length(variables))
-  pb$tick(0)
+                     panel.grid.major.y = element_blank(),
+                     panel.grid.major.x = element_line(colour = "grey70", linewidth = 0.1, linetype = 2),
+                     panel.grid.minor = element_blank(),
+                     legend.key.width = unit(2, "cm"), panel.spacing.x = unit(1.5, "mm"))
+  # Initialize progress bar
+  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables)); pb$tick(0)
   list_reg <- list()
+
   if (PPTX == T) {
     ppt <- read_pptx()
   }
+
   for (i in variables) {
-    if (Posthoc) {
-      postmodel <- Test_results[Test_results[, 1] == i,
-      ]
-      posthoc_df <- as.data.frame(t(combn(levels(data[,
-                                                      "Time"]), 2)))
-      colnames(posthoc_df) <- c("group1", "group2")
-      posthoc_df$y <- i
-      posthoc_df$pval <- NA
-      posthoc_df$pval <- as.numeric(as.vector(postmodel[,
-                                                        (ncol(postmodel) + 1 - nrow(posthoc_df)):ncol(postmodel)]))
-      posthoc_df <- posthoc_df[!posthoc_df$pval >= threshold_posthoc,
-      ]
-      if (nrow(posthoc_df) == 0) {
-        posthoc_df$pval <- formatz_p(posthoc_df$pval)
-      }
-    }
+
     k <- which(variables == i)
+
+    if (Posthoc == T){
+
+      posthoc_df <- Posthoc_lineplots_LB(Test_results = Test_results, data = data, time = time,
+                                                threshold_posthoc = threshold_posthoc, i)
+
+    }
+
     Quantili <- data.frame(Tempo = unique(data[, time]),
-                           Inferior = tapply(data[, i], data[, time], FUN = function(z) quantile(z,
-                                                                                                 ylim[1], na.rm = T)), Superior = tapply(data[,
-                                                                                                                                              i], data[, time], FUN = function(z) quantile(z,
-                                                                                                                                                                                           ylim[2], na.rm = T)))
-    gg <- ggplot(data = data, aes_string(x = time, y = data[,
-                                                            i])) + coord_cartesian(ylim = c(min(Quantili$Inferior),
-                                                                                            max(Quantili$Superior)))
-    if (col_title != 1) {
+                           Inferior = tapply(data[, i], data[, time], FUN = function(z) quantile(z, ylim[1], na.rm = T)),
+                           Superior = tapply(data[, i], data[, time], FUN = function(z) quantile(z, ylim[2], na.rm = T)))
+    gg <- ggplot(data = data, aes_string(x = time, y = data[, i])) +
+      coord_cartesian(ylim = c(min(Quantili$Inferior), max(Quantili$Superior)))
+
+    if (col_title) {
+      # Graph title with different colours
       if (group != 1) {
-        colour_title <- legend_name$Colore[legend_name$new_name ==
-                                             i]
+        # Graphs split by grouping variable
+        colour_title <- colour_title(i)
+
         gg <- gg + aes_string(colour = group, fill = group) +
           scale_color_manual(values = col_lines, drop = F) +
-          scale_fill_manual(values = col_lines, drop = F,
-                            guide = FALSE)
+          scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
+
+      } else {
+        # Overall graphs
+        colour_title <- colour_title(i)
+
+        gg <- gg + aes_string(colour = col_lines[1], fill = col_lines[1]) +
+          scale_color_manual(values = col_lines[1], drop = F) +
+          scale_fill_manual(values = col_lines[1], drop = F, guide = FALSE)
+
       }
-      else {
-        colour_title <- legend_name$Colore[legend_name$new_name ==
-                                             i]
-        gg <- gg + aes_string(colour = col_lines[1],
-                              fill = col_lines[1]) + scale_color_manual(values = col_lines[1],
-                                                                        drop = F) + scale_fill_manual(values = col_lines[1],
-                                                                                                      drop = F, guide = FALSE)
-      }
-    }
-    else {
+    } else {
+      # All graphs with the same title colour
       if (group != 1) {
+
+        # Graphs split by grouping variable
         colour_title <- "black"
         gg <- gg + aes_string(colour = group, fill = group) +
           scale_color_manual(values = col_lines, drop = F) +
           scale_fill_manual(values = col_lines, drop = F,
                             guide = FALSE)
-      }
-      else {
+      } else {
+
+        # Overall graphs
         colour_title <- "black"
         gg <- gg + aes(colour = "forestgreen", fill = "forestgreen") +
           scale_color_manual(values = col_lines[1], drop = F) +
-          scale_fill_manual(values = col_lines[1], drop = F,
-                            guide = FALSE)
+          scale_fill_manual(values = col_lines[1], drop = F, guide = FALSE)
       }
     }
     if (stat_line == "median") {
-      gg <- gg + stat_summary(geom = "line", fun = median, alpha = alpha_line,
-                              linewidth = lw_reg, show.legend = F)
-    }
-    else if (stat_line == "mean") {
-      gg <- gg + stat_summary(geom = "line", fun = mean, alpha = alpha_line,
-                              linewidth = lw_reg, show.legend = F)
+      gg <- gg + stat_summary(geom = "line", fun = median, alpha = alpha_line, linewidth = lw_reg)
+    } else if (stat_line == "mean") {
+      gg <- gg + stat_summary(geom = "line", fun = mean, alpha = alpha_line, linewidth = lw_reg)
     }
 
     if (ribbon == TRUE){
-      gg <- gg + stat_summary(geom = "ribbon",
-                              fun.min = function(z) {
-                                quantile(z, 0.25)
-                              }, fun.max = function(z) {
-                                quantile(z, 0.75)
-                              }, linewidth = NA, alpha = 0.05, show.legend = F)}else{}
+      gg <- gg + stat_summary(geom = "ribbon", fun.min = function(z) { quantile(z, 0.25) },
+                              fun.max = function(z) { quantile(z, 0.75) },
+                              linewidth = NA, alpha = alpha_ribbon, show.legend = F)
+    } else{ }
 
-    if (check) {
-      gg <- gg + geom_point(alpha = 1, size = 1, position = position_dodge(width = 3),
-                            show.legend = F) + stat_summary(geom = "point",
-                                                            position = position_dodge(width = 3), fun = median,
-                                                            show.legend = F, shape = 17, size = 4) + stat_summary(geom = "errorbar",
-                                                                                                                  position = position_dodge(width = 3), fun.min = function(z) {
-                                                                                                                    quantile(z, 0.25)
-                                                                                                                  }, fun.max = function(z) {
-                                                                                                                    quantile(z, 0.75)
-                                                                                                                  }, show.legend = F)
-    }
     if (extra) {
       gg <- gg + extra_text(i)
     }
-    gg <- gg + labs(title = i, x = NULL, y = NULL) + scale_x_continuous(breaks = breaks,
-                                                                        labels = label, guide = guide_axis(check.overlap = T)) +
-      guides(color = guide_legend(override.aes = list(linewidth = 2.5,
-                                                      size = 5))) + guides(fill = guide_legend(override.aes = list(linewidth = 2.5,
-                                                                                                                   size = 5)))
-    if (split) {
-      gg <- gg + facet_grid2(cols = vars(group), scales = "fixed",
-                             strip = strip_themed(background_x = element_rect(fill = "gray95"),
-                                                  text_x = element_text(size = size_title_grid,
-                                                                        face = "bold", color = "black")))
+
+    gg <- gg +
+      labs(title = i, x = NULL, y = NULL) +
+      scale_x_continuous(breaks = breaks, labels = label, guide = guide_axis(check.overlap = T)) +
+      guides(color = guide_legend(override.aes = list(linewidth = 2.5, size = 5))) +
+      guides(fill = guide_legend(override.aes = list(linewidth = 2.5, size = 5)))
+
+    # Global test
+    {if (Overall)
+      gg <- gg + annotate(geom = "text", x = -Inf, y = Inf, hjust = -.1, vjust = 1.5, size = posthoc_test_size,
+                          label = LandS::formatz_p(Test_results[Test_results[, 1] == i, 2]), colour = "black")
+      }
+
+    # Posthoc tests
+    {if (Posthoc)
+      if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
+        gg <- gg +
+        ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pval}",
+                                   y.position = max(tapply(data[, i], data[, time], median, na.rm = T)),
+                                   step.increase = 0.08, size = posthoc_test_size)
     }
-    if (Friedman) {
-      if (as.numeric(postmodel[, 2]) < 0.05) {
-        gg <- gg + annotate("text", x = -Inf, y = Inf,
-                            hjust = -0.1, vjust = 1.5, label = paste0("p: ",
-                                                                      formatz_p(postmodel[, 2])), colour = "red")
+
+    # Graphs theme
+    if (grid == TRUE) { # Theme for grid
+      if (k == 1 & group != 1) {
+        gg <- gg + themegrid +
+          theme(plot.title = element_text(hjust = 0.5, size = size_title, vjust = -0.5, face = "bold",
+                                          colour = colour_title), legend.justification = c(1, 1),
+                legend.position = "inside", # legend.position.inside = c(1, 1),
+                legend.background = element_rect(fill = "transparent"),
+                legend.title = element_blank(), legend.key = element_blank())
       }
       else {
-        gg <- gg + annotate("text", x = -Inf, y = Inf,
-                            hjust = -0.1, vjust = 1.5, label = paste0("p: ",
-                                                                      formatz_p(postmodel[, 2])), colour = "black")
+        gg <- gg + themegrid +
+          theme(plot.title = element_text(hjust = 0.5, size = size_title, vjust = -0.5, face = "bold",
+                                          colour = colour_title),
+                legend.position = "none", legend.title = element_blank())
       }
     }
-    if (Posthoc && nrow(posthoc_df) > 0) {
-      gg <- gg + stat_pvalue_manual(posthoc_df, label = "pval",
-                                    step.increase = 0.08, y.position = max(tapply(data[,
-                                                                                       i], data[, group], quantile, na.rm = T, probs = 0.75) +
-                                                                             tapply(data[, i], data[, group], IQR, na.rm = T)))
+    if (PPTX) { # Theme for PPTX
+      gg <- gg + themePPTX +
+        theme(plot.title = element_text(hjust = 0.5, size = 20, vjust = -0.5, face = "bold", colour = colour_title),
+              legend.position = "bottom", legend.title = element_blank(), legend.background = element_rect(fill = "transparent"))
     }
-    if (grid) {
-      if (k == 1) {
-        gg <- gg + themegrid + theme(plot.title = element_text(hjust = 0.5,
-                                                               size = size_title_grid, vjust = -0.5, face = "bold",
-                                                               colour = colour_title), legend.justification = c(1,
-                                                                                                                1), legend.position = c(1, 1), legend.background = element_rect(fill = "transparent"),
-                                     legend.title = element_blank(), legend.key = element_blank())
-      }
-      else {
-        gg <- gg + themegrid + theme(plot.title = element_text(hjust = 0.5,
-                                                               size = size_title_grid, vjust = -0.5, face = "bold",
-                                                               colour = colour_title), legend.position = "none",
-                                     legend.title = element_blank())
-      }
-    }
-    if (PPTX) {
-      gg <- gg + themePPTX + theme(plot.title = element_text(hjust = 0.5,
-                                                             size = 20, vjust = -0.5, face = "bold", colour = colour_title),
-                                   legend.position = "bottom", legend.title = element_blank(),
-                                   legend.background = element_rect(fill = "transparent"))
-    }
+
     list_reg[[k]] <- gg
     pb$tick(1)
   }
+
   if (PPTX == T) {
     message("Printing PowerPoint")
-    pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)",
-                           total = length(variables))
-    pb$tick(0)
+    # Initializing progress bar
+    pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables)); pb$tick(0)
+
     for (i in 1:length(list_reg)) {
       list_reg[[i]] <- rvg::dml(ggobj = list_reg[[i]])
       ppt = add_slide(ppt, layout = "Title and Content")
-      ph_with(ppt, list_reg[[i]], ph_location(width = pptx_width,
-                                              height = pptx_height))
+      ph_with(ppt, list_reg[[i]], ph_location(width = pptx_width, height = pptx_height))
       pb$tick(1)
     }
     print(ppt, target = target)
     message("Done printing :)")
-  }
-  else {
+  } else {
     return(list_reg)
   }
 }
