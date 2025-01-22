@@ -21,6 +21,7 @@ In this vingette we will see how to master the Lineplots_LB function to build pe
 ```{r setup}
 options(scipen = 999999)
 library(LandS)
+library(ggplot2)
 ```
 
 After that we can load the dataframe from which we will run the lineplots. 
