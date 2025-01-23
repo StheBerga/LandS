@@ -18,6 +18,10 @@ Lineplots_LB(
   ylim = c(0.2, 0.8),
   ribbon = T,
   alpha_ribbon = 0.05,
+  ID_lines = FALSE,
+  ID = "ID",
+  alpha_ID_line = 0.3,
+  lw_ID_line = 0.2,
   col_title = FALSE,
   colour_title = NULL,
   size_title = 7,
@@ -34,6 +38,8 @@ Lineplots_LB(
   pptx_width = 8.5,
   pptx_height = 5.5,
   target = paste0(path, "/file.pptx"),
+  label_title = paste0("Lineplots by ", group, "\\n", format(Sys.Date(), "\%d/\%m/\%Y")),
+  size_label_title = 2.5,
   extra = F,
   extra_text = NULL
 )
@@ -53,7 +59,7 @@ Lineplots_LB(
 
 \item{col_lines}{Colours for the lines. Default: "salmon" & "royalblue"}
 
-\item{stat_line}{Statistic method for the line. "median" or "mean"}
+\item{stat_line}{Statistic method for the line. "median" or "mean" or "both"}
 
 \item{lw_reg}{Linewidth for regression line}
 
@@ -63,7 +69,15 @@ Lineplots_LB(
 
 \item{ribbon}{Whether to show or not ribbons}
 
-\item{alpha_ribbon}{Alpha for ribbons. Default = 0.05}
+\item{alpha_ribbon}{Alpha for ribbons. Default: 0.05}
+
+\item{ID_lines}{Whether to show ID lines for every patient}
+
+\item{ID}{ID variable. Default: "ID"}
+
+\item{alpha_ID_line}{Alpha for ID lines. Default: 0.3}
+
+\item{lw_ID_line}{Linewidth for ID lines. Default: 0.2}
 
 \item{col_title}{Whether to personalize the colour of title. Default = FALSE}
 
@@ -96,6 +110,10 @@ Lineplots_LB(
 \item{pptx_height}{Graph dimensions for PPTX in inches}
 
 \item{target}{Path where to save the PPTX file}
+
+\item{label_title}{A title for your list. Default sets "Lineplots by grouping variable" and the current date}
+
+\item{size_label_title}{Size for your list's title. Default: 2.5}
 
 \item{extra}{Whether to add an extra text function. Default = FALSE}
 

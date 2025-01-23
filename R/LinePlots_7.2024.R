@@ -7,12 +7,16 @@
 #' @param label Vector with x-axis labels. Must be the same length of breaks. Default: unique(data[, time])
 #' @param group Factor variable to group the lines
 #' @param col_lines Colours for the lines. Default: "salmon" & "royalblue"
-#' @param stat_line Statistic method for the line. "median" or "mean"
+#' @param stat_line Statistic method for the line. "median" or "mean" or "both"
 #' @param lw_reg Linewidth for regression line
 #' @param alpha_line Alpha for regression line
 #' @param ylim Limits for the y-axis to plot. Default: c(0.20, 0.80)
 #' @param ribbon Whether to show or not ribbons
-#' @param alpha_ribbon Alpha for ribbons. Default = 0.05
+#' @param alpha_ribbon Alpha for ribbons. Default: 0.05
+#' @param ID_lines Whether to show ID lines for every patient
+#' @param ID ID variable. Default: "ID"
+#' @param alpha_ID_line Alpha for ID lines. Default: 0.3
+#' @param lw_ID_line Linewidth for ID lines. Default: 0.2
 #' @param col_title Whether to personalize the colour of title. Default = FALSE
 #' @param colour_title A function to personalize the colour of title. See vignette for more.
 #' @param size_title Size of title. If grid recommended 7, if PPTX recommended 20
@@ -31,7 +35,8 @@
 #' @param target Path where to save the PPTX file
 #' @param extra Whether to add an extra text function. Default = FALSE
 #' @param extra_text A function to add extra functions to the graphs. See vignette for more.
-#'
+#' @param label_title A title for your list. Default sets "Lineplots by grouping variable" and the current date
+#' @param size_label_title Size for your list's title. Default: 2.5
 #' @returns When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target folder
 #' @export
 #'
@@ -41,20 +46,21 @@ Lineplots_LB <- function (data, variables,
                           group = 1, col_lines = c("salmon", "royalblue"),
                           stat_line = "median", lw_reg = 1, alpha_line = 1, ylim = c(0.2, 0.8),
                           ribbon = T, alpha_ribbon = 0.05,
+                          ID_lines = FALSE, ID = "ID", alpha_ID_line = 0.3, lw_ID_line = 0.2,
                           col_title = FALSE, colour_title = NULL,
                           size_title = 7, size_axis_x = 5, size_axis_y = 6,
                           Overall = F, Test_results = Test_results,
                           Posthoc = F, threshold_posthoc = 0.1, posthoc_test_size = 2,
                           grid = T, ratio = 1,
                           PPTX = F, pptx_width = 8.5, pptx_height = 5.5, target = paste0(path, "/file.pptx"),
+                          label_title = paste0("Lineplots by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
+                          size_label_title = 2.5,
                           extra = F, extra_text = NULL)
 {
   require(ggplot2)
   require(ggpubr)
   require(dplyr)
-  require(survival)
   require(ggh4x)
-  require(ggformula)
   require(grid)
   require(gridExtra)
   require(svMisc)
@@ -93,6 +99,16 @@ Lineplots_LB <- function (data, variables,
     ppt <- read_pptx()
   }
 
+  if (length(variables) > 1){
+    list_reg[[1]] <- ggplot(data, aes_string(colour = group, x = 1, y = 1)) +
+      geom_point(shape = NA, show.legend = TRUE) +
+      scale_color_manual(values = col_lines) +
+      theme_transparent()+
+      annotate(geom = "text", x = 1, y = 1.001, size = size_label_title, label = label_title, vjust = 1.25, fontface = "bold")+
+      guides(color = guide_legend(override.aes = list(size = 7.5, shape = 20))) +
+      theme(legend.position = "inside", legend.justification = c(0.5, 0.3), legend.title = element_blank())
+  } else {}
+
   for (i in variables) {
 
     k <- which(variables == i)
@@ -100,7 +116,7 @@ Lineplots_LB <- function (data, variables,
     if (Posthoc == T){
 
       posthoc_df <- Posthoc_lineplots_LB(Test_results = Test_results, data = data, time = time,
-                                                threshold_posthoc = threshold_posthoc, i)
+                                         threshold_posthoc = threshold_posthoc, i)
 
     }
 
@@ -120,6 +136,12 @@ Lineplots_LB <- function (data, variables,
           scale_color_manual(values = col_lines, drop = F) +
           scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
 
+        if (ID_lines == TRUE){
+          gg <- gg +
+            geom_line(aes_string(y = data[, i], group = ID),
+                      alpha = alpha_ID_line, linewidth = lw_ID_line)
+        } else { }
+
       } else {
         # Overall graphs
         colour_title <- colour_title(i)
@@ -127,6 +149,12 @@ Lineplots_LB <- function (data, variables,
         gg <- gg + aes_string(colour = col_lines[1], fill = col_lines[1]) +
           scale_color_manual(values = col_lines[1], drop = F) +
           scale_fill_manual(values = col_lines[1], drop = F, guide = FALSE)
+
+        if (ID_lines == TRUE){
+          gg <- gg +
+            geom_line(aes_string(y = data[, i], group = ID),
+                      alpha = alpha_ID_line, linewidth = lw_ID_line, colour = "black")
+        } else { }
 
       }
     } else {
@@ -137,8 +165,14 @@ Lineplots_LB <- function (data, variables,
         colour_title <- "black"
         gg <- gg + aes_string(colour = group, fill = group) +
           scale_color_manual(values = col_lines, drop = F) +
-          scale_fill_manual(values = col_lines, drop = F,
-                            guide = FALSE)
+          scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
+
+        if (ID_lines == TRUE){
+          gg <- gg +
+            geom_line(aes_string(y = data[, i], group = ID),
+                      alpha = alpha_ID_line, linewidth = lw_ID_line)
+        } else { }
+
       } else {
 
         # Overall graphs
@@ -146,12 +180,28 @@ Lineplots_LB <- function (data, variables,
         gg <- gg + aes(colour = "forestgreen", fill = "forestgreen") +
           scale_color_manual(values = col_lines[1], drop = F) +
           scale_fill_manual(values = col_lines[1], drop = F, guide = FALSE)
+
+        if (ID_lines == TRUE){
+          gg <- gg +
+            geom_line(aes_string(y = data[, i], group = ID),
+                      alpha = alpha_ID_line, linewidth = lw_ID_line, colour = "black")
+        } else { }
+
       }
     }
     if (stat_line == "median") {
-      gg <- gg + stat_summary(geom = "line", fun = median, alpha = alpha_line, linewidth = lw_reg)
+
+      gg <- gg +
+        stat_summary(geom = "line", fun = median, alpha = alpha_line, linewidth = lw_reg, show.legend = FALSE)+
+        stat_summary(geom = "point", fun = median, size = NA, show.legend = TRUE)
+
     } else if (stat_line == "mean") {
       gg <- gg + stat_summary(geom = "line", fun = mean, alpha = alpha_line, linewidth = lw_reg)
+    } else if (stat_line == "both"){
+      # Check legend
+      gg <- gg +
+        stat_summary(geom = "line", fun = median, alpha = alpha_line, linewidth = lw_reg, show.legend = TRUE) +
+        stat_summary(geom = "line", fun = mean, alpha = alpha_line, linewidth = lw_reg, linetype = 2, show.legend = TRUE)
     }
 
     if (ribbon == TRUE){
@@ -166,9 +216,7 @@ Lineplots_LB <- function (data, variables,
 
     gg <- gg +
       labs(title = i, x = NULL, y = NULL) +
-      scale_x_continuous(breaks = breaks, labels = label, guide = guide_axis(check.overlap = T)) +
-      guides(color = guide_legend(override.aes = list(linewidth = 2.5, size = 5))) +
-      guides(fill = guide_legend(override.aes = list(linewidth = 2.5, size = 5)))
+      scale_x_continuous(breaks = breaks, labels = label, guide = guide_axis(check.overlap = TRUE))
 
     # Global test
     {if (Overall)
@@ -187,20 +235,12 @@ Lineplots_LB <- function (data, variables,
 
     # Graphs theme
     if (grid == TRUE) { # Theme for grid
-      if (k == 1 & group != 1) {
-        gg <- gg + themegrid +
-          theme(plot.title = element_text(hjust = 0.5, size = size_title, vjust = -0.5, face = "bold",
-                                          colour = colour_title), legend.justification = c(1, 1),
-                legend.position = "inside", # legend.position.inside = c(1, 1),
-                legend.background = element_rect(fill = "transparent"),
-                legend.title = element_blank(), legend.key = element_blank())
-      }
-      else {
-        gg <- gg + themegrid +
-          theme(plot.title = element_text(hjust = 0.5, size = size_title, vjust = -0.5, face = "bold",
-                                          colour = colour_title),
-                legend.position = "none", legend.title = element_blank())
-      }
+
+      gg <- gg + themegrid +
+        theme(plot.title = element_text(hjust = 0.5, size = size_title, vjust = -0.5, face = "bold",
+                                        colour = colour_title),
+              legend.position = "none", legend.title = element_blank())
+
     }
     if (PPTX) { # Theme for PPTX
       gg <- gg + themePPTX +
@@ -208,7 +248,11 @@ Lineplots_LB <- function (data, variables,
               legend.position = "bottom", legend.title = element_blank(), legend.background = element_rect(fill = "transparent"))
     }
 
-    list_reg[[k]] <- gg
+    if (length(variables) > 1) {
+      list_reg[[k+1]] <- gg
+    } else {
+      list_reg[[k]] <- gg
+    }
     pb$tick(1)
   }
 
