@@ -1,0 +1,9 @@
+pandoc: 3.1.11
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  master-lineplots: master-lineplots.html
+last_built: 2025-01-23T13:22Z
+urls:
+  reference: https://stheberga.github.io/LandS/reference
+  article: https://stheberga.github.io/LandS/articles
