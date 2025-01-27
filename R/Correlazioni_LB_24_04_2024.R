@@ -1,25 +1,29 @@
 #' This function computes the correlation coefficients and prints the pairs from the heightest coefficient
 #'
-#' @param dataset dataframe
-#' @param lista_vars vector of numeric variables to be computed the correlation
+#' @param data dataframe
+#' @param variables vector of numeric variables to be computed the correlation
 #' @param method method to compute the correlation coefficient (Default = "spearman")
 #' @param rho_dec number of decimal for rho (Default = 3)
 #' @param pval_dec number of decimal for the pvalue (Default = 4)
+#' @param excel export fuction results as multiple Excel sheets
+#' @param excel_path path where you want your Excel
 #'
 #' @return Una lista con dataset
 #' @export
 #'
 #' @examples
-correlazioni_LB <- function(dataset, lista_vars, method = "spearman", rho_dec = 3, pval_dec = 4){
+correlazioni_LB <- function(data, variables, method = "spearman", rho_dec = 3, pval_dec = 4,
+                            excel = FALSE,
+                            excel_path = paste0(path_output, "/Results.xlsx")){
   options(width=10000)
   options(max.print=99999)
   options(scipen = 99999)
   require(dplyr)
 
-  data_tmp <- dplyr::select(dataset, all_of(lista_vars))
+  data_tmp <- dplyr::select(data, all_of(variables))
 
   # check numeric all variables
-  for (i in lista_vars) {
+  for (i in variables) {
     test_numeric <- is.numeric(data_tmp[, i])
     if(test_numeric == F){
       cat("Error, var:", i, " is not numeric", "\n")
@@ -28,38 +32,39 @@ correlazioni_LB <- function(dataset, lista_vars, method = "spearman", rho_dec = 
   }
 
   # Creo matrici rho e pvalue
-  df_corr <- matrix(, nrow = length(lista_vars), ncol = length(lista_vars))
-  df_pval <- matrix(, nrow = length(lista_vars), ncol = length(lista_vars))
-  colnames(df_corr) <- lista_vars
-  rownames(df_corr) <- lista_vars
-  colnames(df_pval) <- lista_vars
-  rownames(df_pval) <- lista_vars
+  df_corr <- as.data.frame(matrix(, nrow = length(variables), ncol = length(variables) + 1))
+  df_pval <- as.data.frame(matrix(, nrow = length(variables), ncol = length(variables) + 1))
+  colnames(df_corr) <- c("Var", variables); df_corr$Var <- variables
+  colnames(df_pval) <- c("Var", variables); df_pval$Var <- variables
 
-  for (i in lista_vars) {
-    for (j in lista_vars) {
+
+  for (i in variables) {
+    for (j in variables) {
 
       coeff_rho <- cor.test(data_tmp[, i], data_tmp[, j], method = method, na.rm=T, exact = FALSE)$estimate
-      df_corr[rownames(df_corr) == i, colnames(df_corr) == j] <- coeff_rho
+      df_corr[df_corr$Var == i, colnames(df_corr) == j] <- coeff_rho
 
       coeff_pval <- cor.test(data_tmp[, i], data_tmp[, j], method = method, na.rm=T, exact = FALSE)$p.value
-      df_pval[rownames(df_pval) == i, colnames(df_pval) == j] <- coeff_pval
+      df_pval[df_pval$Var == i, colnames(df_pval) == j] <- coeff_pval
     }
   }
 
   # Creo matrice rho con * dove significativi
   df_corr_sign <- df_corr
-  df_corr_sign <- format(round(df_corr_sign, rho_dec), digits = rho_dec, nsmall = rho_dec, width = 6, scientific=F)
+
+  for (i in variables){
+    df_corr_sign[, i] <- format(round(df_corr_sign[, i], rho_dec), digits = rho_dec, nsmall = rho_dec, width = 6, scientific=F)
+  }
 
 
-
-  for (i in lista_vars) {
-    for (j in lista_vars) {
-      if(df_pval[rownames(df_pval) == i, colnames(df_pval) == j] < 0.05){
-        df_corr_sign[rownames(df_corr_sign) == i, colnames(df_corr_sign) == j] <-
-          paste0(df_corr_sign[rownames(df_corr_sign) == i, colnames(df_corr_sign) == j], "*")
+  for (i in variables) {
+    for (j in variables) {
+      if(df_pval[df_pval$Var == i, colnames(df_pval) == j] < 0.05){
+        df_corr_sign[df_corr_sign$Var == i, colnames(df_corr_sign) == j] <-
+          paste0(df_corr_sign[df_corr_sign$Var == i, colnames(df_corr_sign) == j], "*")
 
         if(i == j){
-          df_corr_sign[rownames(df_corr_sign) == i, colnames(df_corr_sign) == j] <- "-"
+          df_corr_sign[df_corr_sign$Var == i, colnames(df_corr_sign) == j] <- "-"
         }
       }
     }
@@ -70,17 +75,17 @@ correlazioni_LB <- function(dataset, lista_vars, method = "spearman", rho_dec = 
   df_corr_sign <- as.data.frame(df_corr_sign)
 
   # All raw pairs with rho & pvalue
-  df_all_pairs <- as.data.frame(t(combn(lista_vars, 2)))
+  df_all_pairs <- as.data.frame(t(combn(variables, 2)))
   colnames(df_all_pairs) <- c("Var1", "Var2")
   df_all_pairs$rho <- NA
   df_all_pairs$pval <- NA
 
   for (i in 1: nrow(df_all_pairs)) {
 
-    df_all_pairs[i, "rho"] <- df_corr[rownames(df_corr) == df_all_pairs$Var1[i],
+    df_all_pairs[i, "rho"] <- df_corr[df_corr$Var == df_all_pairs$Var1[i],
                                       colnames(df_corr) == df_all_pairs$Var2[i]]
 
-    df_all_pairs[i, "pval"] <- df_pval[rownames(df_corr) == df_all_pairs$Var1[i],
+    df_all_pairs[i, "pval"] <- df_pval[df_corr$Var == df_all_pairs$Var1[i],
                                        colnames(df_corr) == df_all_pairs$Var2[i]]
   }
 
@@ -144,8 +149,16 @@ correlazioni_LB <- function(dataset, lista_vars, method = "spearman", rho_dec = 
                          res_pair_sig = df_pairs_sign
 
   )
+  if (excel == FALSE){
 
-  return(list_final_out)
+    return(list_final_out)
+
+  }else{
+
+    writexl::write_xlsx(list_final_out, path = excel_path)
+    return(list_final_out)
+
+  }
 }
 
-# correlazioni_LB(dataset = data_try, lista_vars = colnames(data_try)[2:10])
+# correlazioni_LB(data = data_try, variables = colnames(data_try)[2:10])

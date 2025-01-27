@@ -5,23 +5,29 @@
 \title{This function computes the correlation coefficients and prints the pairs from the heightest coefficient}
 \usage{
 correlazioni_LB(
-  dataset,
-  lista_vars,
+  data,
+  variables,
   method = "spearman",
   rho_dec = 3,
-  pval_dec = 4
+  pval_dec = 4,
+  excel = FALSE,
+  excel_path = paste0(path_output, "/Results.xlsx")
 )
 }
 \arguments{
-\item{dataset}{dataframe}
+\item{data}{dataframe}
 
-\item{lista_vars}{vector of numeric variables to be computed the correlation}
+\item{variables}{vector of numeric variables to be computed the correlation}
 
 \item{method}{method to compute the correlation coefficient (Default = "spearman")}
 
 \item{rho_dec}{number of decimal for rho (Default = 3)}
 
 \item{pval_dec}{number of decimal for the pvalue (Default = 4)}
+
+\item{excel}{export fuction results as multiple Excel sheets}
+
+\item{excel_path}{path where you want your Excel}
 }
 \value{
 Una lista con dataset

@@ -13,6 +13,8 @@ Lineplots_LB(
   group = 1,
   col_lines = c("salmon", "royalblue"),
   stat_line = "median",
+  smooth_line = FALSE,
+  span_line = 0.3,
   lw_reg = 1,
   alpha_line = 1,
   ylim = c(0.2, 0.8),
@@ -22,6 +24,9 @@ Lineplots_LB(
   ID = "ID",
   alpha_ID_line = 0.3,
   lw_ID_line = 0.2,
+  Point = FALSE,
+  alpha_point = 0.3,
+  size_point = 0.3,
   col_title = FALSE,
   colour_title = NULL,
   size_title = 7,
@@ -61,6 +66,10 @@ Lineplots_LB(
 
 \item{stat_line}{Statistic method for the line. "median" or "mean" or "both"}
 
+\item{smooth_line}{Whether to show smooth or spline regression line. Defaul = FALSE}
+
+\item{span_line}{The span of smooth line. Defaul = 0.3}
+
 \item{lw_reg}{Linewidth for regression line}
 
 \item{alpha_line}{Alpha for regression line}
@@ -78,6 +87,12 @@ Lineplots_LB(
 \item{alpha_ID_line}{Alpha for ID lines. Default: 0.3}
 
 \item{lw_ID_line}{Linewidth for ID lines. Default: 0.2}
+
+\item{Point}{Whether to show points. Defaul = FALSE}
+
+\item{alpha_point}{Alpha points. Defaul = 0.3}
+
+\item{size_point}{Size points. Defaul = 0.3}
 
 \item{col_title}{Whether to personalize the colour of title. Default = FALSE}
 

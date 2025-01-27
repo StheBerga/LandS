@@ -36,7 +36,13 @@
 #' @param extra Whether to add an extra text function. Default = FALSE
 #' @param extra_text A function to add extra functions to the graphs. See vignette for more.
 #' @param label_title A title for your list. Default sets "Lineplots by grouping variable" and the current date
+#' @param smooth_line Whether to show smooth or spline regression line. Defaul = FALSE
+#' @param span_line The span of smooth line. Defaul = 0.3
+#' @param Point Whether to show points. Defaul = FALSE
+#' @param alpha_point Alpha points. Defaul = 0.3
+#' @param size_point Size points. Defaul = 0.3
 #' @param size_label_title Size for your list's title. Default: 2.5
+#'
 #' @returns When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target folder
 #' @export
 #'
@@ -44,9 +50,11 @@
 Lineplots_LB <- function (data, variables,
                           time, breaks = unique(data[, time]), label = unique(data[, time]),
                           group = 1, col_lines = c("salmon", "royalblue"),
-                          stat_line = "median", lw_reg = 1, alpha_line = 1, ylim = c(0.2, 0.8),
+                          stat_line = "median", smooth_line = FALSE, span_line = 0.3,
+                          lw_reg = 1, alpha_line = 1, ylim = c(0.2, 0.8),
                           ribbon = T, alpha_ribbon = 0.05,
                           ID_lines = FALSE, ID = "ID", alpha_ID_line = 0.3, lw_ID_line = 0.2,
+                          Point = FALSE, alpha_point = 0.3, size_point = 0.3,
                           col_title = FALSE, colour_title = NULL,
                           size_title = 7, size_axis_x = 5, size_axis_y = 6,
                           Overall = F, Test_results = Test_results,
@@ -100,18 +108,85 @@ Lineplots_LB <- function (data, variables,
   }
 
   if (length(variables) > 1){
-    list_reg[[1]] <- ggplot(data, aes_string(colour = group, x = 1, y = 1)) +
-      geom_point(shape = NA, show.legend = TRUE) +
-      scale_color_manual(values = col_lines) +
+    list_reg[[1]] <- ggplot(data, aes_string(x = 1, y = 1)) +
+      {if (group != 1)
+        geom_point(aes_string(colour = group), shape = NA, show.legend = TRUE)
+      } +
+      {if (group == 1)
+        geom_point(shape = NA, show.legend = TRUE)
+      }+
+      {if (group != 1)
+        scale_color_manual(values = col_lines)
+      } +
+      {if (group == 1)
+        scale_color_manual(values = col_lines[1])
+      }+
+      {if (group != 1)
+        scale_fill_manual(values = col_lines)
+      } +
+      {if (group == 1)
+        scale_fill_manual(values = col_lines[1])
+      }+
       theme_transparent()+
       annotate(geom = "text", x = 1, y = 1.001, size = size_label_title, label = label_title, vjust = 1.25, fontface = "bold")+
       guides(color = guide_legend(override.aes = list(size = 7.5, shape = 20))) +
       theme(legend.position = "inside", legend.justification = c(0.5, 0.3), legend.title = element_blank())
+
   } else {}
 
   for (i in variables) {
 
     k <- which(variables == i)
+
+    if (smooth_line == T) {
+      if (stat_line == "median") {
+        smooth_data <- if (group == 1) {
+          # Calcolo della mediana senza stratificazione
+          aggregate(
+            data[[i]],
+            by = list(Time_num = data[, time]),
+            FUN = median,
+            na.rm = TRUE
+          )
+        } else {
+          # Calcolo della mediana con stratificazione per 'Group'
+          aggregate(
+            data[[i]],
+            by = list(Time_num = data[, time], Group = data[, group]),
+            FUN = median,
+            na.rm = TRUE
+          )
+        }
+      } else if (stat_line == "mean") {
+        smooth_data <- if (group == 1) {
+          # Calcolo della media senza stratificazione
+          aggregate(
+            data[[i]],
+            by = list(Time_num = data[, time]),
+            FUN = mean,
+            na.rm = TRUE
+          )
+        } else {
+          # Calcolo della media con stratificazione per 'Group'
+          aggregate(
+            data[[i]],
+            by = list(Time_num = data[, time], Group = data[, group]),
+            FUN = mean,
+            na.rm = TRUE
+          )
+        }
+        # Rinominazione delle colonne
+
+      } else {
+        # Eventuali altri casi possono essere gestiti qui
+      }
+      if (group == 1) {
+        colnames(smooth_data)[2] <- "smooth_y"
+      } else {
+        colnames(smooth_data)[2] <- group
+        colnames(smooth_data)[3] <- "smooth_y"
+      }
+    }
 
     if (Posthoc == T){
 
@@ -123,6 +198,7 @@ Lineplots_LB <- function (data, variables,
     Quantili <- data.frame(Tempo = unique(data[, time]),
                            Inferior = tapply(data[, i], data[, time], FUN = function(z) quantile(z, ylim[1], na.rm = T)),
                            Superior = tapply(data[, i], data[, time], FUN = function(z) quantile(z, ylim[2], na.rm = T)))
+
     gg <- ggplot(data = data, aes_string(x = time, y = data[, i])) +
       coord_cartesian(ylim = c(min(Quantili$Inferior), max(Quantili$Superior)))
 
@@ -146,7 +222,7 @@ Lineplots_LB <- function (data, variables,
         # Overall graphs
         colour_title <- colour_title(i)
 
-        gg <- gg + aes_string(colour = col_lines[1], fill = col_lines[1]) +
+        gg <- gg + aes(colour = "forestgreen", fill = "forestgreen") +
           scale_color_manual(values = col_lines[1], drop = F) +
           scale_fill_manual(values = col_lines[1], drop = F, guide = FALSE)
 
@@ -189,14 +265,32 @@ Lineplots_LB <- function (data, variables,
 
       }
     }
+
+    if (Point){
+      gg <- gg + geom_point(size = size_point, alpha = alpha_point, colour = "black")}
+
     if (stat_line == "median") {
 
-      gg <- gg +
-        stat_summary(geom = "line", fun = median, alpha = alpha_line, linewidth = lw_reg, show.legend = FALSE)+
-        stat_summary(geom = "point", fun = median, size = NA, show.legend = TRUE)
+      if (smooth_line){
+
+        gg <- gg + stat_smooth(data = smooth_data, aes(x = Time_num, y = smooth_y), geom = "line", alpha = alpha_line, size = lw_reg, span = span_line, show.legend = F)
+
+      } else{
+
+        gg <- gg +
+          stat_summary(geom = "line", fun = median, alpha = alpha_line, linewidth = lw_reg, show.legend = FALSE)+
+          stat_summary(geom = "point", fun = median, size = NA, show.legend = TRUE)
+      }
 
     } else if (stat_line == "mean") {
-      gg <- gg + stat_summary(geom = "line", fun = mean, alpha = alpha_line, linewidth = lw_reg)
+      if (smooth_line){
+
+        gg <- gg + stat_smooth(data = smooth_data, aes(x = Time_num, y = smooth_y), geom = "line", alpha = alpha_line, size = lw_reg, span = span_line, show.legend = F)
+
+      } else{
+
+        gg <- gg + stat_summary(geom = "line", fun = mean, alpha = alpha_line, linewidth = lw_reg)
+      }
     } else if (stat_line == "both"){
       # Check legend
       gg <- gg +
