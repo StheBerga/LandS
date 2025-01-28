@@ -99,13 +99,12 @@ Lineplots_LB <- function (data, variables,
                      panel.grid.major.x = element_line(colour = "grey70", linewidth = 0.1, linetype = 2),
                      panel.grid.minor = element_blank(),
                      legend.key.width = unit(2, "cm"), panel.spacing.x = unit(1.5, "mm"))
-  # Initialize progress bar
-  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables)); pb$tick(0)
-  list_reg <- list()
 
-  if (PPTX == T) {
-    ppt <- read_pptx()
-  }
+  # Initialize progress bar
+  list_reg <- list()
+  pb <- progress::progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
+  pb$tick(0)
+
 
   if (length(variables) > 1){
     list_reg[[1]] <- ggplot(data, aes_string(x = 1, y = 1)) +
@@ -339,7 +338,7 @@ Lineplots_LB <- function (data, variables,
     if (PPTX) { # Theme for PPTX
       gg <- gg + themePPTX +
         theme(plot.title = element_text(hjust = 0.5, size = 20, vjust = -0.5, face = "bold", colour = colour_title),
-              legend.position = "bottom", legend.title = element_blank(), legend.background = element_rect(fill = "transparent"))
+              legend.position = "none", legend.title = element_blank(), legend.background = element_rect(fill = "transparent"))
     }
 
     if (length(variables) > 1) {
@@ -347,22 +346,22 @@ Lineplots_LB <- function (data, variables,
     } else {
       list_reg[[k]] <- gg
     }
+    Sys.sleep(0.01)
     pb$tick(1)
+    pb
   }
 
+
   if (PPTX == T) {
+    ppt <- read_pptx()
     message("Printing PowerPoint")
-    # Initializing progress bar
-    pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables)); pb$tick(0)
 
     for (i in 1:length(list_reg)) {
       list_reg[[i]] <- rvg::dml(ggobj = list_reg[[i]])
       ppt = add_slide(ppt, layout = "Title and Content")
       ph_with(ppt, list_reg[[i]], ph_location(width = pptx_width, height = pptx_height))
-      pb$tick(1)
     }
     print(ppt, target = target)
-    message("Done printing :)")
   } else {
     return(list_reg)
   }
