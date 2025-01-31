@@ -266,7 +266,7 @@ Lineplots_LB <- function (data, variables,
     }
 
     if (Point){
-      gg <- gg + geom_point(size = size_point, alpha = alpha_point, colour = "black")}
+      gg <- gg + geom_point(size = size_point, alpha = alpha_point)}
 
     if (stat_line == "median") {
 
