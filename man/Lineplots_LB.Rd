@@ -18,7 +18,7 @@ Lineplots_LB(
   lw_reg = 1,
   alpha_line = 1,
   ylim = c(0.2, 0.8),
-  ribbon = T,
+  ribbon = TRUE,
   alpha_ribbon = 0.05,
   ID_lines = FALSE,
   ID = "ID",
@@ -64,7 +64,7 @@ Lineplots_LB(
 
 \item{col_lines}{Colours for the lines. Default: "salmon" & "royalblue"}
 
-\item{stat_line}{Statistic method for the line. "median" or "mean" or "both"}
+\item{stat_line}{Statistic method for the line. "median" or "mean".}
 
 \item{smooth_line}{Whether to show smooth or spline regression line. Defaul = FALSE}
 
