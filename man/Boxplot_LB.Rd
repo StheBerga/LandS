@@ -42,8 +42,13 @@ Boxplot_LB(
   extra = F,
   extra_text = NULL,
   palette_boxplot = c("salmon", "royalblue", "forestgreen", "gold"),
+  label_legend_title = paste0("Boxplots by ", group, "\\n", format(Sys.Date(),
+    "\%d/\%m/\%Y")),
   palette_title = "black",
-  size_title = 12,
+  size_title = 3,
+  size_legend_title = 3,
+  size_legend_text = 3,
+  size_legend_circle = 4,
   target = paste0(path_out, "/Boxplot.pptx"),
   ratio = 1,
   telegram = "none"
@@ -99,6 +104,8 @@ Boxplot_LB(
 \item{size_axis_y}{axis x title dimension}
 
 \item{ID}{ID variable}
+
+\item{size_legend_circle}{}
 }
 \value{
 Una lista di boxplot
