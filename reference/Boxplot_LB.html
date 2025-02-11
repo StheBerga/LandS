@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">LandS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,8 +79,13 @@
 <span>  extra <span class="op">=</span> <span class="cn">F</span>,</span>
 <span>  extra_text <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palette_boxplot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"salmon"</span>, <span class="st">"royalblue"</span>, <span class="st">"forestgreen"</span>, <span class="st">"gold"</span><span class="op">)</span>,</span>
+<span>  label_legend_title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Boxplots by "</span>, <span class="va">group</span>, <span class="st">"\n"</span>, <span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.Date</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    <span class="st">"%d/%m/%Y"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  palette_title <span class="op">=</span> <span class="st">"black"</span>,</span>
-<span>  size_title <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>  size_title <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  size_legend_title <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  size_legend_text <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  size_legend_circle <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  target <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path_out</span>, <span class="st">"/Boxplot.pptx"</span><span class="op">)</span>,</span>
 <span>  ratio <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  telegram <span class="op">=</span> <span class="st">"none"</span></span>
@@ -189,6 +194,10 @@
 
 <dt id="arg-id">ID<a class="anchor" aria-label="anchor" href="#arg-id"></a></dt>
 <dd><p>ID variable</p></dd>
+
+
+<dt id="arg-size-legend-circle">size_legend_circle<a class="anchor" aria-label="anchor" href="#arg-size-legend-circle"></a></dt>
+<dd></dd>
 
 </dl></div>
     <div class="section level2">
