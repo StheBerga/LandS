@@ -9,7 +9,7 @@ Print_LB(
   path_print = path_print,
   nrow = 8,
   ncol = 6,
-  ext = c("pdf", "svg", "png", "emf", "tiff", "jpeg"),
+  ext = NULL,
   width_pg = 21,
   height_pg = 29.7,
   return = FALSE

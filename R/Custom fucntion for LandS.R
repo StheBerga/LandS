@@ -216,10 +216,11 @@ telegram_mess_LB <- function(dest = "both", script = 0, rm_start_time = TRUE, ti
 #' @examples
 
 Print_LB <- function (plot_list, path_print = path_print,
-                      nrow = 8, ncol = 6, ext = c("pdf", "svg", "png", "emf", "tiff", "jpeg"),
+                      nrow = 8, ncol = 6, ext = NULL,
                       width_pg = 21, height_pg = 29.7, return = FALSE)
 {
   require(ggplot2)
+  if(is.null(ext)){ext <- "pdf"}
 
   path_print <- paste0(path_print, ".", ext)
   variables <- length(plot_list)
@@ -516,3 +517,59 @@ Posthoc_lineplots_LB <- function (Test_results, data, time, threshold_posthoc, i
   }
   return(posthoc_df)
 }
+
+
+
+#' #' A function to load the RData and setup the environment for working
+#' #'
+#' #' @param project The path to your project
+#' #' @param RData The path to the RData to load
+#' #' @param functions Whether you want to load the function in the complete_function section
+#' #' @param update_packages Whether you want to update the libraries
+#' #'
+#' #' @returns Loads the RData, the functions, the libraries and setups the environment
+#' #' @export
+#' #'
+#' #' @examples Setup_LB()
+#' Setup_LB <- function(project = basename(rstudioapi::getActiveProject()), RData = "", functions = TRUE, update_packages = FALSE){
+#'
+#'   options(scipen = 999999)
+#'   suppressWarnings(dtupdate::github_update(auto.install = TRUE, ask = FALSE))
+#'   pacman::p_load(Hmisc, rms, ggplot2, dplyr, survminer, scales, tidyr, openxlsx,
+#'                  factoextra, readxl, writexl, shiny, kableExtra, gtsummary, tidyverse,
+#'                  caret, flextable, ComplexHeatmap, umap, officer, readxl, gridExtra, zoo,
+#'                  circlize, PMCMRplus, progress, colorspace, ggpp, ggpattern, ggpubr, survival,
+#'                  ggh4x, ggformula, grid, svMisc, rvg, lubridate, OlinkAnalyze, LandS, update = update_packages)
+#'
+#'   project = project
+#'
+#'   if (Sys.info()["machine"] == "x86-64"){
+#'
+#'     path_functions = "//fileserversvc/biomimmunol/Rfunction/Complete function"
+#'     main_path <<- paste0("//fileserversvc/biomimmunol/Projects/", project)
+#'     if(RData == ""){ } else {
+#'       load(paste0(main_path, "/", RData), envir = .GlobalEnv)
+#'     }
+#'   } else if (Sys.info()["machine"] == "arm64"){
+#'
+#'     path_functions = "/Volumes/biomimmunol/Rfunction/Complete function"
+#'     main_path <<- paste0("/Volumes/biomimmunol/Projects/", project)
+#'     if(RData == ""){ } else {
+#'       load(paste0(main_path, "/", RData), envir = .GlobalEnv)
+#'     }
+#'   }
+#'
+#'   path_analisi <<- paste0(main_path, "/Analisi")
+#'   path_dati <<- paste0(main_path, "/Dati")
+#'   path_output <<- paste0(main_path, "/Output")
+#'
+#'   if (functions){
+#'     for (i in list.files(path_functions)){
+#'       source(paste0(path_functions, "/", i))
+#'     }
+#'   }
+#'   suppressWarnings(rm(i, project, RData))
+#'
+#' }
+
+

@@ -12,8 +12,7 @@ cont_var_test_LB(
   dumb = FALSE,
   ID = "ID",
   num_dec = 2,
-  p.adjust.method = c("bonferroni", "BH", "BY", "fdr", "none", "holm", "hochberg",
-    "hommel"),
+  p.adjust.method = NULL,
   excel = F,
   excel_path = paste0(path_out, "/Results.xlsx"),
   telegram = "none"
@@ -51,5 +50,5 @@ If you are dumb (option dumb = T) you can also perform posthoc tests without cor
 Please do not try this at home/work and consider asking a statistician before performing any test.
 }
 \examples{
-cont_var_test_LB(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = F)
+cont_var_test_LB(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = FALSE)
 }

@@ -155,6 +155,7 @@ correlazioni_LB <- function(data, variables, method = "spearman", rho_dec = 3, p
 
   }else{
 
+    message("Saving excel file")
     writexl::write_xlsx(list_final_out, path = excel_path)
     return(list_final_out)
 

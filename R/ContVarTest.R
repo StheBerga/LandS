@@ -19,7 +19,7 @@
 #' @return Una lista con dataset
 #' @export
 #'
-#' @examples cont_var_test_LB(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = F)
+#' @examples cont_var_test_LB(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = FALSE)
 cont_var_test_LB <- function (data,
                               variables,
                               paired = FALSE,
@@ -27,18 +27,21 @@ cont_var_test_LB <- function (data,
                               dumb = FALSE,
                               ID = "ID",
                               num_dec = 2,
-                              p.adjust.method = c("bonferroni", "BH", "BY", "fdr", "none", "holm", "hochberg", "hommel"),
+                              p.adjust.method = NULL,
                               excel = F,
                               excel_path = paste0(path_out, "/Results.xlsx"),
                               telegram = "none")
 {
   options(warn=-1)
-  require(MASS)
   require(progress)
   require(PMCMRplus)
   require(rlang)
   require(gtsummary)
   require(dplyr)
+
+  if(is.null(p.adjust.method)){
+    p.adjust.method = "bonferroni"
+  }
 
   if(telegram != "none"){
     start_time <<- Sys.time()
@@ -91,7 +94,7 @@ cont_var_test_LB <- function (data,
       }
 
       res <- list()
-      tabella_formatted <- tabella
+      tabella_formatted <- dplyr::arrange(tabella, pvalue)
       for(z in colnames(tabella_formatted)[ncol(tabella_formatted)]){
         tabella_formatted[,z] <- LandS::formatz_p(tabella_formatted[,z])
       }
@@ -132,7 +135,7 @@ cont_var_test_LB <- function (data,
       }
 
       res <- list()
-      tabella_formatted <- tabella
+      tabella_formatted <- dplyr::arrange(tabella, pvalue)
       for(z in colnames(tabella_formatted)[ncol(tabella_formatted)]){
         tabella_formatted[,z] <- LandS::formatz_p(tabella_formatted[,z])
       }
@@ -267,7 +270,8 @@ cont_var_test_LB <- function (data,
       }
 
       res <- list()
-      Friedman_test_df_form <- Friedman_test_df
+      Friedman_test_df_ordered <- dplyr::arrange(Friedman_test_df, Friedman)
+      Friedman_test_df_form <- Friedman_test_df_ordered
 
       for(z in colnames(Friedman_test_df_form)[(2+n_lev_group):ncol(Friedman_test_df_form)]){
         Friedman_test_df_form[,z] <- LandS::formatz_p(Friedman_test_df_form[,z])
@@ -467,9 +471,10 @@ cont_var_test_LB <- function (data,
       }
 
       res <- list()
-      KW_test_df_form <- KW_test_df
+      KW_test_df_ordered <- arrange(KW_test_df, Kruskal_Wallis)
+      KW_test_df_form <- KW_test_df_ordered
       for(z in colnames(KW_test_df_form)[(2+n_lev_group):ncol(KW_test_df_form)]){
-        KW_test_df_form[,z] <- formatz_p(KW_test_df_form[,z])
+        KW_test_df_form[,z] <- LandS::formatz_p(KW_test_df_form[,z])
       }
 
       KW_ph_pval <- KW_test_df[, c(1, (2+n_lev_group):ncol(KW_test_df))]

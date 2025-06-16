@@ -16,6 +16,7 @@ Boxplot_LB(
   alpha_box = 0.1,
   width_box = 0.2,
   size_median_line = 0.8,
+  col_median_line = "red",
   lwd_box = 0.1,
   lwd_ID_line = 0.2,
   alpha_ID_line = 0.3,
@@ -24,6 +25,8 @@ Boxplot_LB(
   Test_results = NULL,
   threshold_posthoc = 0.1,
   posthoc_test_size = 3.88,
+  bracket_shorten = 0,
+  bracket.nudge.y = 0,
   Overall = F,
   notch = F,
   notchwidth = 0.5,
@@ -41,7 +44,7 @@ Boxplot_LB(
   pptx_height = 5.5,
   extra = F,
   extra_text = NULL,
-  palette_boxplot = c("salmon", "royalblue", "forestgreen", "gold"),
+  palette_boxplot = rep("salmon", nlevels(data[, group])),
   label_legend_title = paste0("Boxplots by ", group, "\\n", format(Sys.Date(),
     "\%d/\%m/\%Y")),
   palette_title = "black",
@@ -77,6 +80,8 @@ Boxplot_LB(
 
 \item{size_median_line}{median linewidth}
 
+\item{col_median_line}{Colour for the median line. Default = red}
+
 \item{lwd_box}{box linewidth}
 
 \item{lwd_ID_line}{linewidth for paired observations}
@@ -91,6 +96,10 @@ Boxplot_LB(
 
 \item{threshold_posthoc}{threshold for displaying posthoc tests}
 
+\item{bracket_shorten}{[0,1] width of the bracket}
+
+\item{bracket.nudge.y}{Vertical adjustment to nudge brackets by. Useful to move up or move down the bracket. If positive value, brackets will be moved up; if negative value, brackets are moved down.}
+
 \item{notch}{add notch to boxplot}
 
 \item{notchwidth}{width of the notch}
@@ -104,8 +113,6 @@ Boxplot_LB(
 \item{size_axis_y}{axis x title dimension}
 
 \item{ID}{ID variable}
-
-\item{size_legend_circle}{}
 }
 \value{
 Una lista di boxplot
