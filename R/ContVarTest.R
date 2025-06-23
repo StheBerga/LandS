@@ -3,18 +3,21 @@
 #' The most powerful function ever created. You can perform the 4 major tests and the posthoc tests for Friedman and Kruskal-Wallis.
 #' If you are dumb (option dumb = T) you can also perform posthoc tests without correcting for test multiplicity.
 #' Please do not try this at home/work and consider asking a statistician before performing any test.
+#' Stored functions for statistic option are (median), (mean), (sd), (min), (max), (q1), (q3), (n), and (range).
 #'
 #' @param data dataframe
 #' @param variables vector containing all variables of interest
 #' @param paired FALSE/TRUE
 #' @param group factor variable splitting the data
 #' @param dumb FALSE are you dumb? Hope not
+#' @param statistic Specifies summary statistics to display for each variable. Default = "(mean) (sd)".
 #' @param ID ID variabl (Default = "ID")
 #' @param num_dec Decimal number for mean and SD (Default = 2)
 #' @param excel export fuction results as multiple Excel sheets
 #' @param excel_path path where you want your Excel
 #' @param telegram send a telegram message
 #' @param p.adjust.method correction method, a character string. Can be abbreviated.
+
 #'
 #' @return Una lista con dataset
 #' @export
@@ -25,6 +28,7 @@ cont_var_test_LB <- function (data,
                               paired = FALSE,
                               group,
                               dumb = FALSE,
+                              statistic = "{mean} ({sd})",
                               ID = "ID",
                               num_dec = 2,
                               p.adjust.method = NULL,
@@ -71,6 +75,8 @@ cont_var_test_LB <- function (data,
     stop(paste0("Variable ", group, " has just 1 level"))
   }
 
+  statistic <- stringr::str_to_lower(statistic)
+
   # Split variable dicotomica
   if(nlevels(data[, group]) == 2){
 
@@ -78,15 +84,34 @@ cont_var_test_LB <- function (data,
     if (paired == FALSE){
       tabella <- data.frame(matrix(nrow = length(variables), ncol = 4))
       levels <- levels(data[,group])
-      colnames(tabella) <- c("Variable", paste0("Mean (SD): ", levels[1]), paste0("Mean (SD): ", levels[2]), "pvalue")
+      colnames(tabella) <- c("Variable",
+                             paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[1]),
+                             paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[2]),
+                             "pvalue")
       tabella[,1] <- variables
 
       for (i in 1:length(variables)){
         name <- variables[i]
-        tabella[tabella$Variable == name, 2] <- paste0(round(tapply(data[, name], data[, group], mean, na.rm=T)[levels[1]], num_dec), " (",
-                                                       round(tapply(data[, name], data[, group], sd, na.rm=T)[levels[1]], num_dec), ")")
-        tabella[tabella$Variable == name, 3] <- paste0(round(tapply(data[, name], data[, group], mean, na.rm=T)[levels[2]], num_dec), " (",
-                                                       round(tapply(data[, name], data[, group], sd, na.rm=T)[levels[2]], num_dec), ")")
+
+        stats <<- sapply(levels, function(lvl) {
+          x <- data[data[, group] == lvl, name]
+          vals <- list(
+            mean   = round(mean(x, na.rm = TRUE), num_dec),
+            sd     = round(sd(x, na.rm = TRUE), num_dec),
+            median = round(median(x, na.rm = TRUE), num_dec),
+            iqr    = round(IQR(x, na.rm = TRUE), num_dec),
+            min    = round(min(x, na.rm = TRUE), num_dec),
+            max    = round(max(x, na.rm = TRUE), num_dec),
+            q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
+            q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
+            n      = sum(!is.na(x)),
+            range  = paste0(round(min(x, na.rm = TRUE), num_dec), "-", round(max(x, na.rm = TRUE), num_dec))
+          )
+          glue::glue_data(vals, statistic)
+        })
+
+        tabella[tabella$Variable == name, 2] <- stats[1]
+        tabella[tabella$Variable == name, 3] <- stats[2]
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(data[, name] ~ data[, group])$p.value, 4)
         Sys.sleep(0.005)
         pb$tick(1)
@@ -111,7 +136,10 @@ cont_var_test_LB <- function (data,
     if (paired == TRUE){
       tabella <- data.frame(matrix(nrow = length(variables), ncol = 4))
       levels <- levels(data[, group])
-      colnames(tabella) <- c("Variable", paste0("Mean (SD): ", levels[1]), paste0("Mean (SD): ", levels[2]), "pvalue")
+      colnames(tabella) <- c("Variable",
+                             paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[1]),
+                             paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[2]),
+                             "pvalue")
       tabella[,1] <- variables
 
       for (i in 1:length(variables)){
@@ -123,10 +151,26 @@ cont_var_test_LB <- function (data,
         }else{
           tmp <- data
         }
-        tabella[tabella$Variable == name, 2] <- paste0(round(tapply(tmp[, name], tmp[, group], mean, na.rm=T)[levels[1]], num_dec), " (",
-                                                       round(tapply(tmp[, name], tmp[, group], sd, na.rm=T)[levels[1]], num_dec), ")")
-        tabella[tabella$Variable == name, 3] <- paste0(round(tapply(tmp[, name], tmp[, group], mean, na.rm=T)[levels[2]], num_dec), " (",
-                                                       round(tapply(tmp[, name], tmp[, group], sd, na.rm=T)[levels[2]], num_dec), ")")
+
+        stats <<- sapply(levels, function(lvl) {
+          x <- tmp[tmp[, group] == lvl, name]
+          vals <- list(
+            mean   = round(mean(x, na.rm = TRUE), num_dec),
+            sd     = round(sd(x, na.rm = TRUE), num_dec),
+            median = round(median(x, na.rm = TRUE), num_dec),
+            iqr    = round(IQR(x, na.rm = TRUE), num_dec),
+            min    = round(min(x, na.rm = TRUE), num_dec),
+            max    = round(max(x, na.rm = TRUE), num_dec),
+            q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
+            q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
+            n      = sum(!is.na(x)),
+            range  = paste0(round(min(x, na.rm = TRUE), num_dec), "-", round(max(x, na.rm = TRUE), num_dec))
+          )
+          glue::glue_data(vals, statistic)
+        })
+
+        tabella[tabella$Variable == name, 2] <- stats[1]
+        tabella[tabella$Variable == name, 3] <- stats[2]
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(Pair(tmp[tmp[, group] == levels[1], name],
                                                                             tmp[tmp[, group] == levels[2], name]) ~ 1, data = tmp)$p.value, 4)
         Sys.sleep(0.005)
@@ -164,7 +208,7 @@ cont_var_test_LB <- function (data,
         message("IDs with NA have been removed")
       }
       # Comparisons
-      matrix_comparison <- t(combn(levels(data[, group]), 2))
+      matrix_comparison <- t(combn(levels_groups, 2))
       vett_comparison <- as.vector(NA)
       for (x in 1:nrow(matrix_comparison)){
         vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
@@ -172,12 +216,14 @@ cont_var_test_LB <- function (data,
 
       Friedman_test_df <- as.data.frame(matrix(nrow = length(variables),
                                                ncol = n_lev_group + n_lev_posthoc + 2))
-      colnames(Friedman_test_df) <- c("Var", paste0("Mean (SD): ", levels_groups), "Friedman", vett_comparison)
+      colnames(Friedman_test_df) <- c("Var",
+                                      paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels_groups),
+                                      "Friedman", vett_comparison)
       Friedman_test_df$Var <- variables
 
       for (i in variables){
 
-        matt_combn <- as.data.frame(t(combn(levels(data[, group]), 2)))
+        matt_combn <- as.data.frame(t(combn(levels_groups, 2)))
         colnames(matt_combn) <- c("Var1", "Var2")
         matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
         matt_combn$pval <- NA
@@ -195,9 +241,25 @@ cont_var_test_LB <- function (data,
 
         if(nrow(tmp) > 0 ) {
 
+          stats <<- sapply(levels_groups, function(lvl) {
+            x <- data[data[, group] == lvl, i]
+            vals <- list(
+              mean   = round(mean(x, na.rm = TRUE), num_dec),
+              sd     = round(sd(x, na.rm = TRUE), num_dec),
+              median = round(median(x, na.rm = TRUE), num_dec),
+              iqr    = round(IQR(x, na.rm = TRUE), num_dec),
+              min    = round(min(x, na.rm = TRUE), num_dec),
+              max    = round(max(x, na.rm = TRUE), num_dec),
+              q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
+              q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
+              n      = sum(!is.na(x)),
+              range  = paste0(round(min(x, na.rm = TRUE), num_dec), "-", round(max(x, na.rm = TRUE), num_dec))
+            )
+            glue::glue_data(vals, statistic)
+          })
+
           for (o in 1:n_lev_group){
-            Friedman_test_df[Friedman_test_df$Var == i, 1+o] <- paste0(round(tapply(data[, i], data[, group], mean, na.rm=T)[levels_groups[o]], num_dec), " (",
-                                                                       round(tapply(data[, i], data[, group], sd,   na.rm=T)[levels_groups[o]], num_dec), ")")
+            Friedman_test_df[Friedman_test_df$Var == i, 1+o] <- stats[o]
           }
           # Friedman test
           Friedman_test_df[Friedman_test_df$Var == i, "Friedman"] <- as.numeric(friedman.test(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID])$p.val)
@@ -381,7 +443,7 @@ cont_var_test_LB <- function (data,
       # Kruskal Wallis and post hoc tests
 
       # Comparazioni
-      matrix_comparison <- t(combn(levels(data[, group]), 2))
+      matrix_comparison <- t(combn(levels_groups, 2))
       vett_comparison <- as.vector(NA)
       for (x in 1:nrow(matrix_comparison)){
         vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
@@ -390,18 +452,36 @@ cont_var_test_LB <- function (data,
       # Dataframe results
       KW_test_df <- as.data.frame(matrix(nrow = length(variables),
                                          ncol = n_lev_group + n_lev_posthoc + 2))
-      colnames(KW_test_df) <- c("Var", paste0("Mean (SD): ", levels_groups), "Kruskal_Wallis", vett_comparison)
+      colnames(KW_test_df) <- c("Var",
+                                paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels_groups),
+                                "Kruskal_Wallis", vett_comparison)
       KW_test_df$Var <- variables
 
       for (i in variables){
 
+        stats <<- sapply(levels_groups, function(lvl) {
+          x <- data[data[, group] == lvl, i]
+          vals <- list(
+            mean   = round(mean(x, na.rm = TRUE), num_dec),
+            sd     = round(sd(x, na.rm = TRUE), num_dec),
+            median = round(median(x, na.rm = TRUE), num_dec),
+            iqr    = round(IQR(x, na.rm = TRUE), num_dec),
+            min    = round(min(x, na.rm = TRUE), num_dec),
+            max    = round(max(x, na.rm = TRUE), num_dec),
+            q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
+            q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
+            n      = sum(!is.na(x)),
+            range  = paste0(round(min(x, na.rm = TRUE), num_dec), "-", round(max(x, na.rm = TRUE), num_dec))
+          )
+          glue::glue_data(vals, statistic)
+        })
+
         # Mean and SD in group variable
         for (o in 1:n_lev_group){
-          KW_test_df[KW_test_df$Var == i, 1+o] <- paste0(round(tapply(data[, i], data[, group], mean, na.rm=T)[levels_groups[o]], num_dec), " (",
-                                                         round(tapply(data[, i], data[, group], sd, na.rm=T)[levels_groups[o]], num_dec), ")")
+          KW_test_df[KW_test_df$Var == i, 1+o] <- stats[o]
         }
 
-        matt_combn <- as.data.frame(t(combn(levels(data[, group]), 2)))
+        matt_combn <- as.data.frame(t(combn(levels_groups, 2)))
         colnames(matt_combn) <- c("Var1", "Var2")
         matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
         matt_combn$pval <- NA

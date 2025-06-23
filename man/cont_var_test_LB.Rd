@@ -10,6 +10,7 @@ cont_var_test_LB(
   paired = FALSE,
   group,
   dumb = FALSE,
+  statistic = "{mean} ({sd})",
   ID = "ID",
   num_dec = 2,
   p.adjust.method = NULL,
@@ -28,6 +29,8 @@ cont_var_test_LB(
 \item{group}{factor variable splitting the data}
 
 \item{dumb}{FALSE are you dumb? Hope not}
+
+\item{statistic}{Specifies summary statistics to display for each variable. Default = "(mean) (sd)".}
 
 \item{ID}{ID variabl (Default = "ID")}
 
@@ -48,6 +51,7 @@ Una lista con dataset
 The most powerful function ever created. You can perform the 4 major tests and the posthoc tests for Friedman and Kruskal-Wallis.
 If you are dumb (option dumb = T) you can also perform posthoc tests without correcting for test multiplicity.
 Please do not try this at home/work and consider asking a statistician before performing any test.
+Stored functions for statistic option are (median), (mean), (sd), (min), (max), (q1), (q3), (n), and (range).
 }
 \examples{
 cont_var_test_LB(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = FALSE)

@@ -8,114 +8,165 @@ Boxplot_LB(
   data,
   variables,
   group,
-  ID_lines = FALSE,
-  Posthoc = FALSE,
-  Point = F,
-  Median_line = F,
   rm.outliers = F,
+  th.outliers = 1.5,
+  Point = F,
+  size_point = 0.3,
+  alpha_point = 0.3,
   alpha_box = 0.1,
   width_box = 0.2,
-  size_median_line = 0.8,
-  col_median_line = "red",
   lwd_box = 0.1,
+  notch = F,
+  notchwidth = 0.5,
+  Median_line = F,
+  lwd_median_line = 0.8,
+  col_median_line = "red",
+  ID_lines = FALSE,
+  ID = "ID",
   lwd_ID_line = 0.2,
   alpha_ID_line = 0.3,
-  alpha_point = 0.3,
-  size_point = 0.3,
+  Overall = F,
+  Posthoc = FALSE,
   Test_results = NULL,
   threshold_posthoc = 0.1,
   posthoc_test_size = 3.88,
   bracket_shorten = 0,
   bracket.nudge.y = 0,
-  Overall = F,
-  notch = F,
-  notchwidth = 0.5,
-  axis_y_title = NULL,
   axis_x_title = NULL,
   size_axis_x = 6,
+  axis_y_title = NULL,
   size_axis_y = 6,
-  ID = "ID",
-  legend_cod = NULL,
+  col_title = FALSE,
+  colour_title = NULL,
+  title_leg = FALSE,
+  title_legend = NULL,
+  size_title = 8,
   breaks_axis_x = levels(data[, group]),
   labels_axis_x = levels(data[, group]),
   grid = TRUE,
   PPTX = FALSE,
   pptx_width = 7.5,
   pptx_height = 5.5,
-  extra = F,
+  extra = FALSE,
   extra_text = NULL,
-  palette_boxplot = rep("salmon", nlevels(data[, group])),
+  palette = rep("transparent", nlevels(data[, group])),
   label_legend_title = paste0("Boxplots by ", group, "\\n", format(Sys.Date(),
     "\%d/\%m/\%Y")),
-  palette_title = "black",
-  size_title = 3,
   size_legend_title = 3,
   size_legend_text = 3,
   size_legend_circle = 4,
-  target = paste0(path_out, "/Boxplot.pptx"),
+  target = "Output/Boxplot.pptx",
   ratio = 1,
   telegram = "none"
 )
 }
 \arguments{
-\item{data}{dataframe}
+\item{data}{Dataframe}
 
-\item{variables}{vector containing all variables of interest}
+\item{variables}{Vector containing all variables of interest}
 
-\item{group}{factor variable splitting the data}
+\item{group}{Factor variable splitting the data. Default = 1, overall distribution}
 
-\item{ID_lines}{whether to print the lines for paired observations}
+\item{rm.outliers}{Whether to remove outliers from display. Default = FALSE}
 
-\item{Posthoc}{whether to display Posthoc tests}
+\item{th.outliers}{Times between Q1, Q3 and IQR to remove outliers. Default = 1.5}
 
-\item{Point}{whether to display observation points}
+\item{Point}{Whether to display observation points. Default = FALSE}
 
-\item{Median_line}{whether to display the line connecting medians}
+\item{size_point}{Size for points. Default = 0.3}
 
-\item{rm.outliers}{whether to remove outliers from display}
+\item{alpha_point}{Alpha for points. Default = 0.3}
 
-\item{alpha_box}{alpha parameter for the boxes}
+\item{alpha_box}{Alpha parameter for the boxes. Default = 0.1}
 
-\item{width_box}{box's width}
+\item{width_box}{Width parameter for the boxes. Default = 0.2}
 
-\item{size_median_line}{median linewidth}
+\item{lwd_box}{Linewidth for the boxes. Default = 0.1}
 
-\item{col_median_line}{Colour for the median line. Default = red}
+\item{notch}{Whether to display notches for the boxes. Default = FALSE}
 
-\item{lwd_box}{box linewidth}
+\item{notchwidth}{Width parameter of the notch. Default = 0.5}
 
-\item{lwd_ID_line}{linewidth for paired observations}
+\item{Median_line}{Whether to display the line connecting median values. Default = FALSE}
 
-\item{alpha_ID_line}{alpha for paired observations}
+\item{lwd_median_line}{Median line linewidth. Default = 0.8}
 
-\item{alpha_point}{alpha for points}
+\item{col_median_line}{Colour for the median line. Default = "red"}
 
-\item{size_point}{size for points}
+\item{ID_lines}{Whether to display the lines for paired observations. Default = FALSE}
 
-\item{Test_results}{dataframe for global and posthoc tests, see cont_var_test_LB}
+\item{ID}{ID variable for paired observations. Default = "ID"}
 
-\item{threshold_posthoc}{threshold for displaying posthoc tests}
+\item{lwd_ID_line}{Linewidth parameter for paired observations lines. Default = 0.2}
 
-\item{bracket_shorten}{[0,1] width of the bracket}
+\item{alpha_ID_line}{Alpha parameter for paired observations lines. Default = 0.3}
 
-\item{bracket.nudge.y}{Vertical adjustment to nudge brackets by. Useful to move up or move down the bracket. If positive value, brackets will be moved up; if negative value, brackets are moved down.}
+\item{Overall}{Whether to display overall test in the upper-left corner. Default = FALSE}
 
-\item{notch}{add notch to boxplot}
+\item{Posthoc}{Whether to display posthoc tests brackets. Default = FALSE}
 
-\item{notchwidth}{width of the notch}
+\item{Test_results}{Dataframe for global and posthoc tests for the LandS::cont_var_test_LB function}
 
-\item{axis_y_title}{axis y title}
+\item{threshold_posthoc}{Threshold for displaying posthoc tests brackets. Default = 0.1}
 
-\item{axis_x_title}{axis x title}
+\item{posthoc_test_size}{Size for annotations of posthoc p-values. Default = 3.88}
 
-\item{size_axis_x}{axis y title dimension}
+\item{bracket_shorten}{Width of the bracket [0,1]. Default = 0}
 
-\item{size_axis_y}{axis x title dimension}
+\item{bracket.nudge.y}{Vertical adjustment to nudge brackets by. Useful to move up or move down the bracket. If positive value, brackets will be moved up; if negative value, brackets are moved down. Default = 0}
 
-\item{ID}{ID variable}
+\item{axis_x_title}{Title for the x axis}
+
+\item{size_axis_x}{Dimensions for the x axis title. Default = 6}
+
+\item{axis_y_title}{Title for the y axis}
+
+\item{size_axis_y}{Dimensions for the y axis title. Default = 6}
+
+\item{col_title}{Whether to personalize the colour of title. Default = FALSE}
+
+\item{colour_title}{A function to personalize the colour of title. See vignette for more}
+
+\item{title_leg}{Whether to personalize the title of the variables. Default = FALSE}
+
+\item{title_legend}{A function to personalize the title of the variables. See vignette for more}
+
+\item{size_title}{Dimensions for the title. Default = 8}
+
+\item{breaks_axis_x}{Levels to be displayed in the graph}
+
+\item{labels_axis_x}{Labels of the levels}
+
+\item{grid}{Whether to build a grid pdf or a PPTX file. Default = TRUE}
+
+\item{PPTX}{Whether to build PPTX or a grid pdf file. Must change grid = FALSE. Default = FALSE}
+
+\item{pptx_width}{Graph dimensions for PPTX in inches. Default = 7.5}
+
+\item{pptx_height}{Graph dimensions for PPTX in inches. Default = 5.5}
+
+\item{extra}{Whether to add an extra text function. Default = FALSE}
+
+\item{extra_text}{A function to add extra functions to the graphs. See vignette for more}
+
+\item{palette}{Colours for the boxes. Must be a vector of the same length as the nlevels. Default = "transparent"}
+
+\item{label_legend_title}{A title for your list. Default sets "Boxplot by grouping variable" and the current date}
+
+\item{size_legend_title}{Size for the list's title. Default = 3}
+
+\item{size_legend_text}{Size for the list's text. Default = 3}
+
+\item{size_legend_circle}{Size for the list's circles Default = 4}
+
+\item{target}{Path where to save the PPTX file}
+
+\item{ratio}{Aspect ratio when grid = TRUE. Default = 1}
+
+\item{telegram}{Whether to send a telegram message when finished. Default = "none" to not send any message}
 }
 \value{
-Una lista di boxplot
+If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. \n When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
 }
 \description{
 This function creates a list of boxplot

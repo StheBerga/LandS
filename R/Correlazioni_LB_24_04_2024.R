@@ -15,6 +15,7 @@
 correlazioni_LB <- function(data, variables, method = "spearman", rho_dec = 3, pval_dec = 4,
                             excel = FALSE,
                             excel_path = paste0(path_output, "/Results.xlsx")){
+  start_time <- Sys.time()
   options(width=10000)
   options(max.print=99999)
   options(scipen = 99999)

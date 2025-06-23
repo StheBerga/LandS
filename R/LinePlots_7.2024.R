@@ -37,11 +37,11 @@
 #' @param extra_text A function to add extra functions to the graphs. See vignette for more.
 #' @param label_title A title for your list. Default sets "Lineplots by grouping variable" and the current date
 #' @param smooth_line Whether to show smooth or spline regression line. Defaul = FALSE
-#' @param span_line The span of smooth line. Defaul = 0.3
-#' @param Point Whether to show points. Defaul = FALSE
-#' @param alpha_point Alpha points. Defaul = 0.3
-#' @param size_point Size points. Defaul = 0.3
-#' @param size_label_title Size for your list's title. Default: 2.5
+#' @param span_line The span of smooth line. Default = 0.3
+#' @param Point Whether to show points. Default = FALSE
+#' @param alpha_point Alpha points. Default = 0.3
+#' @param size_point Size points. Default = 0.3
+#' @param size_label_title Size for your list's title. Default = 2.5
 #'
 #' @returns When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target folder
 #' @export
@@ -55,7 +55,7 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
                           size_title = 7, size_axis_x = 5, size_axis_y = 6, Overall = F,
                           Test_results = Test_results, Posthoc = F, threshold_posthoc = 0.1,
                           posthoc_test_size = 2, grid = T, ratio = 1, PPTX = F, pptx_width = 8.5,
-                          pptx_height = 5.5, target = paste0(path, "/file.pptx"),
+                          pptx_height = 5.5, target = "Output/Lineplots.pptx",
                           label_title = paste0("Lineplots by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
                           size_label_title = 2.5, extra = F, extra_text = NULL)
 {

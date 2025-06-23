@@ -42,7 +42,7 @@ Lineplots_LB(
   PPTX = F,
   pptx_width = 8.5,
   pptx_height = 5.5,
-  target = paste0(path, "/file.pptx"),
+  target = "Output/Lineplots.pptx",
   label_title = paste0("Lineplots by ", group, "\\n", format(Sys.Date(), "\%d/\%m/\%Y")),
   size_label_title = 2.5,
   extra = F,
@@ -68,7 +68,7 @@ Lineplots_LB(
 
 \item{smooth_line}{Whether to show smooth or spline regression line. Defaul = FALSE}
 
-\item{span_line}{The span of smooth line. Defaul = 0.3}
+\item{span_line}{The span of smooth line. Default = 0.3}
 
 \item{lw_reg}{Linewidth for regression line}
 
@@ -88,11 +88,11 @@ Lineplots_LB(
 
 \item{lw_ID_line}{Linewidth for ID lines. Default: 0.2}
 
-\item{Point}{Whether to show points. Defaul = FALSE}
+\item{Point}{Whether to show points. Default = FALSE}
 
-\item{alpha_point}{Alpha points. Defaul = 0.3}
+\item{alpha_point}{Alpha points. Default = 0.3}
 
-\item{size_point}{Size points. Defaul = 0.3}
+\item{size_point}{Size points. Default = 0.3}
 
 \item{col_title}{Whether to personalize the colour of title. Default = FALSE}
 
@@ -128,7 +128,7 @@ Lineplots_LB(
 
 \item{label_title}{A title for your list. Default sets "Lineplots by grouping variable" and the current date}
 
-\item{size_label_title}{Size for your list's title. Default: 2.5}
+\item{size_label_title}{Size for your list's title. Default = 2.5}
 
 \item{extra}{Whether to add an extra text function. Default = FALSE}
 
