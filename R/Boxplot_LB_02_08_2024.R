@@ -82,6 +82,8 @@ Boxplot_LB <- function (data, variables, group,
   if (telegram != "none") {
     start_time <<- Sys.time()
   }
+  start_time <- Sys.time()
+
   theme_PPTX <- theme(axis.text.x = element_text(size = 14, colour = "black", vjust = -0),
                       plot.margin = margin(2, 2, 2, 2, "mm"),
                       axis.text.y = element_text(size = 14, colour = "black"),
@@ -104,9 +106,6 @@ Boxplot_LB <- function (data, variables, group,
                      legend.position = c(0.87, 0.15), legend.title = element_blank(),
                      panel.spacing.x = unit(1.5, "mm"), aspect.ratio = ratio)
   boxplot <- list()
-  pb <- progress::progress_bar$new(format = "[:bar] :current/:total (:percent)",
-                                   total = length(variables))
-  pb$tick(0)
 
   if (length(variables) > 1) {
     boxplot[[1]] <- ggplot(data, aes_string(x = 1, y = 1)) +
@@ -226,9 +225,11 @@ Boxplot_LB <- function (data, variables, group,
       boxplot[[k]] <- gg
     }
 
-    Sys.sleep(0.01)
-    pb$tick(1)
-    pb
+    LandS::Progress_bar_LB(current = which(i == variables),
+                           total = length(variables),
+                           start_time = start_time,
+                           bar_fill = "\U2588",
+                           bar_void = "\U2591")
   }
   if (PPTX == T) {
     ppt <- read_pptx()

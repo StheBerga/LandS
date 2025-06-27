@@ -73,6 +73,8 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
     Test_results = data.frame(matrix(NA))
   }
 
+  start_time <- Sys.time()
+
   # Define Themes ----
   themegrid <- theme(axis.text.x = element_text(size = size_axis_x, colour = "black", vjust = -0),
                      plot.margin = margin(2, 2, 2, 2, "mm"),
@@ -99,8 +101,7 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
                      legend.key.width = unit(2, "cm"),
                      panel.spacing.x = unit(1.5, "mm"))
   list_reg <- list()
-  pb <- progress::progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
-  pb$tick(0)
+
 
   # Creating a legend as the first graph ----
   if (length(variables) > 1) {
@@ -347,9 +348,11 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
     else {
       list_reg[[k]] <- gg
     }
-    Sys.sleep(0.01)
-    pb$tick(1)
-    pb
+    LandS::Progress_bar_LB(current = which(i == variables),
+                           total = length(variables),
+                           start_time = start_time,
+                           bar_fill = "\U2588",
+                           bar_void = "\U2591")
   }
   if (PPTX == T) {
     ppt <- read_pptx()

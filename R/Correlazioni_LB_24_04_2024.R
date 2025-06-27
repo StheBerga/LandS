@@ -15,12 +15,12 @@
 correlazioni_LB <- function(data, variables, method = "spearman", rho_dec = 3, pval_dec = 4,
                             excel = FALSE,
                             excel_path = paste0(path_output, "/Results.xlsx")){
-  start_time <- Sys.time()
   options(width=10000)
   options(max.print=99999)
   options(scipen = 99999)
   require(dplyr)
 
+  start_time <- Sys.time()
   data_tmp <- dplyr::select(data, all_of(variables))
 
   # check numeric all variables
@@ -48,6 +48,12 @@ correlazioni_LB <- function(data, variables, method = "spearman", rho_dec = 3, p
       coeff_pval <- cor.test(data_tmp[, i], data_tmp[, j], method = method, na.rm=T, exact = FALSE)$p.value
       df_pval[df_pval$Var == i, colnames(df_pval) == j] <- coeff_pval
     }
+
+    LandS::Progress_bar_LB(current = which(i == variables),
+                           total = length(variables),
+                           start_time = start_time,
+                           bar_fill = "\U2588",
+                           bar_void = "\U2591")
   }
 
   # Creo matrice rho con * dove significativi
