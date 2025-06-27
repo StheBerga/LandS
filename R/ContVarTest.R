@@ -51,9 +51,7 @@ cont_var_test_LB <- function (data,
     start_time <<- Sys.time()
   }
 
-  # Progress bar
-  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
-  pb$tick(0)
+  start_time <- Sys.time()
 
   # Check if data is a data frame
   if("tbl_df" %in% base::class(data)){
@@ -113,9 +111,12 @@ cont_var_test_LB <- function (data,
         tabella[tabella$Variable == name, 2] <- stats[1]
         tabella[tabella$Variable == name, 3] <- stats[2]
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(data[, name] ~ data[, group])$p.value, 4)
-        Sys.sleep(0.005)
-        pb$tick(1)
-        pb
+
+        LandS::Progress_bar_LB(current = i,
+                               total = length(variables),
+                               start_time = start_time,
+                               bar_fill = "\U2588",
+                               bar_void = "\U2591")
       }
 
       res <- list()
@@ -173,9 +174,12 @@ cont_var_test_LB <- function (data,
         tabella[tabella$Variable == name, 3] <- stats[2]
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(Pair(tmp[tmp[, group] == levels[1], name],
                                                                             tmp[tmp[, group] == levels[2], name]) ~ 1, data = tmp)$p.value, 4)
-        Sys.sleep(0.005)
-        pb$tick(1)
-        pb
+
+        LandS::Progress_bar_LB(current = i,
+                               total = length(variables),
+                               start_time = start_time,
+                               bar_fill = "\U2588",
+                               bar_void = "\U2591")
       }
 
       res <- list()
@@ -327,8 +331,12 @@ cont_var_test_LB <- function (data,
           Friedman_test_df[Friedman_test_df$Var == i, m] <- as.numeric(matt_combn$pval[matt_combn$Versus == m])
 
         }
-        pb$tick(1)
-        pb
+
+        LandS::Progress_bar_LB(current = which(i == variables),
+                               total = length(variables),
+                               start_time = start_time,
+                               bar_fill = "\U2588",
+                               bar_void = "\U2591")
       }
 
       res <- list()
@@ -544,10 +552,12 @@ cont_var_test_LB <- function (data,
           KW_test_df[KW_test_df$Var == i, m] <- as.numeric(matt_combn$pval[matt_combn$Versus == m])
 
         }
-        Sys.sleep(0.05)
-        pb$tick(1)
-        pb
 
+        LandS::Progress_bar_LB(current = which(i == variables),
+                               total = length(variables),
+                               start_time = start_time,
+                               bar_fill = "\U2588",
+                               bar_void = "\U2591")
       }
 
       res <- list()
