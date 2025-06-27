@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">LandS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,6 +119,12 @@ Started” vignette</p>
 <span><span class="co">#&gt; Loading required package: officer</span></span>
 <span><span class="co">#&gt; Loading required package: rvg</span></span>
 <span><span class="co">#&gt; Loading required package: progress</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'pryr'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:dplyr':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     where</span></span>
+<span><span class="co">#&gt; <span style="color: #55FF55;">██████████████████████████████████████████████████████████████████████████████████████████</span> 100%  00:00:00 | ETA: 00:00:00 | RAM: 0.07Gb</span></span>
 <span><span class="co">#&gt; [[1]]</span></span></code></pre></div>
 <p><img src="master-lineplots_files/figure-html/single%20graph-1.png" width="700"></p>
 <p>You can see that the arguments used by the function are:</p>
@@ -135,6 +141,7 @@ Started” vignette</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/Lineplots_LB.html">Lineplots_LB</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data01</span>, variables <span class="op">=</span> <span class="st">"Marker_1"</span>, time <span class="op">=</span> <span class="st">"Time"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #55FF55;">██████████████████████████████████████████████████████████████████████████████████████████</span> 100%  00:00:00 | ETA: 00:00:00 | RAM: 0.08Gb</span></span>
 <span><span class="co">#&gt; [[1]]</span></span></code></pre></div>
 <p><img src="master-lineplots_files/figure-html/customized%20single%20graph-1.png" width="700"></p>
 <div class="section level3">
@@ -144,6 +151,7 @@ Started” vignette</p>
 variable:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/Lineplots_LB.html">Lineplots_LB</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data01</span>, variables <span class="op">=</span> <span class="st">"Marker_1"</span>, time <span class="op">=</span> <span class="st">"Time"</span>, group <span class="op">=</span> <span class="st">"Gender"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #55FF55;">██████████████████████████████████████████████████████████████████████████████████████████</span> 100%  00:00:00 | ETA: 00:00:00 | RAM: 0.08Gb</span></span>
 <span><span class="co">#&gt; [[1]]</span></span></code></pre></div>
 <p><img src="master-lineplots_files/figure-html/split%20a%20single%20graph-1.png" width="700"></p>
 </div>
@@ -153,6 +161,7 @@ variable:</p>
 </h2>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/Lineplots_LB.html">Lineplots_LB</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data01</span>, variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Marker_1"</span>, <span class="st">"Marker_2"</span><span class="op">)</span>, time <span class="op">=</span> <span class="st">"Time"</span>, group <span class="op">=</span> <span class="st">"Gender"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #55FF55;">█████████████████████████████████████████████</span><span style="color: #555555;">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</span>  50%  00:00:00 | ETA: 00:00:00 | RAM: 0.08Gb<span style="color: #55FF55;">██████████████████████████████████████████████████████████████████████████████████████████</span> 100%  00:00:00 | ETA: 00:00:00 | RAM: 0.08Gb</span></span>
 <span><span class="co">#&gt; [[1]]</span></span></code></pre></div>
 <p><img src="master-lineplots_files/figure-html/graphs%20list-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; </span></span>
@@ -198,6 +207,7 @@ PPTX file with every lineplot in a different slide.</p>
 <span></span>
 <span><span class="fu"><a href="../reference/Lineplots_LB.html">Lineplots_LB</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data01</span>, variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Marker_1"</span>, <span class="st">"Marker_2"</span><span class="op">)</span>, time <span class="op">=</span> <span class="st">"Time"</span>, group <span class="op">=</span> <span class="st">"Gender"</span>, </span>
 <span>             col_title <span class="op">=</span> <span class="cn">TRUE</span>, colour_title <span class="op">=</span> <span class="va">colour_title</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #55FF55;">█████████████████████████████████████████████</span><span style="color: #555555;">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</span>  50%  00:00:00 | ETA: 00:00:00 | RAM: 0.08Gb<span style="color: #55FF55;">██████████████████████████████████████████████████████████████████████████████████████████</span> 100%  00:00:00 | ETA: 00:00:00 | RAM: 0.08Gb</span></span>
 <span><span class="co">#&gt; [[1]]</span></span></code></pre></div>
 <p><img src="master-lineplots_files/figure-html/custom%20col%20title-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; </span></span>
@@ -219,20 +229,18 @@ PPTX file with every lineplot in a different slide.</p>
 <span>                                 paired <span class="op">=</span> <span class="cn">TRUE</span>, p.adjust.method <span class="op">=</span> <span class="st">"bonferroni"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: PMCMRplus</span></span>
 <span><span class="co">#&gt; Loading required package: rlang</span></span>
-<span><span class="co">#&gt; Loading required package: gtsummary</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'pryr'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:rlang':</span></span>
+<span><span class="co">#&gt; Attaching package: 'rlang'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:pryr':</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     bytes</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:dplyr':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     where</span></span>
+<span><span class="co">#&gt; Loading required package: gtsummary</span></span>
 <span><span class="co">#&gt; <span style="color: #55FF55;">█████████████████████████████████████████████</span><span style="color: #555555;">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</span>  50%  00:00:00 | ETA: 00:00:00 | RAM: 0.10Gb<span style="color: #55FF55;">██████████████████████████████████████████████████████████████████████████████████████████</span> 100%  00:00:00 | ETA: 00:00:00 | RAM: 0.10Gb</span></span>
 <span><span class="co">#&gt; Friedman rank sum test used</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/Lineplots_LB.html">Lineplots_LB</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data01</span>, time <span class="op">=</span> <span class="st">"Time"</span>, variables <span class="op">=</span> <span class="st">"Marker_1"</span>, Overall <span class="op">=</span> <span class="cn">TRUE</span>, Test_results <span class="op">=</span> <span class="va">Tests</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span>, </span>
 <span>             Posthoc <span class="op">=</span> <span class="cn">TRUE</span>, posthoc_test_size <span class="op">=</span> <span class="fl">2</span>, threshold_posthoc <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #55FF55;">██████████████████████████████████████████████████████████████████████████████████████████</span> 100%  00:00:00 | ETA: 00:00:00 | RAM: 0.10Gb</span></span>
 <span><span class="co">#&gt; [[1]]</span></span></code></pre></div>
 <p><img src="master-lineplots_files/figure-html/test%20brackets-1.png" width="700"></p>
 </div>
