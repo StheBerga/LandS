@@ -8,7 +8,7 @@ Progress_bar_LB(
   current,
   total,
   start_time,
-  bar_length = 90,
+  bar_length = 80,
   bar_fill = "=",
   bar_void = " ",
   logfile = NULL
@@ -21,7 +21,7 @@ Progress_bar_LB(
 
 \item{start_time}{Start time of the cycle}
 
-\item{bar_length}{Bar width in the console}
+\item{bar_length}{Bar width in the console (default 80)}
 
 \item{bar_fill}{The bar fill character}
 

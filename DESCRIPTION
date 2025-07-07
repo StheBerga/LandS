@@ -1,7 +1,7 @@
 Package: LandS
 Type: Package
 Title: Biostatistic Tools for DCP
-Version: 1.7.5
+Version: 1.7.6
 Author: Stefano Bergamini and Luca Lalli 
 Maintainer: Stefano Bergamini <stefano.bergamini@istitutotumori.mi.it>
 Description: This package provides useful functions in daily clinical pratice for biostatistics
