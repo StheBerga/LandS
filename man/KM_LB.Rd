@@ -11,8 +11,23 @@ KM_LB(
   data = data,
   title = "Prova",
   xlab = "Time in months",
-  ylab = "Probaility of Surv",
+  ylab = "Probability of Survival",
+  atrisklab = "At risk",
   xlim = c(0, max(data[, tEvent], na.rm = T)),
+  lwd_lines = 1,
+  alpha_CI = 0,
+  size_pval = 4,
+  x_pval = 5,
+  y_pval = 0.5,
+  size_title = 14,
+  size_title_x = 12,
+  size_title_y = 12,
+  size_text_x = 10,
+  size_text_y = 10,
+  size_legend_title = 5,
+  size_legend_text = 12,
+  at_risk_title_size = 10.75,
+  at_risk_size = 3,
   breaks_by = 3
 )
 }
@@ -33,7 +48,37 @@ KM_LB(
 
 \item{xlim}{limits of x-axis (Default is from 0 to maximum observed time)}
 
-\item{breaks_by}{breaks of risk table(Default = 3)}
+\item{lwd_lines}{linewidth of survival curves}
+
+\item{alpha_CI}{transparency of CI of survival curves. To not display CI set it to 0 (default)}
+
+\item{size_pval}{size of log-rank-test p-value}
+
+\item{x_pval}{x-axis coordinates of pvalue, same scale of tEvent}
+
+\item{y_pval}{y-axis coordinates of pvalue, between 0 and 1}
+
+\item{size_title}{size of title}
+
+\item{size_title_x}{size of x-axis title}
+
+\item{size_title_y}{size of y-axis title}
+
+\item{size_text_x}{size of x-axis text}
+
+\item{size_text_y}{size of y-axis text}
+
+\item{size_legend_title}{size of legend title}
+
+\item{size_legend_text}{size of legend text}
+
+\item{at_risk_title_size}{size of at risk table title}
+
+\item{at_risk_size}{size of at risk table text}
+
+\item{breaks_by}{breaks of risk table (Default = 3)}
+
+\item{legendlab}{title of at risk table (Default = "At risk")}
 }
 \value{
 a KM graph
