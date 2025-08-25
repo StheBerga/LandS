@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">LandS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,8 +48,23 @@
 <span>  data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>  title <span class="op">=</span> <span class="st">"Prova"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"Time in months"</span>,</span>
-<span>  ylab <span class="op">=</span> <span class="st">"Probaility of Surv"</span>,</span>
+<span>  ylab <span class="op">=</span> <span class="st">"Probability of Survival"</span>,</span>
+<span>  atrisklab <span class="op">=</span> <span class="st">"At risk"</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>, <span class="va">tEvent</span><span class="op">]</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  lwd_lines <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  alpha_CI <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  size_pval <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  x_pval <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  y_pval <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  size_title <span class="op">=</span> <span class="fl">14</span>,</span>
+<span>  size_title_x <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>  size_title_y <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>  size_text_x <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  size_text_y <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  size_legend_title <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  size_legend_text <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>  at_risk_title_size <span class="op">=</span> <span class="fl">10.75</span>,</span>
+<span>  at_risk_size <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  breaks_by <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -90,8 +105,68 @@
 <dd><p>limits of x-axis (Default is from 0 to maximum observed time)</p></dd>
 
 
+<dt id="arg-lwd-lines">lwd_lines<a class="anchor" aria-label="anchor" href="#arg-lwd-lines"></a></dt>
+<dd><p>linewidth of survival curves</p></dd>
+
+
+<dt id="arg-alpha-ci">alpha_CI<a class="anchor" aria-label="anchor" href="#arg-alpha-ci"></a></dt>
+<dd><p>transparency of CI of survival curves. To not display CI set it to 0 (default)</p></dd>
+
+
+<dt id="arg-size-pval">size_pval<a class="anchor" aria-label="anchor" href="#arg-size-pval"></a></dt>
+<dd><p>size of log-rank-test p-value</p></dd>
+
+
+<dt id="arg-x-pval">x_pval<a class="anchor" aria-label="anchor" href="#arg-x-pval"></a></dt>
+<dd><p>x-axis coordinates of pvalue, same scale of tEvent</p></dd>
+
+
+<dt id="arg-y-pval">y_pval<a class="anchor" aria-label="anchor" href="#arg-y-pval"></a></dt>
+<dd><p>y-axis coordinates of pvalue, between 0 and 1</p></dd>
+
+
+<dt id="arg-size-title">size_title<a class="anchor" aria-label="anchor" href="#arg-size-title"></a></dt>
+<dd><p>size of title</p></dd>
+
+
+<dt id="arg-size-title-x">size_title_x<a class="anchor" aria-label="anchor" href="#arg-size-title-x"></a></dt>
+<dd><p>size of x-axis title</p></dd>
+
+
+<dt id="arg-size-title-y">size_title_y<a class="anchor" aria-label="anchor" href="#arg-size-title-y"></a></dt>
+<dd><p>size of y-axis title</p></dd>
+
+
+<dt id="arg-size-text-x">size_text_x<a class="anchor" aria-label="anchor" href="#arg-size-text-x"></a></dt>
+<dd><p>size of x-axis text</p></dd>
+
+
+<dt id="arg-size-text-y">size_text_y<a class="anchor" aria-label="anchor" href="#arg-size-text-y"></a></dt>
+<dd><p>size of y-axis text</p></dd>
+
+
+<dt id="arg-size-legend-title">size_legend_title<a class="anchor" aria-label="anchor" href="#arg-size-legend-title"></a></dt>
+<dd><p>size of legend title</p></dd>
+
+
+<dt id="arg-size-legend-text">size_legend_text<a class="anchor" aria-label="anchor" href="#arg-size-legend-text"></a></dt>
+<dd><p>size of legend text</p></dd>
+
+
+<dt id="arg-at-risk-title-size">at_risk_title_size<a class="anchor" aria-label="anchor" href="#arg-at-risk-title-size"></a></dt>
+<dd><p>size of at risk table title</p></dd>
+
+
+<dt id="arg-at-risk-size">at_risk_size<a class="anchor" aria-label="anchor" href="#arg-at-risk-size"></a></dt>
+<dd><p>size of at risk table text</p></dd>
+
+
 <dt id="arg-breaks-by">breaks_by<a class="anchor" aria-label="anchor" href="#arg-breaks-by"></a></dt>
-<dd><p>breaks of risk table(Default = 3)</p></dd>
+<dd><p>breaks of risk table (Default = 3)</p></dd>
+
+
+<dt id="arg-legendlab">legendlab<a class="anchor" aria-label="anchor" href="#arg-legendlab"></a></dt>
+<dd><p>title of at risk table (Default = "At risk")</p></dd>
 
 </dl></div>
     <div class="section level2">
