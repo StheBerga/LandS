@@ -59,26 +59,71 @@
 #' @export
 #'
 #' @examples Boxplot_LB(mtcars, c('mpg', 'disp'), 'vs')
-Boxplot_LB <- function (data, variables, group,
-                        rm.outliers = F, th.outliers = 1.5,
-                        Point = F, size_point = 0.3, alpha_point = 0.3,
-                        alpha_box = 0.1, width_box = 0.2, lwd_box = 0.1,
-                        notch = F, notchwidth = 0.5,
-                        Median_line = F, lwd_median_line = 0.8, col_median_line = "red",
-                        ID_lines = FALSE, ID = "ID", lwd_ID_line = 0.2, alpha_ID_line = 0.3,
-                        Overall = F, Posthoc = FALSE, Test_results = NULL, threshold_posthoc = 0.1,
-                        posthoc_test_size = 3.88, bracket_shorten = 0, bracket.nudge.y = 0,
-                        axis_x_title = NULL, size_axis_x = 6,
-                        axis_y_title = NULL, size_axis_y = 6,
-                        col_title = FALSE, colour_title = NULL, alpha_fill_title = 0.2, fill_title = NULL,
-                        title_leg = FALSE, title_legend = NULL, size_title = 8,
-                        breaks_axis_x = levels(data[, group]), labels_axis_x = levels(data[, group]),
-                        grid = TRUE, PPTX = FALSE, pptx_width = 7.5, pptx_height = 5.5,
-                        extra = FALSE, extra_text = NULL,
+Boxplot_LB <- function (data,
+                        variables,
+                        group,
+                        ID = "ID",
+
+                        rm.outliers = F,
+                        th.outliers = 1.5,
+
+                        Point = F,
+                        size_point = 0.3,
+                        alpha_point = 0.3,
+
+                        alpha_box = 0.1,
+                        width_box = 0.2,
+                        lwd_box = 0.1,
+                        notch = F,
+                        notchwidth = 0.5,
+                        Median_line = F,
+                        lwd_median_line = 0.8,
+                        col_median_line = "red",
+
+                        ID_lines = FALSE,
+                        lwd_ID_line = 0.2,
+                        alpha_ID_line = 0.3,
+
+                        Overall = F,
+                        Posthoc = FALSE,
+                        Test_results = NULL,
+                        threshold_posthoc = 0.05,
+                        posthoc_test_size = 3.88,
+                        bracket_shorten = 0,
+                        bracket.nudge.y = 0,
+
+                        axis_x_title = NULL,
+                        size_axis_x = 6,
+                        axis_y_title = NULL,
+                        size_axis_y = 6,
+
+                        col_title = FALSE,
+                        colour_title = NULL,
+                        alpha_fill_title = 0.2,
+                        fill_title = NULL,
+                        title_leg = FALSE,
+                        title_legend = NULL,
+                        size_title = 8,
+
+                        breaks_axis_x = levels(data[, group]),
+                        labels_axis_x = levels(data[, group]),
+
+                        grid = TRUE,
+                        PPTX = FALSE,
+                        pptx_width = 7.5,
+                        pptx_height = 5.5,
+
+                        extra = FALSE,
+                        extra_text = NULL,
+
                         palette = rep("transparent", nlevels(data[, group])),
                         label_legend_title = paste0("Boxplots by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
-                        size_legend_title = 3, size_legend_text = 3, size_legend_circle = 4,
-                        target = "Output/Boxplot.pptx", ratio = 1, telegram = "none")
+                        size_legend_title = 3,
+                        size_legend_text = 3,
+                        size_legend_circle = 4,
+                        target = "Output/Boxplot.pptx",
+                        ratio = 1,
+                        telegram = "none")
 {
   require(ggplot2)
   require(officer)
@@ -86,6 +131,12 @@ Boxplot_LB <- function (data, variables, group,
     start_time <<- Sys.time()
   }
   start_time <- Sys.time()
+
+  message(paste0("Creazione ", length(variables), " boxplots con: \n",
+                 "- Splittati by ", group, "\n",
+                 "- Outliers: ", rm.outliers, "\n",
+                 "- Posthoc: ", Posthoc
+                 ))
 
   theme_PPTX <- theme(axis.text.x = element_text(size = 14, colour = "black", vjust = -0),
                       plot.margin = margin(2, 2, 2, 2, "mm"),
