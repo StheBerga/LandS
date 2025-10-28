@@ -3,7 +3,7 @@ pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   master-lineplots: master-lineplots.html
-last_built: 2025-10-28T12:58Z
+last_built: 2025-10-28T13:43Z
 urls:
   reference: https://stheberga.github.io/LandS/reference
   article: https://stheberga.github.io/LandS/articles
