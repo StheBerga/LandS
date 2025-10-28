@@ -91,7 +91,7 @@ cont_var_test_LB <- function (data,
       for (i in 1:length(variables)){
         name <- variables[i]
 
-        stats <<- sapply(levels, function(lvl) {
+        stats <- sapply(levels, function(lvl) {
           x <- data[data[, group] == lvl, name]
           vals <- list(
             mean   = round(mean(x, na.rm = TRUE), num_dec),

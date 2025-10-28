@@ -32,7 +32,7 @@
 #' @param axis_y_title Title for the y axis
 #' @param size_axis_y Dimensions for the y axis title. Default = 6
 #' @param col_title Whether to personalize the colour of title. Default = FALSE
-#' @param colour_title A function to personalize the colour of title. See vignette for more
+#' @param colour_title A function to personalize the fill of title background. See vignette for more
 #' @param title_leg Whether to personalize the title of the variables. Default = FALSE
 #' @param title_legend A function to personalize the title of the variables. See vignette for more
 #' @param size_title Dimensions for the title. Default = 8
@@ -51,11 +51,14 @@
 #' @param size_legend_text Size for the list's text. Default = 3
 #' @param size_legend_circle Size for the list's circles Default = 4
 #' @param ratio Aspect ratio when grid = TRUE. Default = 1
+#' @param alpha_fill_title Alpha for title background. Default = 0.2
 #' @param telegram Whether to send a telegram message when finished. Default = "none" to not send any message
+#' @param fill_title A function to personalize the fill of title background. See vignette for more
+#'
 #' @return If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. \n When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
 #' @export
 #'
-#' @examples
+#' @examples Boxplot_LB(mtcars, c('mpg', 'disp'), 'vs')
 Boxplot_LB <- function (data, variables, group,
                         rm.outliers = F, th.outliers = 1.5,
                         Point = F, size_point = 0.3, alpha_point = 0.3,
@@ -63,11 +66,11 @@ Boxplot_LB <- function (data, variables, group,
                         notch = F, notchwidth = 0.5,
                         Median_line = F, lwd_median_line = 0.8, col_median_line = "red",
                         ID_lines = FALSE, ID = "ID", lwd_ID_line = 0.2, alpha_ID_line = 0.3,
-                        Overall = F, Posthoc = FALSE,  Test_results = NULL, threshold_posthoc = 0.1,
+                        Overall = F, Posthoc = FALSE, Test_results = NULL, threshold_posthoc = 0.1,
                         posthoc_test_size = 3.88, bracket_shorten = 0, bracket.nudge.y = 0,
                         axis_x_title = NULL, size_axis_x = 6,
                         axis_y_title = NULL, size_axis_y = 6,
-                        col_title = FALSE, colour_title = NULL,
+                        col_title = FALSE, colour_title = NULL, alpha_fill_title = 0.2, fill_title = NULL,
                         title_leg = FALSE, title_legend = NULL, size_title = 8,
                         breaks_axis_x = levels(data[, group]), labels_axis_x = levels(data[, group]),
                         grid = TRUE, PPTX = FALSE, pptx_width = 7.5, pptx_height = 5.5,
@@ -128,7 +131,7 @@ Boxplot_LB <- function (data, variables, group,
       } + {
         if (group == 1)
           scale_fill_manual(values = palette[1])
-      } + theme_transparent() +
+      } + ggpubr::theme_transparent() +
       theme(legend.text = element_text(size = size_legend_text, face = "bold")) +
       annotate(geom = "text", x = 1,
                y = 1.001, size = size_legend_title, label = label_legend_title,
@@ -142,8 +145,9 @@ Boxplot_LB <- function (data, variables, group,
   for (i in variables) {
     if (col_title == TRUE) {
       colour_title <- colour_title(i)
+      colour_title <- fill_title(i)
     } else {
-      colour_title <- "black"
+      colour_title <- "transparent"
     }
     k <- which(variables == i)
     if (Posthoc == T) {
@@ -212,10 +216,22 @@ Boxplot_LB <- function (data, variables, group,
           extra_text(i)
       } + {
         if (grid)
-          themegrid + theme(plot.title = element_text(hjust = 0.5, size = size_title, vjust = -0.5, face = "bold", colour = colour_title))
+          themegrid + theme(plot.title = ggtext::element_textbox_simple(
+            size = size_title, box.colour = "black", face = "bold",
+            linewidth = .1, linetype = 1,
+            hjust = 0, halign = .5,
+            padding = margin(6, 5, 4, 5),
+            margin = margin(0, 0, 0, 0),
+            fill = scales::alpha(colour_title, alpha_fill_title)))
       } + {
         if (PPTX)
-          theme_PPTX + theme(plot.title = element_text(hjust = 0.5, size = 20, vjust = -0.5, face = "bold", colour = colour_title))
+          theme_PPTX + theme(plot.title = ggtext::element_textbox_simple(
+            size = size_title, box.colour = "black", face = "bold",
+            linewidth = .1, linetype = 1,
+            hjust = 0, halign = .5,
+            padding = margin(6, 5, 4, 5),
+            margin = margin(0, 0, 0, 0),
+            fill = scales::alpha(colour_title, alpha_fill_title)))
       }
 
     if (length(variables) > 1) {
