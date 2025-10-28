@@ -18,7 +18,6 @@
 #' @param alpha_ID_line Alpha for ID lines. Default: 0.3
 #' @param lw_ID_line Linewidth for ID lines. Default: 0.2
 #' @param col_title Whether to personalize the colour of title. Default = FALSE
-#' @param colour_title A function to personalize the colour of title. See vignette for more.
 #' @param size_title Size of title. If grid recommended 7, if PPTX recommended 20
 #' @param size_axis_x x-axis text size. If grid recommended 5, if PPTX recommended 14
 #' @param size_axis_y y-axis text size. If grid recommended 6, if PPTX recommended 14
@@ -42,22 +41,69 @@
 #' @param alpha_point Alpha points. Default = 0.3
 #' @param size_point Size points. Default = 0.3
 #' @param size_label_title Size for your list's title. Default = 2.5
+#' @param alpha_fill_title Alpha for title background. Default = 0.2
+#' @param fill_title A function to personalize the fill of title background. See vignette for more
 #'
 #' @returns When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target folder
 #' @export
 #'
 #' @examples
-Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
-                          label = unique(data[, time]), group = 1, col_lines = c("salmon", "royalblue"), stat_line = "median", smooth_line = FALSE,
-                          span_line = 0.3, lw_reg = 1, alpha_line = 1, ylim = c(0.2, 0.8), ribbon = TRUE, alpha_ribbon = 0.05, ID_lines = FALSE,
-                          ID = "ID", alpha_ID_line = 0.3, lw_ID_line = 0.2, Point = FALSE,
-                          alpha_point = 0.3, size_point = 0.3, col_title = FALSE, colour_title = NULL,
-                          size_title = 7, size_axis_x = 5, size_axis_y = 6, Overall = F,
-                          Test_results = Test_results, Posthoc = F, threshold_posthoc = 0.1,
-                          posthoc_test_size = 2, grid = T, ratio = 1, PPTX = F, pptx_width = 8.5,
-                          pptx_height = 5.5, target = "Output/Lineplots.pptx",
+Lineplots_LB <- function (data,
+                          variables,
+                          time,
+                          breaks = unique(data[, time]),
+                          label = unique(data[, time]),
+                          group = 1,
+                          col_lines = c("salmon", "royalblue"),
+
+                          stat_line = "median",
+                          smooth_line = FALSE,
+                          span_line = 0.3,
+                          lw_reg = 1,
+                          alpha_line = 1,
+
+                          ylim = c(0.2, 0.8),
+
+                          ribbon = TRUE,
+                          alpha_ribbon = 0.05,
+
+                          ID_lines = FALSE,
+                          ID = "ID",
+                          alpha_ID_line = 0.3,
+                          lw_ID_line = 0.2,
+
+                          Point = FALSE,
+                          alpha_point = 0.3,
+                          size_point = 0.3,
+
+                          col_title = FALSE,
+                          fill_title = NULL,
+                          size_title = 7,
+                          alpha_fill_title = 0.2,
                           label_title = paste0("Lineplots by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
-                          size_label_title = 2.5, extra = F, extra_text = NULL)
+                          size_label_title = 2.5,
+
+                          size_axis_x = 5,
+                          size_axis_y = 6,
+
+                          Overall = F,
+                          Test_results = Test_results,
+                          Posthoc = F,
+                          threshold_posthoc = 0.1,
+                          posthoc_test_size = 2,
+
+                          grid = T,
+                          ratio = 1,
+                          PPTX = F,
+
+                          pptx_width = 8.5,
+                          pptx_height = 5.5,
+                          target = "Output/Lineplots.pptx",
+
+                          extra = F,
+                          extra_text = NULL)
+
+
 {
   require(ggplot2)
   require(ggpubr)
@@ -69,9 +115,21 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
   require(officer)
   require(rvg)
   require(progress)
+
+
   if (Posthoc == FALSE & Overall == FALSE) {
     Test_results = data.frame(matrix(NA))
   }
+
+  message(paste0("Creazione ", length(variables), " lineplots con: \n",
+                 "-Split by ", group, "\n",
+                 "-Break time ", paste(breaks, collapse = ", "), "\n",
+                 "-Label time ", paste(label, collapse = ", "), "\n",
+                 "-Stat Line: ", stat_line, "\n",
+                 "-Smooth Line: ", smooth_line, "\n",
+                 "-Ribbon: ", ribbon, "\n",
+                 "-Points: ", Point, "\n"
+  ))
 
   start_time <- Sys.time()
 
@@ -125,7 +183,7 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
       } + {
         if (group == 1)
           scale_fill_manual(values = col_lines[1])
-      } + theme_transparent() +
+      } + ggpubr::theme_transparent() +
 
       annotate(geom = "text", x = 1, y = 1.001,
                size = size_label_title, label = label_title,
@@ -197,7 +255,7 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
     if (col_title) {
       if (group != 1) {
 
-        colour_title <- colour_title(i)
+        colour_title <- fill_title(i)
         gg <- gg + aes_string(colour = group, fill = group) +
           scale_color_manual(values = col_lines, drop = F) +
           scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
@@ -209,7 +267,7 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
         } else { }
 
       } else {
-        colour_title <- colour_title(i)
+        colour_title <- fill_title(i)
         gg <- gg + aes(colour = "forestgreen", fill = "forestgreen") +
           scale_color_manual(values = col_lines[1], drop = F) +
           scale_fill_manual(values = col_lines[1], drop = F, guide = FALSE)
@@ -221,7 +279,7 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
       }
     } else {
       if (group != 1) {
-        colour_title <- "black"
+        colour_title <- "transparent"
         gg <- gg + aes_string(colour = group, fill = group) +
           scale_color_manual(values = col_lines, drop = F) +
           scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
@@ -230,7 +288,7 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
         } else { }
 
       } else {
-        colour_title <- "black"
+        colour_title <- "transparent"
         gg <- gg + aes(colour = "forestgreen", fill = "forestgreen") +
           scale_color_manual(values = col_lines[1], drop = F) +
           scale_fill_manual(values = col_lines[1], drop = F,
@@ -333,14 +391,27 @@ Lineplots_LB <- function (data, variables, time, breaks = unique(data[, time]),
                                                 step.increase = 0.08, size = posthoc_test_size)
     }
     if (grid == TRUE) {
-      gg <- gg + themegrid + theme(plot.title = element_text(hjust = 0.5, size = size_title, vjust = -0.5, face = "bold",
-                                                             colour = colour_title), legend.position = "none",
-                                   legend.title = element_blank())
+      gg <- gg + themegrid + theme(plot.title = ggtext::element_textbox_simple(
+        size = size_title, box.colour = "black", face = "bold",
+        linewidth = .1, linetype = 1,
+        hjust = 0, halign = .5,
+        padding = margin(6, 5, 4, 5),
+        margin = margin(0, 0, 0, 0),
+        fill = scales::alpha(colour_title, alpha_fill_title)),
+        legend.position = "none",
+        legend.title = element_blank())
     }
     if (PPTX) {
-      gg <- gg + themePPTX + theme(plot.title = element_text(hjust = 0.5, size = 20, vjust = -0.5, face = "bold", colour = colour_title),
-                                   legend.position = "none", legend.title = element_blank(),
-                                   legend.background = element_rect(fill = "transparent"))
+      gg <- gg + themePPTX + theme(plot.title = ggtext::element_textbox_simple(
+        size = size_title, box.colour = "black", face = "bold",
+        linewidth = .1, linetype = 1,
+        hjust = 0, halign = .5,
+        padding = margin(6, 5, 4, 5),
+        margin = margin(0, 0, 0, 0),
+        fill = scales::alpha(colour_title, alpha_fill_title)),
+        legend.position = "none",
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "transparent"))
     }
     if (length(variables) > 1) {
       list_reg[[k + 1]] <- gg

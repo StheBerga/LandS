@@ -132,11 +132,11 @@ Boxplot_LB <- function (data,
   start_time <- Sys.time()
 
   message(paste0("Creazione ", length(variables), " boxplots con: \n",
-                 "- Split by ", group, "\n",
+                 "-Split by ", group, "\n",
                  "-Points: ", Point, "\n",
-                 "- Outliers: ", rm.outliers, "\n",
-                 "- Posthoc: ", Posthoc, "\n",
-                 "- ID_lines: ", ID_lines
+                 "-Outliers: ", rm.outliers, "\n",
+                 "-Posthoc: ", Posthoc, "\n",
+                 "-ID_lines: ", ID_lines
   ))
 
   theme_PPTX <- theme(axis.text.x = element_text(size = 14, colour = "black", vjust = -0),
