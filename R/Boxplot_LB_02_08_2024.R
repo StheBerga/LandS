@@ -32,7 +32,6 @@
 #' @param axis_y_title Title for the y axis
 #' @param size_axis_y Dimensions for the y axis title. Default = 6
 #' @param col_title Whether to personalize the colour of title. Default = FALSE
-#' @param colour_title A function to personalize the fill of title background. See vignette for more
 #' @param title_leg Whether to personalize the title of the variables. Default = FALSE
 #' @param title_legend A function to personalize the title of the variables. See vignette for more
 #' @param size_title Dimensions for the title. Default = 8
@@ -98,9 +97,9 @@ Boxplot_LB <- function (data,
                         size_axis_y = 6,
 
                         col_title = FALSE,
-                        colour_title = NULL,
                         alpha_fill_title = 0.2,
                         fill_title = NULL,
+
                         title_leg = FALSE,
                         title_legend = NULL,
                         size_title = 8,
@@ -133,10 +132,12 @@ Boxplot_LB <- function (data,
   start_time <- Sys.time()
 
   message(paste0("Creazione ", length(variables), " boxplots con: \n",
-                 "- Splittati by ", group, "\n",
+                 "- Split by ", group, "\n",
+                 "-Points: ", Point, "\n",
                  "- Outliers: ", rm.outliers, "\n",
-                 "- Posthoc: ", Posthoc
-                 ))
+                 "- Posthoc: ", Posthoc, "\n",
+                 "- ID_lines: ", ID_lines
+  ))
 
   theme_PPTX <- theme(axis.text.x = element_text(size = 14, colour = "black", vjust = -0),
                       plot.margin = margin(2, 2, 2, 2, "mm"),
@@ -195,10 +196,9 @@ Boxplot_LB <- function (data,
 
   for (i in variables) {
     if (col_title == TRUE) {
-      colour_title <- colour_title(i)
-      colour_title <- fill_title(i)
+      fill_title <- fill_title(i)
     } else {
-      colour_title <- "transparent"
+      fill_title <- "transparent"
     }
     k <- which(variables == i)
     if (Posthoc == T) {
@@ -273,7 +273,7 @@ Boxplot_LB <- function (data,
             hjust = 0, halign = .5,
             padding = margin(6, 5, 4, 5),
             margin = margin(0, 0, 0, 0),
-            fill = scales::alpha(colour_title, alpha_fill_title)))
+            fill = scales::alpha(fill_title, alpha_fill_title)))
       } + {
         if (PPTX)
           theme_PPTX + theme(plot.title = ggtext::element_textbox_simple(
@@ -282,7 +282,7 @@ Boxplot_LB <- function (data,
             hjust = 0, halign = .5,
             padding = margin(6, 5, 4, 5),
             margin = margin(0, 0, 0, 0),
-            fill = scales::alpha(colour_title, alpha_fill_title)))
+            fill = scales::alpha(fill_title, alpha_fill_title)))
       }
 
     if (length(variables) > 1) {
