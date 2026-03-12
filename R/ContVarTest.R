@@ -17,6 +17,7 @@
 #' @param excel_path path where you want your Excel
 #' @param telegram send a telegram message
 #' @param p.adjust.method correction method, a character string. Can be abbreviated.
+#' @param verbose print progress bar and messages
 
 #'
 #' @return Una lista con dataset
@@ -34,7 +35,8 @@ cont_var_test_LB <- function (data,
                               p.adjust.method = NULL,
                               excel = F,
                               excel_path = paste0(path_out, "/Results.xlsx"),
-                              telegram = "none")
+                              telegram = "none",
+                              verbose = TRUE)
 {
   options(warn=-1)
   require(progress)
@@ -112,11 +114,9 @@ cont_var_test_LB <- function (data,
         tabella[tabella$Variable == name, 3] <- stats[2]
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(data[, name] ~ data[, group])$p.value, 4)
 
-        LandS::Progress_bar_LB(current = i,
-                               total = length(variables),
-                               start_time = start_time,
-                               bar_fill = "\U2588",
-                               bar_void = "\U2591")
+        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+                                            total = length(variables), start_time = start_time,
+                                            bar_fill = "█", bar_void = "░")
       }
 
       res <- list()
@@ -131,7 +131,7 @@ cont_var_test_LB <- function (data,
       res[[3]] <- tabella_p
       names(res) <- c("Raw_tests", "Form_tests", "Raw_pval")
 
-      message("Mann-Whitney Rank Sum test used")
+      if (verbose) message("Mann-Whitney Rank Sum test used")
     }
 
     if (paired == TRUE){
@@ -175,11 +175,9 @@ cont_var_test_LB <- function (data,
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(Pair(tmp[tmp[, group] == levels[1], name],
                                                                             tmp[tmp[, group] == levels[2], name]) ~ 1, data = tmp)$p.value, 4)
 
-        LandS::Progress_bar_LB(current = i,
-                               total = length(variables),
-                               start_time = start_time,
-                               bar_fill = "\U2588",
-                               bar_void = "\U2591")
+        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+                                            total = length(variables), start_time = start_time,
+                                            bar_fill = "█", bar_void = "░")
       }
 
       res <- list()
@@ -195,7 +193,7 @@ cont_var_test_LB <- function (data,
       res[[3]] <- tabella_p
       names(res) <- c("Raw_tests", "Form_tests", "Raw_pval")
 
-      message("Wilcoxon Rank Sum test used")
+      if (verbose) message("Wilcoxon Rank Sum test used")
     }
 
   }else{
@@ -332,11 +330,9 @@ cont_var_test_LB <- function (data,
 
         }
 
-        LandS::Progress_bar_LB(current = which(i == variables),
-                               total = length(variables),
-                               start_time = start_time,
-                               bar_fill = "\U2588",
-                               bar_void = "\U2591")
+        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+                                            total = length(variables), start_time = start_time,
+                                            bar_fill = "█", bar_void = "░")
       }
 
       res <- list()
@@ -444,7 +440,7 @@ cont_var_test_LB <- function (data,
         message("It is reccomended to adjust for multiple testing; please ignore the results of no_corrected_ph")
       }
 
-      message("Friedman rank sum test used")
+      if (verbose) message("Friedman rank sum test used")
     }
 
     if(paired == FALSE){
@@ -553,11 +549,9 @@ cont_var_test_LB <- function (data,
 
         }
 
-        LandS::Progress_bar_LB(current = which(i == variables),
-                               total = length(variables),
-                               start_time = start_time,
-                               bar_fill = "\U2588",
-                               bar_void = "\U2591")
+        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+                                            total = length(variables), start_time = start_time,
+                                            bar_fill = "█", bar_void = "░")
       }
 
       res <- list()
@@ -649,10 +643,10 @@ cont_var_test_LB <- function (data,
         res[[3]] <- KW_ph_pval
         res[[4]] <- Dumb_test_df
         names(res) <- c("Raw_tests", "Form_tests", "KW_ph_pval", "no_corrected_ph")
-        message("It is reccomended to adjust for multiple testing; please ignore the results of no_corrected_ph")
+        if (verbose) message("It is reccomended to adjust for multiple testing; please ignore the results of no_corrected_ph")
       }
 
-      message("Kruskal-Wallis rank sum test used")
+      if (verbose) message("Kruskal-Wallis rank sum test used")
     }
 
   }
