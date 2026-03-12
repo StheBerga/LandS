@@ -53,6 +53,7 @@
 #' @param alpha_fill_title Alpha for title background. Default = 0.2
 #' @param telegram Whether to send a telegram message when finished. Default = "none" to not send any message
 #' @param fill_title A function to personalize the fill of title background. See vignette for more
+#' @param verbose print progress bar and messages
 #'
 #' @return If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. \n When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
 #' @export
@@ -122,7 +123,8 @@ Boxplot_LB <- function (data,
                         size_legend_circle = 4,
                         target = "Output/Boxplot.pptx",
                         ratio = 1,
-                        telegram = "none")
+                        telegram = "none",
+                        verbose = TRUE)
 {
   require(ggplot2)
   require(officer)
@@ -131,12 +133,12 @@ Boxplot_LB <- function (data,
   }
   start_time <- Sys.time()
 
-  message(paste0("Creazione ", length(variables), " boxplots con: \n",
-                 "-Split by ", group, "\n",
-                 "-Points: ", Point, "\n",
-                 "-Outliers: ", rm.outliers, "\n",
-                 "-Posthoc: ", Posthoc, "\n",
-                 "-ID_lines: ", ID_lines
+  if (verbose) message(paste0("Creazione ", length(variables), " boxplots con: \n",
+                              "-Split by ", group, "\n",
+                              "-Points: ", Point, "\n",
+                              "-Outliers: ", rm.outliers, "\n",
+                              "-Posthoc: ", Posthoc, "\n",
+                              "-ID_lines: ", ID_lines
   ))
 
   theme_PPTX <- theme(axis.text.x = element_text(size = 14, colour = "black", vjust = -0),
@@ -292,15 +294,15 @@ Boxplot_LB <- function (data,
       boxplot[[k]] <- gg
     }
 
-    LandS::Progress_bar_LB(current = which(i == variables),
-                           total = length(variables),
-                           start_time = start_time,
-                           bar_fill = "\U2588",
-                           bar_void = "\U2591")
+    if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+                                        total = length(variables),
+                                        start_time = start_time,
+                                        bar_fill = "\U2588",
+                                        bar_void = "\U2591")
   }
   if (PPTX == T) {
     ppt <- read_pptx()
-    message("Printing PowerPoint")
+    if (verbose) message("Printing PowerPoint")
     for (i in 1:length(boxplot)) {
       boxplot[[i]] <- rvg::dml(ggobj = boxplot[[i]])
       ppt = add_slide(ppt, layout = "Title and Content")
@@ -308,7 +310,7 @@ Boxplot_LB <- function (data,
 
     }
     print(ppt, target = target)
-    message("Done printing :)")
+    if (verbose) message("Done printing :)")
     if (telegram != "none") {
       LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
     }

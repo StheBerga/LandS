@@ -207,7 +207,7 @@ cont_var_test_LB <- function (data,
       # Friedman test and post hoc tests
 
       if(sum(is.na(data[, variables])) > 0){
-        message("IDs with NA have been removed")
+        if (verbose) message("IDs with NA have been removed")
       }
       # Comparisons
       matrix_comparison <- t(combn(levels_groups, 2))
@@ -437,7 +437,7 @@ cont_var_test_LB <- function (data,
         res[[4]] <- Dumb_test_df
         res[[5]] <- Dumb_test_df_form
         names(res) <- c("Raw_tests", "Form_tests", "Friedman_ph_pval", "no_corrected_ph", "Form_no_corrected_ph")
-        message("It is reccomended to adjust for multiple testing; please ignore the results of no_corrected_ph")
+        if (verbose) message("It is reccomended to adjust for multiple testing; please ignore the results of no_corrected_ph")
       }
 
       if (verbose) message("Friedman rank sum test used")
