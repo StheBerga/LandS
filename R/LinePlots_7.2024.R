@@ -43,6 +43,7 @@
 #' @param size_label_title Size for your list's title. Default = 2.5
 #' @param alpha_fill_title Alpha for title background. Default = 0.2
 #' @param fill_title A function to personalize the fill of title background. See vignette for more
+#' @param verbose print progress bar and messages
 #'
 #' @returns When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target folder
 #' @export
@@ -101,7 +102,9 @@ Lineplots_LB <- function (data,
                           target = "Output/Lineplots.pptx",
 
                           extra = F,
-                          extra_text = NULL)
+                          extra_text = NULL,
+
+                          verbose = TRUE)
 
 
 {
@@ -121,7 +124,7 @@ Lineplots_LB <- function (data,
     Test_results = data.frame(matrix(NA))
   }
 
-  message(paste0("Creazione ", length(variables), " lineplots con: \n",
+  if (verbose) message(paste0("Creazione ", length(variables), " lineplots con: \n",
                  "-Split by ", group, "\n",
                  "-Break time ", paste(breaks, collapse = ", "), "\n",
                  "-Label time ", paste(label, collapse = ", "), "\n",
@@ -419,7 +422,7 @@ Lineplots_LB <- function (data,
     else {
       list_reg[[k]] <- gg
     }
-    LandS::Progress_bar_LB(current = which(i == variables),
+    if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
                            total = length(variables),
                            start_time = start_time,
                            bar_fill = "\U2588",
@@ -427,7 +430,7 @@ Lineplots_LB <- function (data,
   }
   if (PPTX == T) {
     ppt <- read_pptx()
-    message("Printing PowerPoint")
+    if (verbose) message("Printing PowerPoint")
     for (i in 1:length(list_reg)) {
       list_reg[[i]] <- rvg::dml(ggobj = list_reg[[i]])
       ppt = add_slide(ppt, layout = "Title and Content")
