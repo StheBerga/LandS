@@ -108,7 +108,7 @@ New_Project_LB <- function(project_name, rstudio = rstudioapi::isAvailable(), op
   require(usethis); require(fs)
 
   if(Sys.info()["machine"] == "x86-64"){
-    root <- "//fileserversvc/biomimmunol/Projects/"
+    root <- "//irccs-int.local/Bioimmunol/Projects/"
   } else if (Sys.info()["machine"] == "arm64"){
     root <- "/Volumes/biomimmunol/Projects/"
   }
