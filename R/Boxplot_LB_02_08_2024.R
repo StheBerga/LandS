@@ -55,7 +55,7 @@
 #' @param fill_title A function to personalize the fill of title background. See vignette for more
 #' @param verbose print progress bar and messages
 #'
-#' @return If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. \n When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
+#' @return If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
 #' @export
 #'
 #' @examples Boxplot_LB(mtcars, c('mpg', 'disp'), 'vs')

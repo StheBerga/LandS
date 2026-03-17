@@ -8,6 +8,7 @@ Boxplot_LB(
   data,
   variables,
   group,
+  ID = "ID",
   rm.outliers = F,
   th.outliers = 1.5,
   Point = F,
@@ -22,13 +23,12 @@ Boxplot_LB(
   lwd_median_line = 0.8,
   col_median_line = "red",
   ID_lines = FALSE,
-  ID = "ID",
   lwd_ID_line = 0.2,
   alpha_ID_line = 0.3,
   Overall = F,
   Posthoc = FALSE,
   Test_results = NULL,
-  threshold_posthoc = 0.1,
+  threshold_posthoc = 0.05,
   posthoc_test_size = 3.88,
   bracket_shorten = 0,
   bracket.nudge.y = 0,
@@ -37,7 +37,8 @@ Boxplot_LB(
   axis_y_title = NULL,
   size_axis_y = 6,
   col_title = FALSE,
-  colour_title = NULL,
+  alpha_fill_title = 0.2,
+  fill_title = NULL,
   title_leg = FALSE,
   title_legend = NULL,
   size_title = 8,
@@ -57,7 +58,8 @@ Boxplot_LB(
   size_legend_circle = 4,
   target = "Output/Boxplot.pptx",
   ratio = 1,
-  telegram = "none"
+  telegram = "none",
+  verbose = TRUE
 )
 }
 \arguments{
@@ -66,6 +68,8 @@ Boxplot_LB(
 \item{variables}{Vector containing all variables of interest}
 
 \item{group}{Factor variable splitting the data. Default = 1, overall distribution}
+
+\item{ID}{ID variable for paired observations. Default = "ID"}
 
 \item{rm.outliers}{Whether to remove outliers from display. Default = FALSE}
 
@@ -95,8 +99,6 @@ Boxplot_LB(
 
 \item{ID_lines}{Whether to display the lines for paired observations. Default = FALSE}
 
-\item{ID}{ID variable for paired observations. Default = "ID"}
-
 \item{lwd_ID_line}{Linewidth parameter for paired observations lines. Default = 0.2}
 
 \item{alpha_ID_line}{Alpha parameter for paired observations lines. Default = 0.3}
@@ -125,7 +127,9 @@ Boxplot_LB(
 
 \item{col_title}{Whether to personalize the colour of title. Default = FALSE}
 
-\item{colour_title}{A function to personalize the colour of title. See vignette for more}
+\item{alpha_fill_title}{Alpha for title background. Default = 0.2}
+
+\item{fill_title}{A function to personalize the fill of title background. See vignette for more}
 
 \item{title_leg}{Whether to personalize the title of the variables. Default = FALSE}
 
@@ -164,10 +168,15 @@ Boxplot_LB(
 \item{ratio}{Aspect ratio when grid = TRUE. Default = 1}
 
 \item{telegram}{Whether to send a telegram message when finished. Default = "none" to not send any message}
+
+\item{verbose}{print progress bar and messages}
 }
 \value{
-If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. \n When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
+If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
 }
 \description{
 This function creates a list of boxplot
+}
+\examples{
+Boxplot_LB(mtcars, c('mpg', 'disp'), 'vs')
 }
