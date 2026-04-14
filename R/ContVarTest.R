@@ -331,7 +331,7 @@ cont_var_test_LB <- function (data,
 
         }
 
-        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+        if (verbose) LandS::Progress_bar_LB(current = which(name == variables),
                                             total = length(variables), start_time = start_time,
                                             bar_fill = "█", bar_void = "░")
       }
@@ -550,7 +550,7 @@ cont_var_test_LB <- function (data,
 
         }
 
-        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+        if (verbose) LandS::Progress_bar_LB(current = which(name == variables),
                                             total = length(variables), start_time = start_time,
                                             bar_fill = "█", bar_void = "░")
       }
