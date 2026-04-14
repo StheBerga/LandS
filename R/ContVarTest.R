@@ -114,7 +114,7 @@ cont_var_test_LB <- function (data,
         tabella[tabella$Variable == name, 3] <- stats[2]
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(data[, name] ~ data[, group])$p.value, 4)
 
-        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+        if (verbose) LandS::Progress_bar_LB(current = which(name == variables),
                                             total = length(variables), start_time = start_time,
                                             bar_fill = "█", bar_void = "░")
       }
@@ -173,9 +173,10 @@ cont_var_test_LB <- function (data,
         tabella[tabella$Variable == name, 2] <- stats[1]
         tabella[tabella$Variable == name, 3] <- stats[2]
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(Pair(tmp[tmp[, group] == levels[1], name],
-                                                                            tmp[tmp[, group] == levels[2], name]) ~ 1, data = tmp)$p.value, 4)
+                                                                            tmp[tmp[, group] == levels[2], name]) ~ 1,
+                                                                       data = tmp)$p.value, 4)
 
-        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
+        if (verbose) LandS::Progress_bar_LB(current = which(name == variables),
                                             total = length(variables), start_time = start_time,
                                             bar_fill = "█", bar_void = "░")
       }
