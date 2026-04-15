@@ -16,7 +16,8 @@ cont_var_test_LB(
   p.adjust.method = NULL,
   excel = F,
   excel_path = paste0(path_out, "/Results.xlsx"),
-  telegram = "none"
+  telegram = "none",
+  verbose = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ cont_var_test_LB(
 \item{excel_path}{path where you want your Excel}
 
 \item{telegram}{send a telegram message}
+
+\item{verbose}{print progress bar and messages}
 }
 \value{
 Una lista con dataset
