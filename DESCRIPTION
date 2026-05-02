@@ -23,7 +23,8 @@ Imports:
     rvg,
     progress,
     PMCMRplus,
-    ggtext
+    ggtext, 
+    pryr
 Suggests: 
     knitr,
     rmarkdown

@@ -1,20 +1,37 @@
-#' Nice progress bar for cycles with different visual outputs
+#' Display a console progress bar with timing and memory usage
 #'
-#' @param current The current iteractive value in the cycle
-#' @param total The total number of variables in the cycle
-#' @param start_time Start time of the cycle
-#' @param bar_length Bar width in the console (default 80)
-#' @param bar_fill The bar fill character
-#' @param bar_void The empty bar character
-#' @param logfile If not null e.g. 'Log.txt' prints the loop log
+#' @description Prints a dynamic progress bar in the console for iterative processes,
+#' including percentage completion, elapsed time, estimated time remaining (ETA),
+#' and current memory usage.
 #'
-#' @returns Only visual output in the console
+#' @param current Integer. Current iteration index (e.g., loop counter).
+#' @param total Integer. Total number of iterations.
+#' @param start_time POSIXct. Start time of the process, typically obtained with
+#'   'Sys.time()' before entering the loop.
+#' @param bar_length Integer. Width of the progress bar in characters (default 80).
+#' @param bar_fill Symbol used to represent completed progress (default "=").
+#' @param bar_void Character. Symbol used to represent remaining progress
+#' (default = " ").
+#' @param logfile Character or 'NULL'. If a file path is provided, progress
+#' messages are appended to this file. Default to 'NULL' (no logging).
+#'
+#' @returns Invisibly returns `NULL`. The function is used for its side effects
+#' (console output and optional logging).
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
-
+#' start_time <- Sys.time()
+#' total <- 30
+#' for (i in 1:total) {
+#'   Sys.sleep(0.005)  # simulate work
+#'   Progress_bar(
+#'     current = i,
+#'     total = total,
+#'     start_time = start_time
+#'   )
+#'}
 Progress_bar <- function (current,
                           total,
                           start_time,
@@ -23,9 +40,9 @@ Progress_bar <- function (current,
                           bar_void = " ",
                           logfile = NULL)
 {
-   if (!requireNamespace("pryr", quietly = TRUE))
-      install.packages("pryr")
-   library(pryr)
+   # if (!requireNamespace("pryr", quietly = TRUE))
+   #    install.packages("pryr")
+   # library(pryr)
    format_hms <- function(seconds) {
       hrs <- floor(seconds/3600)
       mins <- floor((seconds%%3600)/60)

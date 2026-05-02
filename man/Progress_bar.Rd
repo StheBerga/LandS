@@ -2,7 +2,7 @@
 % Please edit documentation in R/Progress_bar.R
 \name{Progress_bar}
 \alias{Progress_bar}
-\title{Nice progress bar for cycles with different visual outputs}
+\title{Display a console progress bar with timing and memory usage}
 \usage{
 Progress_bar(
   current,
@@ -15,25 +15,43 @@ Progress_bar(
 )
 }
 \arguments{
-\item{current}{The current iteractive value in the cycle}
+\item{current}{Integer. Current iteration index (e.g., loop counter).}
 
-\item{total}{The total number of variables in the cycle}
+\item{total}{Integer. Total number of iterations.}
 
-\item{start_time}{Start time of the cycle}
+\item{start_time}{POSIXct. Start time of the process, typically obtained with
+'Sys.time()' before entering the loop.}
 
-\item{bar_length}{Bar width in the console (default 80)}
+\item{bar_length}{Integer. Width of the progress bar in characters (default 80).}
 
-\item{bar_fill}{The bar fill character}
+\item{bar_fill}{Symbol used to represent completed progress (default "=").}
 
-\item{bar_void}{The empty bar character}
+\item{bar_void}{Character. Symbol used to represent remaining progress
+(default = " ").}
 
-\item{logfile}{If not null e.g. 'Log.txt' prints the loop log}
+\item{logfile}{Character or 'NULL'. If a file path is provided, progress
+messages are appended to this file. Default to 'NULL' (no logging).}
 }
 \value{
-Only visual output in the console
+Invisibly returns `NULL`. The function is used for its side effects
+(console output and optional logging).
 }
 \description{
-Nice progress bar for cycles with different visual outputs
+Prints a dynamic progress bar in the console for iterative processes,
+including percentage completion, elapsed time, estimated time remaining (ETA),
+and current memory usage.
+}
+\examples{
+start_time <- Sys.time()
+total <- 30
+for (i in 1:total) {
+  Sys.sleep(0.005)  # simulate work
+  Progress_bar(
+    current = i,
+    total = total,
+    start_time = start_time
+  )
+}
 }
 \author{
 Luca Lalli, Stefano Bergamini
