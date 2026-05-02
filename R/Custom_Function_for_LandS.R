@@ -87,7 +87,6 @@ vett.quoted <- function(vettore, sym = ", ", quote = T){
   }
 }
 
-# Funzione per creare progetto e sottocartelle
 #' Function to create a new project in the default folder
 #'
 #' @param project_name The name of the Project
