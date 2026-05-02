@@ -1,20 +1,61 @@
-#' This function computes the correlation coefficients and prints the pairs from the heightest coefficient
+#' Compute pairwise correlations among numeric variables
 #'
-#' @param data dataframe
-#' @param variables vector of numeric variables to be computed the correlation
-#' @param method method to compute the correlation coefficient (Default = "spearman")
-#' @param rho_dec number of decimal for rho (Default = 3)
-#' @param pval_dec number of decimal for the pvalue (Default = 4)
-#' @param excel export fuction results as multiple Excel sheets
-#' @param excel_path path where you want your Excel
+#' @description Computes pairwise correlation coefficients and associated p-values
+#' for a set of numeric variables in a data frame. The function returns correlation and
+#' p-value matrices, plus long-format tables of all variable pairs sorted either
+#' by correlation coefficient or by absolute correlation coefficient.
 #'
-#' @return Una lista con dataset
+#' Optionally, the returned tables can also be exported to an Excel workbook with
+#' one sheet per output table.
+#'
+#' @param data A data frame containing the variables to correlate.
+#' @param variables Character vector. Names of numeric columns in 'data' to use
+#' for the correlation analysis.
+#' @param method Character string. Correlation method passed to stats::cor.test().
+#' Common choices are "spearman", "pearson", and "kendall" (Default = "spearman").
+#' @param rho_dec Integer. Number of decimal places used when formatting
+#' correlation coefficients (Default = 3).
+#' @param pval_dec Integer. Number of decimal places used when formatting
+#' p-values (Default = 4).
+#' @param excel Logical. If TRUE, export the returned list to an Excel workbook
+#' using writexl::write_xlsx(), thus having one sheet for each table.
+#' @param excel_path Character string. Path of the Excel file to create when
+#' excel = TRUE. Defaults to paste0(path_output, "/Results.xlsx").
+#'
+#' @return A named list with the following elements:
+#' \describe{
+#'   \item{res_raw_corr}{Square matrix-like dataframe of raw correlation coefficients.}
+#'   \item{res_raw_pval}{Square matrix-like dataframe of raw p-values.}
+#'   \item{res_corr_sig}{Formatted correlation matrix. Statistically significant
+#'     correlations at 'p < 0.05' are marked with '*'; diagonal entries are shown
+#'     as '-'.}
+#'   \item{res_raw_pair}{Long-format table of all variable pairs with raw rho and
+#'     p-value, sorted by decreasing rho.}
+#'   \item{res_pair_form}{Formatted version of 'res_raw_pair'.}
+#'   \item{res_raw_abs}{Long-format table of all variable pairs with raw rho and
+#'     p-value, sorted by decreasing absolute rho.}
+#'   \item{res_abs_form}{Formatted version of 'res_raw_abs'.}
+#'   \item{res_pair_sig}{Formatted table containing only pairs with 'p < 0.05'.}
+#' }
+#'
+#' @details
+#' The function checks that all selected variables are numeric before computing
+#' correlations. P-values are obtained from stats::cor.test() using the selected
+#' method.
+#'
+#' Missing values are handled by stats::cor.test() for each pair of variables.
+#'
+#' Note that significance is currently defined using an unadjusted p-value
+#' threshold of 0.05; no correction for multiple testing is applied.
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
-correlazioni <- function(data, variables,
+#' path_output = "."
+#' correlations(mtcars, c('mpg', 'disp'), excel=T)
+correlations <- function(data,
+                         variables,
                          method = "spearman",
                          rho_dec = 3,
                          pval_dec = 4,
@@ -22,7 +63,7 @@ correlazioni <- function(data, variables,
                          excel_path = paste0(path_output, "/Results.xlsx")){
   options(width=10000)
   options(max.print=99999)
-  options(scipen = 99999)
+  options(scipen = 9999) # JG: 99999 is invalid
   require(dplyr)
 
   start_time <- Sys.time()
@@ -173,5 +214,3 @@ correlazioni <- function(data, variables,
 
   }
 }
-
-# correlazioni(data = data_try, variables = colnames(data_try)[2:10])
