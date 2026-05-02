@@ -55,20 +55,20 @@ multivariate <- function(db, vars, ptime, pevent, dec_HR = 4){
   }
 
   # Funzione stringa additiva
-  Stringa <- function(data, vet, sep= "+"){
-    p <- list()
-    k <- 1
-    for (i in vet) {
-      p[k] <- colnames(data)[i]
-      k <- k+1
-    }
-    p <- unlist(p)
-    p <- toString(p)
-    if (sep!= ",") {
-      p <- gsub(",", sep, p)
-    }else {}
-    return(p)
-  }
+  # Stringa <- function(data, vet, sep= "+"){
+  #   p <- list()
+  #   k <- 1
+  #   for (i in vet) {
+  #     p[k] <- colnames(data)[i]
+  #     k <- k+1
+  #   }
+  #   p <- unlist(p)
+  #   p <- toString(p)
+  #   if (sep!= ",") {
+  #     p <- gsub(",", sep, p)
+  #   }else {}
+  #   return(p)
+  # }
 
   # Prendo la posizione dei nomi
   pos <- c()
@@ -76,7 +76,7 @@ multivariate <- function(db, vars, ptime, pevent, dec_HR = 4){
     pos[i] <- which(colnames(workdata)==vars[i] )
   }
 
-  string <- Stringa(workdata, pos)
+  string <- conv_to_string(workdata, pos, sep= "+") # JG: function "Stringa" was already in file String.R
   frm <- formula(paste0("Surv(", ptime, ",", pevent, ")~", string))
 
   mod.cph <-   cph(frm, data = workdata, iter.max = 100000)
