@@ -2,23 +2,52 @@
 % Please edit documentation in R/Fisher_gt_flextable.R
 \name{fisher_gt_flex}
 \alias{fisher_gt_flex}
-\title{Function to build coloumn marginal statistics and Fisher test}
+\title{Create a formatted Fisher's exact test cross-tabulation}
 \usage{
 fisher_gt_flex(data, row_var, col_var, label_row_var, label_col_var)
 }
 \arguments{
-\item{data}{dataframe}
+\item{data}{A data frame containing the variables to tabulate.}
 
-\item{row_var}{row variable}
+\item{row_var}{Column name to use as the row variable.}
 
-\item{col_var}{column variable}
+\item{col_var}{Column name to use as the column variable.}
 
-\item{label_row_var}{label for row}
+\item{label_row_var}{Character string used as the display label for
+'row_var'.}
 
-\item{label_col_var}{label for column}
+\item{label_col_var}{Character string used as the display label for
+'col_var'.}
+}
+\value{
+A `flextable` object containing the cross-tabulation, row
+percentages, and Fisher's exact test p-value.
 }
 \description{
-Function to build coloumn marginal statistics and Fisher test
+Builds a row-percentage cross-tabulation for two categorical variables,
+computes Fisher's exact test, and returns the result as a formatted
+'flextable' object.
+}
+\details{
+Missing values are excluded from the cross-tabulation with
+`missing = "no"`.
+
+Percentages are calculated by row. The p-value is computed using
+stats::fisher.test() through gtsummary::add_p() and formatted with
+three decimal places.
+
+The returned table is formatted for reporting, including centered body text,
+bold headers, Calibri Light font, automatic column sizing, and vertical
+borders.
+}
+\examples{
+fisher_gt_flex(
+  data = mtcars,
+  row_var = "am",
+  col_var = "cyl",
+  label_row_var = "Transmission",
+  label_col_var = "Number of cylinders"
+)
 }
 \author{
 Luca Lalli
