@@ -22,7 +22,7 @@
 #' @param alpha_ID_line Alpha parameter for paired observations lines. Default = 0.3
 #' @param Overall Whether to display overall test in the upper-left corner. Default = FALSE
 #' @param Posthoc Whether to display posthoc tests brackets. Default = FALSE
-#' @param Test_results Dataframe for global and posthoc tests for the LandS::cont_var_test_LB function
+#' @param Test_results Dataframe for global and posthoc tests for the LandS::cont_var_test function
 #' @param threshold_posthoc Threshold for displaying posthoc tests brackets. Default = 0.1
 #' @param posthoc_test_size Size for annotations of posthoc p-values. Default = 3.88
 #' @param bracket_shorten Width of the bracket [0,1]. Default = 0
@@ -58,73 +58,75 @@
 #' @return If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
 #' @export
 #'
-#' @examples Boxplot_LB(mtcars, c('mpg', 'disp'), 'vs')
-Boxplot_LB <- function (data,
-                        variables,
-                        group,
-                        ID = "ID",
+#' @author Luca Lalli, Stefano Bergamini
+#'
+#' @examples Boxplot(mtcars, c('mpg', 'disp'), 'vs')
+Boxplot <- function (data,
+                     variables,
+                     group,
+                     ID = "ID",
 
-                        rm.outliers = F,
-                        th.outliers = 1.5,
+                     rm.outliers = F,
+                     th.outliers = 1.5,
 
-                        Point = F,
-                        size_point = 0.3,
-                        alpha_point = 0.3,
+                     Point = F,
+                     size_point = 0.3,
+                     alpha_point = 0.3,
 
-                        alpha_box = 0.1,
-                        width_box = 0.2,
-                        lwd_box = 0.1,
-                        notch = F,
-                        notchwidth = 0.5,
-                        Median_line = F,
-                        lwd_median_line = 0.8,
-                        col_median_line = "red",
+                     alpha_box = 0.1,
+                     width_box = 0.2,
+                     lwd_box = 0.1,
+                     notch = F,
+                     notchwidth = 0.5,
+                     Median_line = F,
+                     lwd_median_line = 0.8,
+                     col_median_line = "red",
 
-                        ID_lines = FALSE,
-                        lwd_ID_line = 0.2,
-                        alpha_ID_line = 0.3,
+                     ID_lines = FALSE,
+                     lwd_ID_line = 0.2,
+                     alpha_ID_line = 0.3,
 
-                        Overall = F,
-                        Posthoc = FALSE,
-                        Test_results = NULL,
-                        threshold_posthoc = 0.05,
-                        posthoc_test_size = 3.88,
-                        bracket_shorten = 0,
-                        bracket.nudge.y = 0,
+                     Overall = F,
+                     Posthoc = FALSE,
+                     Test_results = NULL,
+                     threshold_posthoc = 0.05,
+                     posthoc_test_size = 3.88,
+                     bracket_shorten = 0,
+                     bracket.nudge.y = 0,
 
-                        axis_x_title = NULL,
-                        size_axis_x = 6,
-                        axis_y_title = NULL,
-                        size_axis_y = 6,
+                     axis_x_title = NULL,
+                     size_axis_x = 6,
+                     axis_y_title = NULL,
+                     size_axis_y = 6,
 
-                        col_title = FALSE,
-                        alpha_fill_title = 0.2,
-                        fill_title = NULL,
+                     col_title = FALSE,
+                     alpha_fill_title = 0.2,
+                     fill_title = NULL,
 
-                        title_leg = FALSE,
-                        title_legend = NULL,
-                        size_title = 8,
+                     title_leg = FALSE,
+                     title_legend = NULL,
+                     size_title = 8,
 
-                        breaks_axis_x = levels(data[, group]),
-                        labels_axis_x = levels(data[, group]),
+                     breaks_axis_x = levels(data[, group]),
+                     labels_axis_x = levels(data[, group]),
 
-                        grid = TRUE,
-                        PPTX = FALSE,
-                        pptx_width = 7.5,
-                        pptx_height = 5.5,
+                     grid = TRUE,
+                     PPTX = FALSE,
+                     pptx_width = 7.5,
+                     pptx_height = 5.5,
 
-                        extra = FALSE,
-                        extra_text = NULL,
+                     extra = FALSE,
+                     extra_text = NULL,
 
-                        palette = rep("transparent", nlevels(data[, group])),
-                        label_legend_title = paste0("Boxplots by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
-                        size_legend_title = 3,
-                        size_legend_text = 3,
-                        size_legend_circle = 4,
-                        target = "Output/Boxplot.pptx",
-                        ratio = 1,
-                        telegram = "none",
-                        verbose = TRUE)
+                     palette = rep("transparent", nlevels(data[, group])),
+                     label_legend_title = paste0("Boxplots by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
+                     size_legend_title = 3,
+                     size_legend_text = 3,
+                     size_legend_circle = 4,
+                     target = "Output/Boxplot.pptx",
+                     ratio = 1,
+                     telegram = "none",
+                     verbose = TRUE)
 {
   require(ggplot2)
   require(officer)
@@ -204,7 +206,7 @@ Boxplot_LB <- function (data,
     }
     k <- which(variables == i)
     if (Posthoc == T) {
-      posthoc_df <- LandS::posthoc_df_LB(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i)
+      posthoc_df <- LandS::posthoc_df(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i)
     }
     A = tapply(data[, i], data[, group], quantile, c(0.75), na.rm = T)
     B = tapply(data[, i], data[, group], quantile, c(0.25), na.rm = T)
@@ -294,11 +296,11 @@ Boxplot_LB <- function (data,
       boxplot[[k]] <- gg
     }
 
-    if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
-                                        total = length(variables),
-                                        start_time = start_time,
-                                        bar_fill = "\U2588",
-                                        bar_void = "\U2591")
+    if (verbose) LandS::Progress_bar(current = which(i == variables),
+                                     total = length(variables),
+                                     start_time = start_time,
+                                     bar_fill = "\U2588",
+                                     bar_void = "\U2591")
   }
   if (PPTX == T) {
     ppt <- read_pptx()
@@ -312,12 +314,12 @@ Boxplot_LB <- function (data,
     print(ppt, target = target)
     if (verbose) message("Done printing :)")
     if (telegram != "none") {
-      LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
+      LandS::telegram_mess(dest = telegram, script = "Boxplot")
     }
   }
   else {
     if (telegram != "none") {
-      LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
+      LandS::telegram_mess(dest = telegram, script = "Boxplot")
     }
     return(boxplot)
   }
