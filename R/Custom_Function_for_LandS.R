@@ -62,17 +62,23 @@ formatz_p <- function(value){
   }
 }
 
-# Stringa di vettori
-#' Funzione che permette partendo da un vettore, di riscrivere quel vettore in varie forme
+#' Collapse a vector into a formatted string
 #'
-#' @param vettore Starting vector
-#' @param sym Symbol of separation (Default ", ")
-#' @param quote Vector elements to be quoted or not (Default = T)
+#' @description Format a vector as a single string with a custom separator,
+#' optionally quoting each element. The result is printed to the console.
 #'
-#' @return Una stringa di elementi formattati al meglio
+#' @param vettore A vector of values to format.
+#' @param sym A character string used as separator between elements.
+#' Defaults to ", ".
+#' @param quote Logical. If TRUE, each element is wrapped in double quotes
+#' (Default = T).
+#'
+#' @return Invisibly returns NULL. The formatted string is printed to the console.
 #' @export
 #'
 #' @examples
+#' vett.quoted(1:3, sym = " | ", quote = FALSE)
+#' vett.quoted(1:3, sym = " | ", quote = TRUE)
 vett.quoted <- function(vettore, sym = ", ", quote = T){
   if (quote == T){
     cat(dQuote(vettore, q = '"'), sep = sym)

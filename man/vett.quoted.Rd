@@ -2,20 +2,27 @@
 % Please edit documentation in R/Custom_Function_for_LandS.R
 \name{vett.quoted}
 \alias{vett.quoted}
-\title{Funzione che permette partendo da un vettore, di riscrivere quel vettore in varie forme}
+\title{Collapse a vector into a formatted string}
 \usage{
 vett.quoted(vettore, sym = ", ", quote = T)
 }
 \arguments{
-\item{vettore}{Starting vector}
+\item{vettore}{A vector of values to format.}
 
-\item{sym}{Symbol of separation (Default ", ")}
+\item{sym}{A character string used as separator between elements.
+Defaults to ", ".}
 
-\item{quote}{Vector elements to be quoted or not (Default = T)}
+\item{quote}{Logical. If TRUE, each element is wrapped in double quotes
+(Default = T).}
 }
 \value{
-Una stringa di elementi formattati al meglio
+Invisibly returns NULL. The formatted string is printed to the console.
 }
 \description{
-Funzione che permette partendo da un vettore, di riscrivere quel vettore in varie forme
+Format a vector as a single string with a custom separator,
+optionally quoting each element. The result is printed to the console.
+}
+\examples{
+vett.quoted(1:3, sym = " | ", quote = FALSE)
+vett.quoted(1:3, sym = " | ", quote = TRUE)
 }
