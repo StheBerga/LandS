@@ -11,9 +11,16 @@
 #' @returns a list of dataframe one of the global variable, the other for the variable stratified for the grouping variable
 #' @export
 #'
+#' @author Luca Lalli, Stefano Bergamini
+#'
 #' @examples
-Outlier_Report_LB <- function (data, variables, ID = "ID", Group = "Time",
-                               k = 1.5, excel = FALSE, excel_path = "Output/Outlier Report.xlsx") {
+Outlier_Report <- function (data,
+                            variables,
+                            ID = "ID",
+                            Group = "Time",
+                            k = 1.5,
+                            excel = FALSE,
+                            excel_path = "Output/Outlier Report.xlsx") {
   require(progress)
   require(dplyr)
 

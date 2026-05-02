@@ -18,25 +18,27 @@
 #' @param telegram send a telegram message
 #' @param p.adjust.method correction method, a character string. Can be abbreviated.
 #' @param verbose print progress bar and messages
-
+#'
 #'
 #' @return Una lista con dataset
 #' @export
 #'
-#' @examples cont_var_test_LB(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = FALSE)
-cont_var_test_LB <- function (data,
-                              variables,
-                              paired = FALSE,
-                              group,
-                              dumb = FALSE,
-                              statistic = "{mean} ({sd})",
-                              ID = "ID",
-                              num_dec = 2,
-                              p.adjust.method = NULL,
-                              excel = F,
-                              excel_path = paste0(path_out, "/Results.xlsx"),
-                              telegram = "none",
-                              verbose = TRUE)
+#' @author Luca Lalli, Stefano Bergamini
+#'
+#' @examples cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = FALSE)
+cont_var_test <- function (data,
+                           variables,
+                           paired = FALSE,
+                           group,
+                           dumb = FALSE,
+                           statistic = "{mean} ({sd})",
+                           ID = "ID",
+                           num_dec = 2,
+                           p.adjust.method = NULL,
+                           excel = F,
+                           excel_path = paste0(path_out, "/Results.xlsx"),
+                           telegram = "none",
+                           verbose = TRUE)
 {
   options(warn=-1)
   require(progress)
@@ -114,9 +116,9 @@ cont_var_test_LB <- function (data,
         tabella[tabella$Variable == name, 3] <- stats[2]
         tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(data[, name] ~ data[, group])$p.value, 4)
 
-        if (verbose) LandS::Progress_bar_LB(current = which(name == variables),
-                                            total = length(variables), start_time = start_time,
-                                            bar_fill = "█", bar_void = "░")
+        if (verbose) LandS::Progress_bar(current = which(name == variables),
+                                         total = length(variables), start_time = start_time,
+                                         bar_fill = "█", bar_void = "░")
       }
 
       res <- list()
@@ -176,9 +178,9 @@ cont_var_test_LB <- function (data,
                                                                             tmp[tmp[, group] == levels[2], name]) ~ 1,
                                                                        data = tmp)$p.value, 4)
 
-        if (verbose) LandS::Progress_bar_LB(current = which(name == variables),
-                                            total = length(variables), start_time = start_time,
-                                            bar_fill = "█", bar_void = "░")
+        if (verbose) LandS::Progress_bar(current = which(name == variables),
+                                         total = length(variables), start_time = start_time,
+                                         bar_fill = "█", bar_void = "░")
       }
 
       res <- list()
@@ -331,9 +333,9 @@ cont_var_test_LB <- function (data,
 
         }
 
-        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
-                                            total = length(variables), start_time = start_time,
-                                            bar_fill = "█", bar_void = "░")
+        if (verbose) LandS::Progress_bar(current = which(i == variables),
+                                         total = length(variables), start_time = start_time,
+                                         bar_fill = "█", bar_void = "░")
       }
 
       res <- list()
@@ -550,9 +552,9 @@ cont_var_test_LB <- function (data,
 
         }
 
-        if (verbose) LandS::Progress_bar_LB(current = which(i == variables),
-                                            total = length(variables), start_time = start_time,
-                                            bar_fill = "█", bar_void = "░")
+        if (verbose) LandS::Progress_bar(current = which(i == variables),
+                                         total = length(variables), start_time = start_time,
+                                         bar_fill = "█", bar_void = "░")
       }
 
       res <- list()
@@ -653,12 +655,12 @@ cont_var_test_LB <- function (data,
   }
   if (excel == FALSE){
     if(telegram != "none"){
-      LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
+      LandS::telegram_mess(dest = telegram, script = "Boxplot")
     }
     return(res)}else{
       writexl::write_xlsx(res, path = excel_path)
       if(telegram != "none"){
-        LandS::telegram_mess_LB(dest = telegram, script = "Boxplot")
+        LandS::telegram_mess(dest = telegram, script = "Boxplot")
       }
       return(res)
     }
