@@ -1,8 +1,8 @@
 Package: LandS
 Type: Package
-Title: Biostatistic Tools for DCP
+Title: Biostatistical Tools for Daily Clinical Practice
 Version: 1.8.8
-Author: Stefano Bergamini and Luca Lalli 
+Author: Stefano Bergamini, Luca Lalli, Jessica Gliozzo 
 Maintainer: Stefano Bergamini <stefano.bergamini@istitutotumori.mi.it>
 Description: This package provides useful functions in daily clinical pratice for biostatistics
 License: MIT + file LICENSE
@@ -10,6 +10,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
 URL: https://stheberga.github.io/LandS/
+BugReports: https://github.com/StheBerga/LandS/issues
 Imports:
     ggplot2, 
     dplyr,
