@@ -1,66 +1,113 @@
-#' This function creates a list of boxplot
+#' Create boxplots for multiple continuous variables
 #'
-#' @param data Dataframe
-#' @param variables Vector containing all variables of interest
-#' @param group Factor variable splitting the data. Default = 1, overall distribution
-#' @param rm.outliers Whether to remove outliers from display. Default = FALSE
-#' @param th.outliers Times between Q1, Q3 and IQR to remove outliers. Default = 1.5
-#' @param Point Whether to display observation points. Default = FALSE
+#' @description
+#' Creates one boxplot per numeric variable in 'variables', optionally stratified
+#' by a grouping variable. Observation-level points, paired-observation lines,
+#' median trends, global test annotations, and post-hoc comparison brackets can
+#' be added. Multiple plots are returned as a list and can optionally be exported
+#' to a PowerPoint file.
+#'
+#'
+#' @param data Dataframe containing numeric variables to plot.
+#' @param variables Character vector containing all numeric variables of interest.
+#' @param group Column name identifying factor grouping variable for split
+#' boxplots, or 1 for no grouping.
+#' @param ID Column name of ID variable used to connect paired observations. Default = "ID".
+#' @param rm.outliers Whether to remove outliers from display. Default = FALSE.
+#' @param th.outliers Numeric multiplier of the interquartile range (IQR) used
+#' to define outlier thresholds; observations outside [Q1−th.outliers×IQR,Q3+th.outliers×IQR]
+#' are treated as outliers. Default = 1.5.
+#' @param Point Whether to display observation points. Default = FALSE.
 #' @param size_point Size for points. Default = 0.3
-#' @param alpha_point Alpha for points. Default = 0.3
-#' @param alpha_box Alpha parameter for the boxes. Default = 0.1
-#' @param width_box Width parameter for the boxes. Default = 0.2
-#' @param lwd_box Linewidth for the boxes. Default = 0.1
-#' @param notch Whether to display notches for the boxes. Default = FALSE
-#' @param notchwidth Width parameter of the notch. Default = 0.5
-#' @param Median_line Whether to display the line connecting median values. Default = FALSE
-#' @param lwd_median_line Median line linewidth. Default = 0.8
-#' @param col_median_line Colour for the median line. Default = "red"
-#' @param ID_lines Whether to display the lines for paired observations. Default = FALSE
-#' @param ID ID variable for paired observations. Default = "ID"
-#' @param lwd_ID_line Linewidth parameter for paired observations lines. Default = 0.2
-#' @param alpha_ID_line Alpha parameter for paired observations lines. Default = 0.3
-#' @param Overall Whether to display overall test in the upper-left corner. Default = FALSE
-#' @param Posthoc Whether to display posthoc tests brackets. Default = FALSE
-#' @param Test_results Dataframe for global and posthoc tests for the LandS::cont_var_test function
-#' @param threshold_posthoc Threshold for displaying posthoc tests brackets. Default = 0.1
-#' @param posthoc_test_size Size for annotations of posthoc p-values. Default = 3.88
-#' @param bracket_shorten Width of the bracket [0,1]. Default = 0
-#' @param bracket.nudge.y Vertical adjustment to nudge brackets by. Useful to move up or move down the bracket. If positive value, brackets will be moved up; if negative value, brackets are moved down. Default = 0
-#' @param axis_x_title Title for the x axis
-#' @param size_axis_x Dimensions for the x axis title. Default = 6
-#' @param axis_y_title Title for the y axis
-#' @param size_axis_y Dimensions for the y axis title. Default = 6
-#' @param col_title Whether to personalize the colour of title. Default = FALSE
-#' @param title_leg Whether to personalize the title of the variables. Default = FALSE
-#' @param title_legend A function to personalize the title of the variables. See vignette for more
-#' @param size_title Dimensions for the title. Default = 8
-#' @param breaks_axis_x Levels to be displayed in the graph
-#' @param labels_axis_x Labels of the levels
-#' @param grid Whether to build a grid pdf or a PPTX file. Default = TRUE
-#' @param PPTX Whether to build PPTX or a grid pdf file. Must change grid = FALSE. Default = FALSE
-#' @param pptx_width Graph dimensions for PPTX in inches. Default = 7.5
-#' @param pptx_height Graph dimensions for PPTX in inches. Default = 5.5
-#' @param target Path where to save the PPTX file
-#' @param extra Whether to add an extra text function. Default = FALSE
-#' @param extra_text A function to add extra functions to the graphs. See vignette for more
-#' @param palette Colours for the boxes. Must be a vector of the same length as the nlevels. Default = "transparent"
-#' @param label_legend_title A title for your list. Default sets "Boxplot by grouping variable" and the current date
-#' @param size_legend_title Size for the list's title. Default = 3
-#' @param size_legend_text Size for the list's text. Default = 3
-#' @param size_legend_circle Size for the list's circles Default = 4
-#' @param ratio Aspect ratio when grid = TRUE. Default = 1
-#' @param alpha_fill_title Alpha for title background. Default = 0.2
-#' @param telegram Whether to send a telegram message when finished. Default = "none" to not send any message
-#' @param fill_title A function to personalize the fill of title background. See vignette for more
-#' @param verbose print progress bar and messages
+#' @param alpha_point Alpha for points transparency. Default = 0.3
+#' @param alpha_box Alpha parameter for the boxes transparency. Default = 0.1.
+#' @param width_box Width parameter for the boxes. Default = 0.2.
+#' @param lwd_box Linewidth for the boxes. Default = 0.1.
+#' @param notch Whether to display notches for the boxes. Default = FALSE.
+#' @param notchwidth Width parameter of the notch. Default = 0.5.
+#' @param Median_line Whether to display the line connecting boxes median values. Default = FALSE.
+#' @param lwd_median_line Median line linewidth. Default = 0.8.
+#' @param col_median_line Colour for the median line. Default = "red".
+#' @param ID_lines Whether to display the lines connecting paired observations. Default = FALSE.
+#' @param lwd_ID_line Linewidth parameter for lines connecting paired observations. Default = 0.2.
+#' @param alpha_ID_line Alpha parameter for paired observations lines transparency. Default = 0.3.
+#' @param Overall Whether to display overall test in the upper-left corner. Default = FALSE.
+#' @param Posthoc Whether to display posthoc tests brackets. Default = FALSE.
+#' @param Test_results Dataframe containing the results of global and posthoc tests computed
+#' using LandS::cont_var_test() function and formatted using LandS::posthoc_df() function.
+#' Default = NULL.
+#' @param threshold_posthoc Threshold for displaying post-hoc tests brackets. Default = 0.05.
+#' @param posthoc_test_size Font size for annotations of post-hoc p-values. Default = 3.88.
+#' @param bracket_shorten Width of the bracket in range [0,1]. Default = 0.
+#' @param bracket.nudge.y Vertical adjustment to nudge brackets by.
+#' Useful to move up or move down the bracket. If positive value, brackets will be moved up;
+#' if negative value, brackets are moved down. Default = 0.
+#' @param axis_x_title Title for the x-axis. Default = NULL.
+#' @param size_axis_x Font size for the x-axis title. Default = 6.
+#' @param axis_y_title Title for the y-axis. Default = NULL.
+#' @param size_axis_y Font size for the y-axis title. Default = 6.
+#' @param col_title Whether to personalize the colour background fill of boxplots title.
+#' Default = FALSE.
+#' @param alpha_fill_title Alpha value for title background. Default = 0.2.
+#' @param fill_title A function to personalize the fill of each boxplot title background.
+#' The argument fill_title is defined as a function mapping for each variable the
+#' background color. See examples for further information. JG: AGGIUNGERE ESEMPIO.
+#' @param title_leg Whether to personalize the title of the variables. Default = FALSE.
+#' @param title_legend A function to personalize the title of the variables.
+#' The argument title_legend is defined as a function mapping for each variable the
+#' novel name to be displayed as title. Default = NULL.
+#' See examples for further information. JG: AGGIUNGERE ESEMPIO.
+#' @param size_title Font size for the title. Default = 8.
+#' @param breaks_axis_x Character vector defining the subset and order of factor
+#' levels to display on the x-axis (passed to scale_x_discrete(breaks = ...)).
+#' Default = levels(data[, group]).
+#' @param labels_axis_x Character vector defining the subset and order labels to
+#' display on the x-axis (passed to scale_x_discrete(labels = ...)).
+#' Default = levels(data[, group]).
+#' @param grid Logical. If TRUE and 'PPTX = FALSE', returns plots as a list
+#' suitable for grid display. Default=TRUE.
+#' @param PPTX Logical. If TRUE, plots are exported to a PowerPoint file and
+#' no plots are returned. This option takes precedence over 'grid argument.
+#' Default=FALSE.
+#' @param pptx_width Plot width dimension for PPTX in inches. Default = 7.5.
+#' @param pptx_height Plot height dimension for PPTX in inches. Default = 5.5.
+#' @param extra Whether to add an extra text function. Default = FALSE.
+#' @param extra_text A function of one argument (variable) that returns one or
+#' more ggplot2 layers to be added to each plot (e.g., annotations or custom geoms).
+#' The function is evaluated inside the plotting loop.
+#' See examples for further information. JG: AGGIUNGERE ESEMPIO.
+#' @param palette Colours for the boxes. Character vector of colors with length
+#' equal to number of groups. Default = rep("transparent", nlevels(data[, group])).
+#' @param label_legend_title A title for your list.
+#' Default sets "Boxplot by grouping variable" and the current date.
+#' @param size_legend_title Font size for the list's title. Default = 3.
+#' @param size_legend_text Font size for the list's text. Default = 3.
+#' @param size_legend_circle Font size for the list's circles defining groups legend.
+#' Default = 4.
+#' @param target Path where to save the PPTX file.
+#' @param ratio Aspect ratio when grid = TRUE. Default = 1.
+#' @param telegram Whether to send a telegram message when the job is completed.
+#' Default = "none" to not send any message.
+#' @param verbose Print progress bar and messages.
 #'
-#' @return If length(variables) > 1 returns a list of boxplot where the first one is a coverpage. Otherwise returns a ggplot. When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path
+#' @return If length(variables) > 1 returns a list of boxplot where the first one is
+#' coverpage. Otherwise returns a ggplot. When grid = TRUE returns a list of ggplots.
+#' When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path.
 #' @export
+#'
+#' @details
+#' Overall and post-hoc tests can be displayed, but they need to be computed using
+#' LandS::cont_var_test() and then formatted using LandS::posthoc_df() function.
+#' Boxplots can be saved in a panel image using pptx format or as a list of
+#' ggplots for later saving in pdf format.
+#'
+#' Optionally, a Telegram message can be send when the job is complete.
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
-#' @examples Boxplot(mtcars, c('mpg', 'disp'), 'vs')
+#' @examples
+#' mtcars$vs <- factor(mtcars$vs)
+#' Boxplot(mtcars, c('mpg', 'disp'), 'vs')
 Boxplot <- function (data,
                      variables,
                      group,
