@@ -1,6 +1,6 @@
 #' Collapse selected column names into a single string
 #'
-#' @description Extracts column names from a data frame based on their positional indices
+#' @description Extracts column names from a dataframe based on their positional indices
 #' and concatenates them into a single string separated by a specified delimiter.
 #'
 #' @param data A dataframe.

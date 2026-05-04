@@ -19,7 +19,7 @@ A character scalar containing the selected column names collapsed
 into a single string.
 }
 \description{
-Extracts column names from a data frame based on their positional indices
+Extracts column names from a dataframe based on their positional indices
 and concatenates them into a single string separated by a specified delimiter.
 }
 \examples{

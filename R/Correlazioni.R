@@ -15,17 +15,17 @@
 #' Common choices are "spearman", "pearson", and "kendall" (Default = "spearman").
 #' @param rho_dec Integer. Number of decimal places used when formatting
 #' correlation coefficients (Default = 3).
-#' @param pval_dec Integer. Number of decimal places used when formatting
+#' @param pval_dec Integer. Number of decimal places used when formatting unadjusted
 #' p-values (Default = 4).
 #' @param excel Logical. If TRUE, export the returned list to an Excel workbook
-#' using writexl::write_xlsx(), thus having one sheet for each table.
+#' using writexl::write_xlsx(), thus having one sheet for each table. Default=FALSE.
 #' @param excel_path Character string. Path of the Excel file to create when
-#' excel = TRUE. Defaults to paste0(path_output, "/Results.xlsx").
+#' excel = TRUE. Default to paste0(path_output, "/Results.xlsx").
 #'
 #' @return A named list with the following elements:
 #' \describe{
-#'   \item{res_raw_corr}{Square matrix-like dataframe of raw correlation coefficients.}
-#'   \item{res_raw_pval}{Square matrix-like dataframe of raw p-values.}
+#'   \item{res_raw_corr}{Square dataframe of raw correlation coefficients.}
+#'   \item{res_raw_pval}{Square dataframe of raw p-values.}
 #'   \item{res_corr_sig}{Formatted correlation matrix. Statistically significant
 #'     correlations at 'p < 0.05' are marked with '*'; diagonal entries are shown
 #'     as '-'.}
@@ -40,20 +40,28 @@
 #'
 #' @details
 #' The function checks that all selected variables are numeric before computing
-#' correlations. P-values are obtained from stats::cor.test() using the selected
+#' correlations. P-values are obtained from stats::cor.test(..., na.rm=T, exact = FALSE) using the selected
 #' method.
 #'
-#' Missing values are handled by stats::cor.test() for each pair of variables.
+#' Missing values are handled separately for each variable pair by
+#' stats::cor.test(..., na.rm=T, exact = FALSE), so the number of complete observations may differ across
+#' pairs.
 #'
 #' Note that significance is currently defined using an unadjusted p-value
 #' threshold of 0.05; no correction for multiple testing is applied.
+#' Correlations in res_corr_sig are marked with * when the corresponding
+#' unadjusted p-value is < 0.05.
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
-#' path_output = "."
-#' correlations(mtcars, c('mpg', 'disp'), excel=T)
+#' @examples
+#' correlations(
+#'   data = mtcars,
+#'   variables = c("mpg", "disp", "hp"),
+#'   method = "spearman"
+#' )
 correlations <- function(data,
                          variables,
                          method = "spearman",
