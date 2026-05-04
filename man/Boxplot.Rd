@@ -196,7 +196,7 @@ Default = 4.}
 \item{telegram}{Whether to send a telegram message when the job is completed.
 Default = "none" to not send any message.}
 
-\item{verbose}{Print progress bar and messages.}
+\item{verbose}{Print progress bar and messages (Default=TRUE).}
 }
 \value{
 If length(variables) > 1 returns a list of boxplot where the first one is

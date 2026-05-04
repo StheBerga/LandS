@@ -1,36 +1,77 @@
-#' Test for continuous variables splitted by categories
+#' Statistical tests for continuous variables split by categories
 #'
-#' The most powerful function ever created. You can perform the 4 major tests and the posthoc tests for Friedman and Kruskal-Wallis.
-#' If you are dumb (option dumb = T) you can also perform posthoc tests without correcting for test multiplicity.
-#' Please do not try this at home/work and consider asking a statistician before performing any test.
-#' Stored functions for statistic option are (median), (mean), (sd), (min), (max), (q1), (q3), (n), and (range).
+#' @description
+#' The test is selected automatically according to the number of groups and
+#' whether observations are paired:
+#' \itemize{
+#'   \item 2 groups, unpaired: Wilcoxon rank-sum test / Mann-Whitney U test.
+#'   \item 2 groups, paired: Wilcoxon signed-rank test.
+#'   \item >2 groups, unpaired: Kruskal-Wallis rank-sum test, with Dunn post-hoc tests.
+#'   \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests.
+#' }
 #'
-#' @param data dataframe
-#' @param variables vector containing all variables of interest
-#' @param paired FALSE/TRUE
-#' @param group factor variable splitting the data
-#' @param dumb FALSE are you dumb? Hope not
-#' @param statistic Specifies summary statistics to display for each variable. Default = "(mean) (sd)".
-#' @param ID ID variabl (Default = "ID")
-#' @param num_dec Decimal number for mean and SD (Default = 2)
-#' @param excel export fuction results as multiple Excel sheets
-#' @param excel_path path where you want your Excel
-#' @param telegram send a telegram message
-#' @param p.adjust.method correction method, a character string. Can be abbreviated.
-#' @param verbose print progress bar and messages
+#' You can also perform post-hoc tests without correcting for test multiplicity (option no.adj = T),
+#' even if it is not recommended.
+#' The following summary statistics can be computed:
+#' median, mean, sd, min, max, q1, q3, n, and range.
+#'
+#' @param data dataframe containing the variables to test.
+#' @param variables Character vector with the names of continuous numeric
+#' variables to test.
+#' @param paired Logical. If TRUE, observations are treated as paired or
+#' repeated measures across levels of group. Default=FALSE.
+#' @param group Character string giving the name of the grouping variable.
+#' This column must be a factor with at least two levels.
+#' @param no.adj Logical. If TRUE, also returns unadjusted pairwise post-hoc
+#' p-values. This is intended for sensitivity checks and is generally not
+#' recommended for confirmatory inference. Default=FALSE.
+#' @param statistic Specifies summary statistics to display for each variable. Default = "{mean} ({sd})".
+#' Format is defined by gtsummary package.
+#' @param ID Character string giving the name of the subject identifier column,
+#' required when 'paired = TRUE'. Default = "ID".
+#' @param num_dec Decimal number for summary statistics (Default = 2).
+#' @param p.adjust.method Character string specifying the multiplicity
+#' adjustment method used for post-hoc tests. Passed to the PMCMRplus post-hoc
+#' test functions. If NULL (Default), "bonferroni" is used.
+#' @param excel Logical. If TRUE, writes the result list to an Excel workbook
+#' with one sheet per result table (Default = FALSE).
+#' @param excel_path Path where you want to save the Excel file (Default
+#' paste0(path_out, "/Results.xlsx"))
+#' @param telegram Whether to send a telegram message when the job is completed.
+#' Default = "none" to not send any message.
+#' @param verbose  Print progress bar and messages (Default=TRUE).
 #'
 #'
-#' @return Una lista con dataset
+#' @return
+#' A named list of data frames. The exact elements depend on the selected test:
+#' \describe{
+#'   \item{Raw_tests}{Summary statistics and unformatted p-values.}
+#'   \item{Form_tests}{Summary statistics and formatted p-values.}
+#'   \item{Raw_pval}{P-values only; returned for two-group analyses.}
+#'   \item{Friedman_ph_pval}{Friedman global and post-hoc p-values; returned
+#'   for paired analyses with more than two groups.}
+#'   \item{KW_ph_pval}{Kruskal-Wallis global and post-hoc p-values; returned for
+#'   unpaired analyses with more than two groups.}
+#'   \item{no_corrected_ph}{Unadjusted post-hoc p-values; returned only when no.adj = TRUE.}
+#'   \item{Form_no_corrected_ph}{Formatted unadjusted post-hoc p-values; returned only
+#'   for Friedman analyses when no.adj = TRUE.}
+#' }
 #' @export
 #'
+#' @details
+#' For paired analyses, subjects with missing values for a tested variable are
+#' removed from that variable-specific analysis to preserve complete pairs or
+#' repeated-measure blocks.
 #' @author Luca Lalli, Stefano Bergamini
 #'
-#' @examples cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = FALSE)
+#' @examples
+#' cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
+#'               group = "Species", paired = FALSE)
 cont_var_test <- function (data,
                            variables,
                            paired = FALSE,
                            group,
-                           dumb = FALSE,
+                           no.adj = FALSE,
                            statistic = "{mean} ({sd})",
                            ID = "ID",
                            num_dec = 2,
@@ -155,7 +196,7 @@ cont_var_test <- function (data,
           tmp <- data
         }
 
-        stats <<- sapply(levels, function(lvl) {
+        stats <- sapply(levels, function(lvl) {
           x <- tmp[tmp[, group] == lvl, name]
           vals <- list(
             mean   = round(mean(x, na.rm = TRUE), num_dec),
@@ -196,7 +237,7 @@ cont_var_test <- function (data,
       res[[3]] <- tabella_p
       names(res) <- c("Raw_tests", "Form_tests", "Raw_pval")
 
-      if (verbose) message("Wilcoxon Rank Sum test used")
+      if (verbose) message("Wilcoxon signed rank test used")
     }
 
   }else{
@@ -246,7 +287,7 @@ cont_var_test <- function (data,
 
         if(nrow(tmp) > 0 ) {
 
-          stats <<- sapply(levels_groups, function(lvl) {
+          stats <- sapply(levels_groups, function(lvl) {
             x <- data[data[, group] == lvl, i]
             vals <- list(
               mean   = round(mean(x, na.rm = TRUE), num_dec),
@@ -348,7 +389,7 @@ cont_var_test <- function (data,
 
       Friedman_ph_p <- Friedman_test_df[, c(1, (2+n_lev_group):ncol(Friedman_test_df))]
 
-      if (dumb == FALSE){
+      if (no.adj == FALSE){
         res[[1]] <- Friedman_test_df
         res[[2]] <- Friedman_test_df_form
         res[[3]] <- Friedman_ph_p
@@ -440,7 +481,7 @@ cont_var_test <- function (data,
         res[[4]] <- Dumb_test_df
         res[[5]] <- Dumb_test_df_form
         names(res) <- c("Raw_tests", "Form_tests", "Friedman_ph_pval", "no_corrected_ph", "Form_no_corrected_ph")
-        if (verbose) message("It is reccomended to adjust for multiple testing; please ignore the results of no_corrected_ph")
+        if (verbose) message("It is recommended to adjust for multiple testing; please ignore the results of no_corrected_ph")
       }
 
       if (verbose) message("Friedman rank sum test used")
@@ -466,7 +507,7 @@ cont_var_test <- function (data,
 
       for (i in variables){
 
-        stats <<- sapply(levels_groups, function(lvl) {
+        stats <- sapply(levels_groups, function(lvl) {
           x <- data[data[, group] == lvl, i]
           vals <- list(
             mean   = round(mean(x, na.rm = TRUE), num_dec),
@@ -566,7 +607,7 @@ cont_var_test <- function (data,
 
       KW_ph_pval <- KW_test_df[, c(1, (2+n_lev_group):ncol(KW_test_df))]
 
-      if (dumb == F){
+      if (no.adj == F){
         res[[1]] <- KW_test_df
         res[[2]] <- KW_test_df_form
         res[[3]] <- KW_ph_pval
@@ -646,7 +687,7 @@ cont_var_test <- function (data,
         res[[3]] <- KW_ph_pval
         res[[4]] <- Dumb_test_df
         names(res) <- c("Raw_tests", "Form_tests", "KW_ph_pval", "no_corrected_ph")
-        if (verbose) message("It is reccomended to adjust for multiple testing; please ignore the results of no_corrected_ph")
+        if (verbose) message("It is recommended to adjust for multiple testing; please ignore the results of no_corrected_ph")
       }
 
       if (verbose) message("Kruskal-Wallis rank sum test used")

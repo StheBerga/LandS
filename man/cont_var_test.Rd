@@ -2,14 +2,14 @@
 % Please edit documentation in R/ContVarTest.R
 \name{cont_var_test}
 \alias{cont_var_test}
-\title{Test for continuous variables splitted by categories}
+\title{Statistical tests for continuous variables split by categories}
 \usage{
 cont_var_test(
   data,
   variables,
   paired = FALSE,
   group,
-  dumb = FALSE,
+  no.adj = FALSE,
   statistic = "{mean} ({sd})",
   ID = "ID",
   num_dec = 2,
@@ -21,43 +21,82 @@ cont_var_test(
 )
 }
 \arguments{
-\item{data}{dataframe}
+\item{data}{dataframe containing the variables to test.}
 
-\item{variables}{vector containing all variables of interest}
+\item{variables}{Character vector with the names of continuous numeric
+variables to test.}
 
-\item{paired}{FALSE/TRUE}
+\item{paired}{Logical. If TRUE, observations are treated as paired or
+repeated measures across levels of group. Default=FALSE.}
 
-\item{group}{factor variable splitting the data}
+\item{group}{Character string giving the name of the grouping variable.
+This column must be a factor with at least two levels.}
 
-\item{dumb}{FALSE are you dumb? Hope not}
+\item{no.adj}{Logical. If TRUE, also returns unadjusted pairwise post-hoc
+p-values. This is intended for sensitivity checks and is generally not
+recommended for confirmatory inference. Default=FALSE.}
 
-\item{statistic}{Specifies summary statistics to display for each variable. Default = "(mean) (sd)".}
+\item{statistic}{Specifies summary statistics to display for each variable. Default = "{mean} ({sd})".
+Format is defined by gtsummary package.}
 
-\item{ID}{ID variabl (Default = "ID")}
+\item{ID}{Character string giving the name of the subject identifier column,
+required when 'paired = TRUE'. Default = "ID".}
 
-\item{num_dec}{Decimal number for mean and SD (Default = 2)}
+\item{num_dec}{Decimal number for summary statistics (Default = 2).}
 
-\item{p.adjust.method}{correction method, a character string. Can be abbreviated.}
+\item{p.adjust.method}{Character string specifying the multiplicity
+adjustment method used for post-hoc tests. Passed to the PMCMRplus post-hoc
+test functions. If NULL (Default), "bonferroni" is used.}
 
-\item{excel}{export fuction results as multiple Excel sheets}
+\item{excel}{Logical. If TRUE, writes the result list to an Excel workbook
+with one sheet per result table (Default = FALSE).}
 
-\item{excel_path}{path where you want your Excel}
+\item{excel_path}{Path where you want to save the Excel file (Default
+paste0(path_out, "/Results.xlsx"))}
 
-\item{telegram}{send a telegram message}
+\item{telegram}{Whether to send a telegram message when the job is completed.
+Default = "none" to not send any message.}
 
-\item{verbose}{print progress bar and messages}
+\item{verbose}{Print progress bar and messages (Default=TRUE).}
 }
 \value{
-Una lista con dataset
+A named list of data frames. The exact elements depend on the selected test:
+\describe{
+  \item{Raw_tests}{Summary statistics and unformatted p-values.}
+  \item{Form_tests}{Summary statistics and formatted p-values.}
+  \item{Raw_pval}{P-values only; returned for two-group analyses.}
+  \item{Friedman_ph_pval}{Friedman global and post-hoc p-values; returned
+  for paired analyses with more than two groups.}
+  \item{KW_ph_pval}{Kruskal-Wallis global and post-hoc p-values; returned for
+  unpaired analyses with more than two groups.}
+  \item{no_corrected_ph}{Unadjusted post-hoc p-values; returned only when no.adj = TRUE.}
+  \item{Form_no_corrected_ph}{Formatted unadjusted post-hoc p-values; returned only
+  for Friedman analyses when no.adj = TRUE.}
+}
 }
 \description{
-The most powerful function ever created. You can perform the 4 major tests and the posthoc tests for Friedman and Kruskal-Wallis.
-If you are dumb (option dumb = T) you can also perform posthoc tests without correcting for test multiplicity.
-Please do not try this at home/work and consider asking a statistician before performing any test.
-Stored functions for statistic option are (median), (mean), (sd), (min), (max), (q1), (q3), (n), and (range).
+The test is selected automatically according to the number of groups and
+whether observations are paired:
+\itemize{
+  \item 2 groups, unpaired: Wilcoxon rank-sum test / Mann-Whitney U test.
+  \item 2 groups, paired: Wilcoxon signed-rank test.
+  \item >2 groups, unpaired: Kruskal-Wallis rank-sum test, with Dunn post-hoc tests.
+  \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests.
+}
+
+You can also perform post-hoc tests without correcting for test multiplicity (option no.adj = T),
+even if it is not recommended.
+The following summary statistics can be computed:
+median, mean, sd, min, max, q1, q3, n, and range.
+}
+\details{
+For paired analyses, subjects with missing values for a tested variable are
+removed from that variable-specific analysis to preserve complete pairs or
+repeated-measure blocks.
 }
 \examples{
-cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"), group = "Species", paired = FALSE)
+cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
+              group = "Species", paired = FALSE)
 }
 \author{
 Luca Lalli, Stefano Bergamini

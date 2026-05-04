@@ -88,7 +88,7 @@
 #' @param ratio Aspect ratio when grid = TRUE. Default = 1.
 #' @param telegram Whether to send a telegram message when the job is completed.
 #' Default = "none" to not send any message.
-#' @param verbose Print progress bar and messages.
+#' @param verbose Print progress bar and messages (Default=TRUE).
 #'
 #' @return If length(variables) > 1 returns a list of boxplot where the first one is
 #' coverpage. Otherwise returns a ggplot. When grid = TRUE returns a list of ggplots.
