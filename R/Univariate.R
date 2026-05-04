@@ -22,58 +22,58 @@ univariate <- function(db, vars, ptime, pevent, dec_HR = 4){
   options(contrasts=c("contr.treatment", "contr.treatment"))
 
   # Funzioni formattazione
-  formatz_p <- function(value){
-    if(is.data.frame(value)==T){
-      new_frame <- value
-
-      for(i in 1:dim(value)[1]){
-
-        if(is.na(value[i, 1]) == T) {
-
-          new_frame[i, 1] = NA
-        }
-
-        else if(value[i, 1] >= 0.0001){
-          new_frame[i, 1] <- format(round(value[i,1], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-        }else if (value[i, 1] < 0.0001){
-          new_frame[i, 1] <- "<0.0001"
-        }
-      }
-      return(new_frame)
-    }else if (is.vector(value) == TRUE){
-      new_vett <- c()
-
-      for (i in 1:length(value)) {
-
-
-        if (is.na(value[i])){
-
-          p <- NA
-
-        }else if (value[i] > 0.0001){
-
-          p <- format(round(value[i], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-
-        }else if (value[i] < 0.0001){
-
-          p <- "<0.0001"
-        }
-        new_vett <- c(new_vett,p)
-      }
-      return(new_vett)
-    }else{
-
-      if(is.na(value) == T) {
-
-        value = NA
-      }
-      else if(value >= 0.0001){
-        value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-      }else if(value < 0.0001){
-        value <- " <0.0001"}
-      return(value)
-    }
-  }
+  # formatz_p <- function(value){
+  #   if(is.data.frame(value)==T){
+  #     new_frame <- value
+  #
+  #     for(i in 1:dim(value)[1]){
+  #
+  #       if(is.na(value[i, 1]) == T) {
+  #
+  #         new_frame[i, 1] = NA
+  #       }
+  #
+  #       else if(value[i, 1] >= 0.0001){
+  #         new_frame[i, 1] <- format(round(value[i,1], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
+  #       }else if (value[i, 1] < 0.0001){
+  #         new_frame[i, 1] <- "<0.0001"
+  #       }
+  #     }
+  #     return(new_frame)
+  #   }else if (is.vector(value) == TRUE){
+  #     new_vett <- c()
+  #
+  #     for (i in 1:length(value)) {
+  #
+  #
+  #       if (is.na(value[i])){
+  #
+  #         p <- NA
+  #
+  #       }else if (value[i] > 0.0001){
+  #
+  #         p <- format(round(value[i], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
+  #
+  #       }else if (value[i] < 0.0001){
+  #
+  #         p <- "<0.0001"
+  #       }
+  #       new_vett <- c(new_vett,p)
+  #     }
+  #     return(new_vett)
+  #   }else{
+  #
+  #     if(is.na(value) == T) {
+  #
+  #       value = NA
+  #     }
+  #     else if(value >= 0.0001){
+  #       value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
+  #     }else if(value < 0.0001){
+  #       value <- " <0.0001"}
+  #     return(value)
+  #   }
+  # }
 
   # Inizio funzione
   var_uni <- vars
