@@ -47,6 +47,7 @@ variables, including the number of missing observations, percentage missing,
 and number of complete observations.
 }
 \examples{
+mtcars$cyl <- as.factor(mtcars$cyl)
 descriptive_stats(mtcars)
 }
 \author{

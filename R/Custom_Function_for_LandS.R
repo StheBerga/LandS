@@ -1,14 +1,29 @@
 # Custom functions for LandS package ----
 
-#' Function to get a formatted p-value for a number o a vector of numbers
+#' Format p-values for reporting
 #'
-#' @param value a number or a vector of numbers to be formatted
+#' @description
+#' Formats numeric p-values for display in tables and plot annotations.
+#' Values greater than or equal to '0.0001' are rounded to four decimal places
+#' and printed with four digits after the decimal point. Values below '0.0001'
+#' are displayed as "<0.0001". Missing values are preserved as NA.
 #'
-#' @return a number or a vector of numbers formatted with 4 digits
+#' The function accepts a single numeric value, a numeric vector, or a data frame.
+#' If a data frame is supplied, only the first column is formatted and the other
+#' columns are returned unchanged.
+#'
+#' @param value A numeric scalar, numeric vector, or data frame containing
+#'   p-values to format. For data frames, p-values must be in the first column.
+#'
+#' @return
+#' An object of the same general type as 'value': a formatted character value,
+#' a character vector, or a data frame with its first column formatted.
 #' @export
 #'
-#' @examples formatz_p(c(1.000, 0.75643242, 0.000032431, 0.00214))
-#'
+#' @examples
+#' formatz_p(0.03215)
+#' formatz_p(c(0.2, 0.0499, 0.00001, NA))
+#' formatz_p(data.frame(p = c(0.03, 0.00001, NA)))
 formatz_p <- function(value){
   if(is.data.frame(value)==T){
     new_frame <- value
@@ -37,7 +52,7 @@ formatz_p <- function(value){
 
         p <- NA
 
-      }else if (value[i] > 0.0001){
+      }else if (value[i] >= 0.0001){
 
         p <- format(round(value[i], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
 
@@ -57,7 +72,7 @@ formatz_p <- function(value){
     else if(value >= 0.0001){
       value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
     }else if(value < 0.0001){
-      value <- " <0.0001"}
+      value <- "<0.0001"}
     return(value)
   }
 }
