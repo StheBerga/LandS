@@ -43,6 +43,7 @@
 #' @author Luca Lalli
 #'
 #' @examples
+#' mtcars$cyl <- as.factor(mtcars$cyl)
 #' descriptive_stats(mtcars)
 descriptive_stats <- function(dataset, path = NULL){
 
@@ -219,7 +220,6 @@ descriptive_stats <- function(dataset, path = NULL){
                       Cat_out = var_cat_outp, Miss = mat_miss)
 
   return(list_output)
-
 
 }
 
