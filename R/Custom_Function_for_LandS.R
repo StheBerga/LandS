@@ -409,15 +409,28 @@ build_filename <- function(filename = "example",
 
 }
 
-#' Function to get the Sys.time() in a cute and nice format
+#' Format current system time as a string
 #'
-#' @return The Sys.time() in a cute format
+#' @description
+#' Returns the current system time (Sys.time()) formatted as a character
+#' string using the pattern "month_day_Year__Hour_Minute". This format is convenient
+#' for file names or logs because it avoids spaces and special characters.
+#'
+#' Example: "05_05_2026__14_32"
+#'
+#' @return A character string representing the current system time.
+#'
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
-Sys_Time <- function()
+#' # Get current time as formatted string
+#'format_sys_time()
+#'
+#' # Use in a filename
+#' paste0("results_", format_sys_time(), ".csv")
+format_sys_time <- function()
 {
   format(Sys.time(), "%m_%d_%Y__%H_%M", zero.print = F)
 }
