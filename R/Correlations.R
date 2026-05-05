@@ -56,7 +56,6 @@
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
-#' @examples
 #' correlations(
 #'   data = mtcars,
 #'   variables = c("mpg", "disp", "hp"),

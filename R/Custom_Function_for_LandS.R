@@ -373,80 +373,38 @@ print_plot_grid <- function (plot_list,
   }
 }
 
-#' Function to print the output of the AIM function with Biomarker, Direction and Cutoff as a data frame model
-#'
-#' @param res.index An output from the AIM package function
-#' @param aim.data Data where the function was run on
-#'
-#' @return A dataframe-like object
-#' @export
-#'
-#' @examples
-output.aim.f <- function(res.index, aim.data){
-  output.aim <- as.data.frame(res.index$res[[length(res.index$res)]])
-  vars_pos <- output.aim$jmax
-  vars_model <- colnames(aim.data)[vars_pos]
-  output.aim$jmax <- vars_model
-  output.aim <- select(output.aim, jmax, maxdir, cutp)
-  output.aim$maxdir <- ifelse(output.aim$maxdir == 1, ">", "<")
-  colnames(output.aim) <- c("Vars", "Dir", "Cutoff")
-  return(output.aim)
-}
 
-#' Function to print the histogram of the AIM::cv.cox.main output
+#' Build path to file
 #'
-#' @param kmax.cycle The vector of values of the best biomarkers
+#' @description
+#' This function build a complete path to file including:
+#' output path + filename + extension.
 #'
-#' @return an histogram
+#' @param filename string. Name of the file, default="prova".
+#' @param extension string. File extension, default=".png".
+#' @param output string. Output path, default=".".
+#' @param datetime logical. Whether to append the datetime in format
+#' "%m_%d_%Y__%H_%M". Default FALSE.
+#'
+#' @return String of the filename.
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
-Kmax_aim <- function(kmax.cycle = kmax.cycle){
-  require(ggplot)
-
-  df_kmax_cycle <- as.data.frame(table(kmax.cycle))
-  df_kmax_cycle$Perc <- round(prop.table(table(kmax.cycle))*100,1)
-  plot_kmax_cycle <- ggplot(data=df_kmax_cycle, aes(x=kmax.cycle, y=Perc)) +
-    geom_histogram(stat="identity", fill = "royalblue", alpha = 0.7, color = "black")+
-    labs(x = "Nvar selected", y = "%")+
-    theme(axis.text.x = element_text(size = 12, colour = "black", vjust = -0.0),
-          plot.margin = margin(2, 2, 2, 2, "mm"),
-          axis.text.y = element_text(size = 12, colour = "black"),
-          panel.border = element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
-          axis.ticks = element_line(linewidth = 0.1),
-          axis.ticks.length = unit(0.25, "mm"),
-          panel.background = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          legend.title = element_blank(),
-          panel.spacing.x = unit(1.5, "mm"),
-          aspect.ratio = 1)
-  return(plot_kmax_cycle)
-}
-
-#' This function returns the filename to be outputted
-#'
-#' @param filename name of the file
-#' @param extention file extention
-#' @param output the main output path
-#' @param datetime whether to print the datetime in a cute format
-#'
-#' @return
-#' @export
-#'
-#' @author Luca Lalli, Stefano Bergamini
-#'
-#' @examples
-filename <- function(filename = "Prova",
-                     extention = ".png",
-                     output = path_output,
+#' filename(filename = "prova", extension = ".png", output = ".",
+#' datetime = F)
+#' filename(filename = "prova", extension = ".png", output = ".",
+#' datetime = T)
+filename <- function(filename = "prova",
+                     extension = ".png",
+                     output = ".",
                      datetime = F){
   if (datetime == F){
-    print(paste0(output, "/", filename, extention))
+    return(paste0(output, "/", filename, extension))
   }else {
-    return(paste0(output, "/", filename, "_", format(Sys.time(), "%m_%d_%Y__%H_%M"), extention))
+    return(paste0(output, "/", filename, "_",
+                  format(Sys.time(), "%m_%d_%Y__%H_%M"), extension))
   }
 
 }
