@@ -258,32 +258,73 @@ telegram_mess <- function(dest = "both",
 }
 
 
-#' Function to print the PDF with the grid.arrange function
+#' Save a grid of plots
 #'
-#' @param plot_list The list you want to be plotted
-#' @param path_print The path where you want your PDF to be printed
-#' @param nrow Rows of your grid
-#' @param ncol Columns of your grid
-#' @param ext File extention
-#' @param width_pg page width in cm
-#' @param height_pg page height in cm
-#' @param return if you want to assign your grid
+#' Combines a list of ggplot objects into one or more grids using
+#' cowplot::plot_grid() and saves the result to disk. Supported output formats
+#' are "pdf", "tiff", "jpeg", "svg", "png", and "emf".
 #'
-#' @return A pdf in the path_output
-#' @export
+#' For PDF output, plots are split across multiple pages when the number of
+#' plots exceeds nrow * ncol. For other formats, all plots are arranged in a
+#' single grid.
+#'
+#' @param plot_list A list of ggplot objects.
+#' @param path_print Character string. Output file path without extension.
+#' Default is ".".
+#' @param nrow Integer. Number of rows in the plot grid. Default is 8.
+#' @param ncol Integer. Number of columns in the plot grid. Default is 6.
+#' @param ext Character string. Output file extension. One of "pdf",
+#' "tiff", "jpeg", "svg", "png", or "emf". If NULL, "pdf" is used.
+#' @param width_pg Numeric. Output width in centimeters. Default is 21.
+#' @param height_pg Numeric. Output height in centimeters. Default is 29.7.
+#' @param return_plot Logical. If TRUE, returns the list of grid plots created
+#' by cowplot::plot_grid(). If FALSE, returns NULL.
+#'
+#' @return
+#' Invisibly returns NULL if return_plot = FALSE. If return_plot = TRUE,
+#' returns a list of grid plot objects. In both cases, a file is written to disk.
 #'
 #' @author Luca Lalli, Stefano Bergamini
+#' @export
 #'
 #' @examples
-
-Print <- function (plot_list,
-                   path_print = path_print,
-                   nrow = 8,
-                   ncol = 6,
-                   ext = NULL,
-                   width_pg = 21,
-                   height_pg = 29.7,
-                   return = FALSE)
+#' \dontrun{
+#' library(ggplot2)
+#'
+#' plots <- list(
+#'   ggplot(mtcars, aes(wt, mpg)) +
+#'     geom_point() +
+#'     labs(title = "MPG vs weight"),
+#'
+#'   ggplot(mtcars, aes(factor(cyl), mpg)) +
+#'     geom_boxplot() +
+#'     labs(title = "MPG by cylinders", x = "Cylinders"),
+#'
+#'   ggplot(mtcars, aes(hp, mpg)) +
+#'     geom_point() +
+#'     labs(title = "MPG vs horsepower"),
+#'
+#'   ggplot(mtcars, aes(factor(gear))) +
+#'     geom_bar() +
+#'     labs(title = "Number of cars by gears", x = "Gears")
+#' )
+#'
+#' print_plot_grid(
+#'   plot_list = plots,
+#'   path_print = file.path(".", "mtcars_grid"),
+#'   nrow = 2,
+#'   ncol = 2,
+#'   ext = "pdf"
+#' )
+#' }
+print_plot_grid <- function (plot_list,
+                             path_print = ".",
+                             nrow = 8,
+                             ncol = 6,
+                             ext = NULL,
+                             width_pg = 21,
+                             height_pg = 29.7,
+                             return_plot = FALSE)
 {
   require(ggplot2)
   if(is.null(ext)){ext <- "pdf"}
@@ -308,7 +349,7 @@ Print <- function (plot_list,
     graphs[[1]] <- cowplot::plot_grid(plotlist = plot_list, nrow = nrow, ncol = ncol)
 
   }
-  message(paste0("Grid arrange Done! \nSaving in ", ext))
+  message(paste0("cowplot::plot_grid done! \nSaving in ", ext))
 
   if(ext == "tiff"){tiff(filename = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
 
@@ -327,7 +368,7 @@ Print <- function (plot_list,
   }
   dev.off()
 
-  if (return == TRUE){
+  if (return_plot == TRUE){
     return(graphs)
   }
 }
