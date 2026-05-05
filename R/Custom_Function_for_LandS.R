@@ -377,14 +377,14 @@ print_plot_grid <- function (plot_list,
 #' Build path to file
 #'
 #' @description
-#' This function build a complete path to file including:
+#' This function builds a complete path to file including:
 #' output path + filename + extension.
 #'
-#' @param filename string. Name of the file, default="prova".
+#' @param filename string. Name of the file, default="example".
 #' @param extension string. File extension, default=".png".
 #' @param output string. Output path, default=".".
-#' @param datetime logical. Whether to append the datetime in format
-#' "%m_%d_%Y__%H_%M". Default FALSE.
+#' @param datetime logical. Whether to append the datetime in format.
+#' Default FALSE.
 #'
 #' @return String of the filename.
 #' @export
@@ -392,11 +392,11 @@ print_plot_grid <- function (plot_list,
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
-#' filename(filename = "prova", extension = ".png", output = ".",
+#' build_filename(filename = "example", extension = ".png", output = ".",
 #' datetime = F)
-#' filename(filename = "prova", extension = ".png", output = ".",
+#' build_filename(filename = "example", extension = ".png", output = ".",
 #' datetime = T)
-filename <- function(filename = "prova",
+build_filename <- function(filename = "example",
                      extension = ".png",
                      output = ".",
                      datetime = F){
