@@ -34,8 +34,8 @@
 #' @param Overall Whether to display overall test in the upper-left corner. Default = FALSE.
 #' @param Posthoc Whether to display posthoc tests brackets. Default = FALSE.
 #' @param Test_results Dataframe containing the results of global and posthoc tests computed
-#' using LandS::cont_var_test() function and formatted using LandS::posthoc_df() function.
-#' Default = NULL.
+#' using LandS::cont_var_test() function, in particular objects "KW_ph_pval" or "Friedman_ph_pval"
+#' or "no_corrected_ph". Default = NULL.
 #' @param threshold_posthoc Threshold for displaying post-hoc tests brackets. Default = 0.05.
 #' @param posthoc_test_size Font size for annotations of post-hoc p-values. Default = 3.88.
 #' @param bracket_shorten Width of the bracket in range [0,1]. Default = 0.

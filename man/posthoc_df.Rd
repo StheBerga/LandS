@@ -2,26 +2,44 @@
 % Please edit documentation in R/Custom_Function_for_LandS.R
 \name{posthoc_df}
 \alias{posthoc_df}
-\title{Function for Boxplot}
+\title{Format p-values for Boxplots}
 \usage{
 posthoc_df(Test_results, data, group, threshold_posthoc, i)
 }
 \arguments{
-\item{Test_results}{Test_results}
+\item{Test_results}{Dataframe containing the results of global and posthoc tests computed
+using LandS::cont_var_test() function, in particular objects "KW_ph_pval" or "Friedman_ph_pval"
+or "no_corrected_ph". Default = NULL.}
 
-\item{data}{data}
+\item{data}{Dataframe containing numeric variables to plot.}
 
-\item{group}{group}
+\item{group}{string. Column name identifying factor grouping variable for split
+boxplots.}
 
-\item{threshold_posthoc}{threshold posthoc tests}
+\item{threshold_posthoc}{numeric. Threshold for post-hoc tests.}
 
-\item{i}{i}
+\item{i}{string. Name of variable to consider.}
 }
 \value{
-nothing
+Dataframe having has columns: group1, group2, y (i.e. the variable)
+and pval (i.e. formatted p-value).
 }
 \description{
-Function for Boxplot
+This is an internal function used to format p-values to display in boxplots.
+If p-value < threshold_posthoc, the corresponding row in the output dataframe
+is removed.
+}
+\examples{
+res <- cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
+group = "Species", paired = FALSE)
+
+# Formatted results
+formatted_list <- list()
+for(n in res$KW_ph_pval$Var){
+  formatted_list[[n]] <- LandS:::posthoc_df(res$KW_ph_pval, iris, group="Species",
+  threshold_posthoc=0.01, n)
+}
+
 }
 \author{
 Luca Lalli, Stefano Bergamini

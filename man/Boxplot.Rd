@@ -111,8 +111,8 @@ are treated as outliers. Default = 1.5.}
 \item{Posthoc}{Whether to display posthoc tests brackets. Default = FALSE.}
 
 \item{Test_results}{Dataframe containing the results of global and posthoc tests computed
-using LandS::cont_var_test() function and formatted using LandS::posthoc_df() function.
-Default = NULL.}
+using LandS::cont_var_test() function, in particular objects "KW_ph_pval" or "Friedman_ph_pval"
+or "no_corrected_ph". Default = NULL.}
 
 \item{threshold_posthoc}{Threshold for displaying post-hoc tests brackets. Default = 0.05.}
 

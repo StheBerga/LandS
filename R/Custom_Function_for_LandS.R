@@ -436,20 +436,38 @@ format_sys_time <- function()
 }
 
 
-#' Function for Boxplot
+#' Format p-values for Boxplots
 #'
-#' @param Test_results Test_results
-#' @param data data
-#' @param group group
-#' @param threshold_posthoc threshold posthoc tests
-#' @param i i
+#' @description
+#' This is an internal function used to format p-values to display in boxplots.
+#' If p-value < threshold_posthoc, the corresponding row in the output dataframe
+#' is removed.
 #'
-#' @return nothing
-#' @export
+#' @param Test_results Dataframe containing the results of global and posthoc tests computed
+#' using LandS::cont_var_test() function, in particular objects "KW_ph_pval" or "Friedman_ph_pval"
+#' or "no_corrected_ph". Default = NULL.
+#' @param data Dataframe containing numeric variables to plot.
+#' @param group string. Column name identifying factor grouping variable for split
+#' boxplots.
+#' @param threshold_posthoc numeric. Threshold for post-hoc tests.
+#' @param i string. Name of variable to consider.
+#'
+#' @return Dataframe having has columns: group1, group2, y (i.e. the variable)
+#' and pval (i.e. formatted p-value).
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
+#' res <- cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
+#' group = "Species", paired = FALSE)
+#'
+#' # Formatted results
+#' formatted_list <- list()
+#' for(n in res$KW_ph_pval$Var){
+#'   formatted_list[[n]] <- LandS:::posthoc_df(res$KW_ph_pval, iris, group="Species",
+#'   threshold_posthoc=0.01, n)
+#' }
+#'
 posthoc_df <- function(Test_results, data, group, threshold_posthoc, i){
 
   postmodel <- Test_results[Test_results[, 1] == i, ]
