@@ -102,61 +102,91 @@ vett.quoted <- function(vettore, sym = ", ", quote = T){
   }
 }
 
-#' Function to create a new project in the default folder
+#' Create a new project with a standard folder structure
 #'
-#' @param project_name The name of the Project
-#' @param rstudio If `TRUE`, calls [use_rstudio()] to make the new package or
-#'   project into an [RStudio
-#'   Project](https://r-pkgs.org/workflow101.html#sec-workflow101-rstudio-projects).
-#'    If `FALSE` and a non-package project, a sentinel `.here` file is placed so
-#'   that the directory can be recognized as a project by the
-#'   [here](https://here.r-lib.org) or
-#'   [rprojroot](https://rprojroot.r-lib.org) packages.
-#' @param open If `TRUE`, [activates][proj_activate()] the new project:
+#' New_Project() creates a new project directory inside a platform-specific
+#' root folder and optionally initializes it as an RStudio project. By default,
+#' it creates the subdirectories "Analysis", "Data", "Data/Original", and
+#' "Output", but users can provide their own folder structure through
+#' 'subdirs'.
 #'
-#'   * If using RStudio desktop, the package is opened in a new session.
-#'   * If on RStudio server, the current RStudio project is activated.
-#'   * Otherwise, the working directory and active project is changed.
+#' @param project_name Character string. Name of the project directory to create.
+#' @param rstudio Logical. If TRUE, create an RStudio project file using
+#'   [usethis::use_rstudio()]. If FALSE, create a '.here' sentinel file.
+#' @param open Logical. If TRUE, activate the newly created project using
+#'   [usethis::proj_activate()].
+#' @param root_x86_64 Character string. Default root directory used when
+#'   'Sys.info()[["machine"]]' is "x86-64".
+#' @param root_arm64 Character string. Default root directory used when
+#'   'Sys.info()[["machine"]]' is "arm64".
+#' @param root_manual Character string or NULL. Manually supplied root
+#'   directory used when the machine architecture is not recognized.
+#' @param subdirs Character vector. Subdirectories to create inside the project.
+#'   Nested directories can be supplied using /, for example
+#'   "data/raw" or "results/figures".
 #'
-#'
-#' @return Returns a folder in Projects with Analisi, Dati and Output subfolders
+#' @return Invisibly returns the path to the newly created project.
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
+#' \dontrun{
+#' New_Project("my_project")
+#'
+#' New_Project(
+#'   "my_project",
+#'   root_manual = "~/Projects",
+#'   subdirs = c("data/raw", "data/processed", "R", "outputs")
+#' )
+#' }
 New_Project <- function(project_name,
                         rstudio = rstudioapi::isAvailable(),
-                        open = rlang::is_interactive())
+                        open = rlang::is_interactive(),
+                        root_x86_64 = "//irccs-int.local/int/Bioimmunol/Projects/",
+                        root_arm64 = "/Volumes/biomimmunol/Projects/",
+                        root_manual = NULL,
+                        subdirs = c("Analysis", "Data", "Data/Original", "Output"))
 {
   require(usethis); require(fs)
 
-  if(Sys.info()["machine"] == "x86-64"){
-    root <- "//irccs-int.local/int/Bioimmunol/Projects/"
+  if(Sys.info()["machine"] %in% c("x86-64", "x86_64")){
+    root <- root_x86_64
   } else if (Sys.info()["machine"] == "arm64"){
-    root <- "/Volumes/biomimmunol/Projects/"
+    root <- root_arm64
+  } else {
+    if(!is.null(root_manual)){
+      root <- root_manual
+      warning("No architecture recognized, using root_manual argument.")
+    } else{
+      stop("No architecture recognized, set root_manual!")
+    }
   }
+
+
   path <- usethis:::user_path_prep(paste0(root, project_name))
   name <- fs::path_file(path_abs(path))
   usethis:::challenge_nested_project(path_dir(path), name)
   usethis:::challenge_home_directory(path)
   usethis:::create_directory(path)
   usethis:::local_project(path, force = TRUE)
-  usethis::use_directory("Analisi")
-  usethis::use_directory("Dati")
-  usethis::use_directory("Dati/Original")
-  usethis::use_directory("Output")
+
+  # Add subdirectories
+  for (dir in subdirs) {
+    usethis::use_directory(dir)
+  }
+
   if (rstudio) {
-    use_rstudio()
+    usethis::use_rstudio()
   }
   else {
-    ui_bullets(c(v = "Writing a sentinel file {.path {pth('.here')}}.",
+    usethis:::ui_bullets(c(v = "Writing a sentinel file {.path {pth('.here')}}.",
                  `_` = "Build robust paths within your project via {.fun here::here}.",
                  i = "Learn more at {.url https://here.r-lib.org}."))
-    file_create(proj_path(".here"))
+    fs::file_create(usethis::proj_path(".here"))
   }
   if (open) {
-    if (proj_activate(proj_get())) {
+    if (usethis::proj_activate(usethis::proj_get())) {
       withr::deferred_clear()
     }
   }

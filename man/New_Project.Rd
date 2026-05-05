@@ -2,36 +2,60 @@
 % Please edit documentation in R/Custom_Function_for_LandS.R
 \name{New_Project}
 \alias{New_Project}
-\title{Function to create a new project in the default folder}
+\title{Create a new project with a standard folder structure}
 \usage{
 New_Project(
   project_name,
   rstudio = rstudioapi::isAvailable(),
-  open = rlang::is_interactive()
+  open = rlang::is_interactive(),
+  root_x86_64 = "//irccs-int.local/int/Bioimmunol/Projects/",
+  root_arm64 = "/Volumes/biomimmunol/Projects/",
+  root_manual = NULL,
+  subdirs = c("Analysis", "Data", "Data/Original", "Output")
 )
 }
 \arguments{
-\item{project_name}{The name of the Project}
+\item{project_name}{Character string. Name of the project directory to create.}
 
-\item{rstudio}{If `TRUE`, calls [use_rstudio()] to make the new package or
-project into an [RStudio
-Project](https://r-pkgs.org/workflow101.html#sec-workflow101-rstudio-projects).
- If `FALSE` and a non-package project, a sentinel `.here` file is placed so
-that the directory can be recognized as a project by the
-[here](https://here.r-lib.org) or
-[rprojroot](https://rprojroot.r-lib.org) packages.}
+\item{rstudio}{Logical. If TRUE, create an RStudio project file using
+[usethis::use_rstudio()]. If FALSE, create a '.here' sentinel file.}
 
-\item{open}{If `TRUE`, [activates][proj_activate()] the new project:
+\item{open}{Logical. If TRUE, activate the newly created project using
+[usethis::proj_activate()].}
 
-  * If using RStudio desktop, the package is opened in a new session.
-  * If on RStudio server, the current RStudio project is activated.
-  * Otherwise, the working directory and active project is changed.}
+\item{root_x86_64}{Character string. Default root directory used when
+'Sys.info()[["machine"]]' is "x86-64".}
+
+\item{root_arm64}{Character string. Default root directory used when
+'Sys.info()[["machine"]]' is "arm64".}
+
+\item{root_manual}{Character string or NULL. Manually supplied root
+directory used when the machine architecture is not recognized.}
+
+\item{subdirs}{Character vector. Subdirectories to create inside the project.
+Nested directories can be supplied using /, for example
+"data/raw" or "results/figures".}
 }
 \value{
-Returns a folder in Projects with Analisi, Dati and Output subfolders
+Invisibly returns the path to the newly created project.
 }
 \description{
-Function to create a new project in the default folder
+New_Project() creates a new project directory inside a platform-specific
+root folder and optionally initializes it as an RStudio project. By default,
+it creates the subdirectories "Analysis", "Data", "Data/Original", and
+"Output", but users can provide their own folder structure through
+'subdirs'.
+}
+\examples{
+\dontrun{
+New_Project("my_project")
+
+New_Project(
+  "my_project",
+  root_manual = "~/Projects",
+  subdirs = c("data/raw", "data/processed", "R", "outputs")
+)
+}
 }
 \author{
 Luca Lalli, Stefano Bergamini
