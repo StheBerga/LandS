@@ -2,27 +2,29 @@
 % Please edit documentation in R/Custom_Function_for_LandS.R
 \name{Distribution}
 \alias{Distribution}
-\title{Distribution function}
+\title{Plot variable distribution}
 \usage{
-Distribution(data, var, split = FALSE, split_rule = NULL)
+Distribution(data, var, split = FALSE, cutoff = NULL)
 }
 \arguments{
-\item{data}{a dataframe}
+\item{data}{A dataframe containing the variable to plot.}
 
-\item{var}{variable}
+\item{var}{string. Name of the variable to plot.}
 
-\item{split}{does the variable need to be splitted}
+\item{split}{logical. If TRUE, the variable is split by a cut-off value.
+Default=FALSE.}
 
-\item{split_rule}{the splitting rule}
+\item{cutoff}{numeric. Cut-off value to split the variable. Default=NULL.}
 }
 \value{
-a plot with the variable
+A ggplot object.
 }
 \description{
-Distribution function
+This function outputs a ggplot showing the distribution of a single variable,
+where points are optionally divided by a cut-off value (cutoff).
 }
 \examples{
-Distribution(data = mtcars, var = "mpg", split = TRUE, split_rule = 23)
+Distribution(data = mtcars, var = "mpg", split = TRUE, cutoff = 23)
 }
 \author{
 Luca Lalli, Stefano Bergamini

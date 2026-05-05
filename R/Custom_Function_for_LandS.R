@@ -485,22 +485,31 @@ posthoc_df <- function(Test_results, data, group, threshold_posthoc, i){
 
 }
 
-#' Distribution function
+#' Plot variable distribution
+#'
+#' @description
+#' This function outputs a ggplot showing the distribution of a single variable,
+#' where points are optionally divided by a cut-off value (cutoff).
 #'
 #'
+#' @param data A dataframe containing the variable to plot.
+#' @param var string. Name of the variable to plot.
+#' @param split logical. If TRUE, the variable is split by a cut-off value.
+#' Default=FALSE.
+#' @param cutoff numeric. Cut-off value to split the variable. Default=NULL.
 #'
-#' @param data a dataframe
-#' @param var variable
-#' @param split does the variable need to be splitted
-#' @param split_rule the splitting rule
-#'
-#' @return a plot with the variable
+#' @return A ggplot object.
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
-#' @examples Distribution(data = mtcars, var = "mpg", split = TRUE, split_rule = 23)
-Distribution <- function(data, var, split = FALSE, split_rule = NULL){
+#' @examples
+#' Distribution(data = mtcars, var = "mpg", split = TRUE, cutoff = 23)
+Distribution <- function(data, var, split = FALSE, cutoff = NULL){
+
+  if(split==TRUE && is.null(cutoff)){
+    stop("Please provide a cutoff value if you use split=TRUE")
+  }
 
   require(ggplot2)
 
@@ -509,10 +518,10 @@ Distribution <- function(data, var, split = FALSE, split_rule = NULL){
       geom_point(size = 1.5)}+
 
     {if (split == TRUE)
-      geom_point(aes(colour = data[, var] > split_rule), size = 1.5)}+
+      geom_point(aes(colour = data[, var] > cutoff), size = 1.5)}+
 
     {if (split == TRUE)
-      geom_vline(xintercept = split_rule, linetype = 2)}+
+      geom_vline(xintercept = cutoff, linetype = 2)}+
 
     scale_colour_manual(values=c("salmon", "cornflowerblue"))+
 
@@ -520,7 +529,7 @@ Distribution <- function(data, var, split = FALSE, split_rule = NULL){
       labs(x = NULL, y = NULL)}+
 
     {if (split == TRUE)
-      labs(x = paste0("Cutoff: ", split_rule), y = NULL)}+
+      labs(x = paste0("Cut-off: ", cutoff), y = NULL)}+
 
     # coord_fixed(ratio = 50/2)+
     theme(plot.title = element_text(hjust = 0.5, size = 6, face = "bold"),
