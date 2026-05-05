@@ -604,21 +604,39 @@ Pushover <- function(dest = "both", script = 0, timestamp = TRUE, priority = 0,
 }
 
 
-
-#' Title
+#' Format p-values for Lineplots
 #'
-#' @param Test_results Test_results
-#' @param data data
-#' @param Time Time
-#' @param threshold_posthoc Threshold ph tests
-#' @param i i
+#' @description
+#' This is an internal function used to format p-values to display in lineplots.
+#' If p-value < threshold_posthoc, the corresponding row in the output dataframe
+#' is removed.
+#'
+#' @param Test_results Dataframe containing the results of global and posthoc
+#' tests computed using LandS::cont_var_test() function, in particular objects
+#' "KW_ph_pval" or "Friedman_ph_pval" or "no_corrected_ph".
+#' @param data Dataframe containing numeric variables to plot.
+#' @param time string. Name of the numeric variable containing time.
+#' @param threshold_posthoc numeric. Threshold for post-hoc tests.
+#' @param i string. Name of variable to consider.
 #'
 #' @returns
-#' @export
+#' Dataframe having has columns: group1, group2, y (i.e. the variable)
+#' and pval (i.e. formatted p-value).
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
+#' mtcars$gear <- as.factor(mtcars$gear)
+#' res <- cont_var_test(data = mtcars, variables = c("mpg", "disp"),
+#' group = "gear", paired = FALSE)
+#'
+#' # Formatted results
+#' mtcars$gear <- as.numeric(levels(mtcars$gear))[mtcars$gear]
+#' formatted_list <- list()
+#' for(n in res$KW_ph_pval$Var){
+#'   formatted_list[[n]] <- LandS:::Posthoc_lineplots(res$KW_ph_pval, mtcars, time="gear",
+#'                                             threshold_posthoc=0.01, n)
+#' }
 Posthoc_lineplots <- function (Test_results, data, time, threshold_posthoc, i) {
   require(dplyr)
   postmodel <- Test_results[Test_results[, 1] == i, ]

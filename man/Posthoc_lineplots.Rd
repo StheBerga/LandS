@@ -2,23 +2,44 @@
 % Please edit documentation in R/Custom_Function_for_LandS.R
 \name{Posthoc_lineplots}
 \alias{Posthoc_lineplots}
-\title{Title}
+\title{Format p-values for Lineplots}
 \usage{
 Posthoc_lineplots(Test_results, data, time, threshold_posthoc, i)
 }
 \arguments{
-\item{Test_results}{Test_results}
+\item{Test_results}{Dataframe containing the results of global and posthoc
+tests computed using LandS::cont_var_test() function, in particular objects
+"KW_ph_pval" or "Friedman_ph_pval" or "no_corrected_ph".}
 
-\item{data}{data}
+\item{data}{Dataframe containing numeric variables to plot.}
 
-\item{threshold_posthoc}{Threshold ph tests}
+\item{time}{string. Name of the numeric variable containing time.}
 
-\item{i}{i}
+\item{threshold_posthoc}{numeric. Threshold for post-hoc tests.}
 
-\item{Time}{Time}
+\item{i}{string. Name of variable to consider.}
+}
+\value{
+Dataframe having has columns: group1, group2, y (i.e. the variable)
+and pval (i.e. formatted p-value).
 }
 \description{
-Title
+This is an internal function used to format p-values to display in lineplots.
+If p-value < threshold_posthoc, the corresponding row in the output dataframe
+is removed.
+}
+\examples{
+mtcars$gear <- as.factor(mtcars$gear)
+res <- cont_var_test(data = mtcars, variables = c("mpg", "disp"),
+group = "gear", paired = FALSE)
+
+# Formatted results
+mtcars$gear <- as.numeric(levels(mtcars$gear))[mtcars$gear]
+formatted_list <- list()
+for(n in res$KW_ph_pval$Var){
+  formatted_list[[n]] <- LandS:::Posthoc_lineplots(res$KW_ph_pval, mtcars, time="gear",
+                                            threshold_posthoc=0.01, n)
+}
 }
 \author{
 Luca Lalli, Stefano Bergamini
