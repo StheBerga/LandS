@@ -28,5 +28,7 @@ Imports:
     pryr
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    rms,
+    survival
 VignetteBuilder: knitr

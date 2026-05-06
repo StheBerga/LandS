@@ -2,18 +2,52 @@
 % Please edit documentation in R/npsurv_format.R
 \name{Npsurv_format}
 \alias{Npsurv_format}
-\title{Function to get a cute format of npsurv output.}
+\title{Format rms::npsurv() output}
 \usage{
 Npsurv_format(fit.npsurv)
 }
 \arguments{
-\item{fit.npsurv}{A npsurv(Surv(time, event) ~ cov_factor, data) object}
+\item{fit.npsurv}{An object of class "npsurv", specifically
+obtained from the formula rms::npsurv(Surv(time, event) ~ covariate_factor, data).}
 }
 \value{
-A cute format of npsurv output
+A dataframe summarizing median survival estimates from an rms::npsurv() object.
+The returned dataframe contains:
+\describe{
+  \item{Var or stratification variable}{Level of the grouping variable
+  used in the survival model. If no grouping variable is present,
+  the value is "Overall".}
+  \item{Num}{Number of observations (records).}
+  \item{events}{Number of events.}
+  \item{median}{Median survival time.}
+  \item{95\%CI}{95\% confidence interval for the median survival,
+  formatted as "lower-upper".}
+}
+
+Median survival and confidence interval bounds are rounded to two decimal places.
 }
 \description{
-Function to get a cute format of npsurv output.
+This function formats the output of:
+
+rms::npsurv(Surv(time, event) ~ covariate_factor, data)
+
+The format includes number of events, median and 95\% confidence interval
+for each group (upper-lower bound). If no stratification is present, the
+values are reported overall.
+}
+\examples{
+if (requireNamespace("rms", quietly = TRUE) &&
+    requireNamespace("survival", quietly = TRUE)) {
+
+# Fit Kaplan-Meier / nonparametric survival estimate
+  fit <- rms::npsurv(
+    survival::Surv(time, status) ~ sex,
+    data = survival::lung
+  )
+
+# Format output
+  Npsurv_format(fit)
+}
 }
 \author{
 Luca Lalli
