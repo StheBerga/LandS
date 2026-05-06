@@ -2,7 +2,7 @@
 % Please edit documentation in R/LinePlots.R
 \name{Lineplots}
 \alias{Lineplots}
-\title{Function to build the lineplots}
+\title{Create longitudinal summary line plots}
 \usage{
 Lineplots(
   data,
@@ -35,114 +35,204 @@ Lineplots(
   size_label_title = 2.5,
   size_axis_x = 5,
   size_axis_y = 6,
-  Overall = F,
-  Test_results = Test_results,
-  Posthoc = F,
+  Overall = FALSE,
+  Test_results = NULL,
+  Posthoc = FALSE,
   threshold_posthoc = 0.1,
   posthoc_test_size = 2,
-  grid = T,
+  grid = TRUE,
   ratio = 1,
-  PPTX = F,
+  PPTX = FALSE,
   pptx_width = 8.5,
   pptx_height = 5.5,
   target = "Output/Lineplots.pptx",
-  extra = F,
+  extra = FALSE,
   extra_text = NULL,
   verbose = TRUE
 )
 }
 \arguments{
-\item{data}{A long-formatted dataframe}
+\item{data}{A data frame containing the variables to plot.}
 
-\item{variables}{Vector of variables to plot}
+\item{variables}{Character vector with the names of numeric variables to plot.}
 
-\item{time}{Numeric variable to plot on the x-axis}
+\item{time}{Character string giving the name of the time variable. This
+variable should be numeric if `scale_x_continuous()` is used.}
 
-\item{breaks}{Numeric vector with x-axis breaks. Default: unique(data[, time])}
+\item{breaks}{Numeric vector of x-axis break positions. Default is the unique
+values of `time`.}
 
-\item{label}{Vector with x-axis labels. Must be the same length of breaks. Default: unique(data[, time])}
+\item{label}{Character or numeric vector of x-axis labels. Must have the same
+length as `breaks`. Default is the unique values of `time`.}
 
-\item{group}{Factor variable to group the lines}
+\item{group}{Character string giving the name of the grouping variable used
+to stratify lines, colours, and ribbons. Use `group = 1` for no grouping.
+Default = 1.}
 
-\item{col_lines}{Colours for the lines. Default: "salmon" & "royalblue"}
+\item{col_lines}{Character vector of colours used for groups. Its length
+should match the number of group levels when `group != 1`.
+Default=c("salmon", "royalblue").}
 
-\item{stat_line}{Statistic method for the line. "median" or "mean".}
+\item{stat_line}{Character string indicating the summary statistic to plot.
+Allowed values are `"median"` and `"mean"`. Default="median".}
 
-\item{smooth_line}{Whether to show smooth or spline regression line. Defaul = FALSE}
+\item{smooth_line}{Logical. If `TRUE`, applies a LOESS-smoothed line to the
+summary trajectory. Default is `FALSE`.}
 
-\item{span_line}{The span of smooth line. Default = 0.3}
+\item{span_line}{Numeric value controlling the LOESS smoothing span. Default
+is `0.3`.}
 
-\item{lw_reg}{Linewidth for regression line}
+\item{lw_reg}{Numeric. Line width of the summary trajectory. Default is 1.}
 
-\item{alpha_line}{Alpha for regression line}
+\item{alpha_line}{Numeric. Transparency of the summary line. Default is 1.}
 
-\item{ylim}{Limits for the y-axis to plot. Default: c(0.20, 0.80)}
+\item{ylim}{Numeric vector of length 2 giving the lower and upper quantiles
+used to determine the y-axis limits. Default is `c(0.2, 0.8)`.}
 
-\item{ribbon}{Whether to show or not ribbons}
+\item{ribbon}{Logical. If `TRUE`, adds a ribbon representing the interquartile
+range, from Q1 to Q3. Default is `TRUE`.}
 
-\item{alpha_ribbon}{Alpha for ribbons. Default: 0.05}
+\item{alpha_ribbon}{Numeric. Transparency of the ribbon. Default is 0.05.}
 
-\item{ID_lines}{Whether to show ID lines for every patient}
+\item{ID_lines}{Logical. If `TRUE`, adds individual subject trajectories.
+Default is `FALSE`.}
 
-\item{ID}{ID variable. Default: "ID"}
+\item{ID}{Character string giving the subject identifier column. Required
+when `ID_lines = TRUE`, default is "ID".}
 
-\item{alpha_ID_line}{Alpha for ID lines. Default: 0.3}
+\item{alpha_ID_line}{Numeric. Transparency of individual subject lines.
+Default is 0.3.}
 
-\item{lw_ID_line}{Linewidth for ID lines. Default: 0.2}
+\item{lw_ID_line}{Numeric. Line width of individual subject lines.
+Default is 0.2.}
 
-\item{Point}{Whether to show points. Default = FALSE}
+\item{Point}{Logical. If `TRUE`, adds observed data points. Default is FALSE.}
 
-\item{alpha_point}{Alpha points. Default = 0.3}
+\item{alpha_point}{Numeric. Transparency of observed data points.
+Default is 0.3.}
 
-\item{size_point}{Size points. Default = 0.3}
+\item{size_point}{Numeric. Size of observed data points. Default is 0.3.}
 
-\item{col_title}{Whether to personalize the colour of title. Default = FALSE}
+\item{col_title}{Logical. If `TRUE`, fills plot-title boxes using colours
+returned by `fill_title`. Default is FALSE.}
 
-\item{fill_title}{A function to personalize the fill of title background. See vignette for more}
+\item{fill_title}{Function returning a fill colour for each variable name.
+Required when `col_title = TRUE`. Default is NULL.}
 
-\item{size_title}{Size of title. If grid recommended 7, if PPTX recommended 20}
+\item{size_title}{Numeric. Size of the plot title. Default is 7.}
 
-\item{alpha_fill_title}{Alpha for title background. Default = 0.2}
+\item{alpha_fill_title}{Numeric. Transparency of the title fill colour.
+Default is 0.2.}
 
-\item{label_title}{A title for your list. Default sets "Lineplots by grouping variable" and the current date}
+\item{label_title}{Character string used as the legend/title panel label when
+multiple variables are plotted.}
 
-\item{size_label_title}{Size for your list's title. Default = 2.5}
+\item{size_label_title}{Numeric. Text size of `label_title`. Default is 2.5.}
 
-\item{size_axis_x}{x-axis text size. If grid recommended 5, if PPTX recommended 14}
+\item{size_axis_x}{Numeric. Size of x-axis tick labels. Default is 5.}
 
-\item{size_axis_y}{y-axis text size. If grid recommended 6, if PPTX recommended 14}
+\item{size_axis_y}{Numeric. Size of y-axis tick labels. Default is 6.}
 
-\item{Overall}{Whether to add overall test. Default = FALSE. See vignette for more.}
+\item{Overall}{Logical. If `TRUE`, annotates each plot with an overall
+p-value from `Test_results`. Default is FALSE.}
 
-\item{Test_results}{Dataframe for overall and posthoc tests. See vignette for more.}
+\item{Test_results}{Data frame containing statistical test results used for
+annotations. Required when `Overall = TRUE` or `Posthoc = TRUE`.
+Default is NULL.}
 
-\item{Posthoc}{Whether to add posthoc tests with brackets.  Default = FALSE. See vignette for more.}
+\item{Posthoc}{Logical. If `TRUE`, adds post-hoc comparison annotations.
+Default is FALSE.}
 
-\item{threshold_posthoc}{Threshold to display posthoc brackets}
+\item{threshold_posthoc}{Numeric. P-value threshold used to filter post-hoc
+comparisons. Default is 0.1.}
 
-\item{posthoc_test_size}{Size for annotations of posthoc p-values. Default = 2}
+\item{posthoc_test_size}{Numeric. Text size for p-value annotations.
+Default is 2.}
 
-\item{grid}{Whether to build a grid pdf or a PPTX file. Default = TRUE}
+\item{grid}{Logical. If `TRUE`, uses the default grid-oriented theme.
+Default is TRUE.}
 
-\item{ratio}{Graph ratio when grid = TRUE}
+\item{ratio}{Numeric. Aspect ratio of each plot panel. Default is 1.}
 
-\item{PPTX}{Whether to build PPTX or a grid pdf file. Default = FALSE. Must change grid = FALSE}
+\item{PPTX}{Logical. If `TRUE`, saves the plots to a PowerPoint file instead
+of returning them. Default is FALSE.}
 
-\item{pptx_width}{Graph dimensions for PPTX in inches}
+\item{pptx_width}{Numeric. Width of the PowerPoint plot area. Default is 8.5.}
 
-\item{pptx_height}{Graph dimensions for PPTX in inches}
+\item{pptx_height}{Numeric. Height of the PowerPoint plot area.
+Default is 5.5.}
 
-\item{target}{Path where to save the PPTX file}
+\item{target}{Character string giving the output path for the PowerPoint file.
+Default is "Output/Lineplots.pptx".}
 
-\item{extra}{Whether to add an extra text function. Default = FALSE}
+\item{extra}{Logical. If `TRUE`, adds extra ggplot layers returned by
+`extra_text`. Default is FALSE.}
 
-\item{extra_text}{A function to add extra functions to the graphs. See vignette for more.}
+\item{extra_text}{Function taking a variable name and returning one or more
+ggplot layers. Default is NULL.}
 
-\item{verbose}{print progress bar and messages}
+\item{verbose}{Logical. If `TRUE`, prints progress messages. Default is TRUE.}
 }
 \value{
-When grid = TRUE returns a list of ggplots. When PPTX = TRUE and grid = FALSE returns a PPTX file in the target folder
+If `PPTX = FALSE`, a list of `ggplot` objects. When more than one variable is
+supplied, the first element is a legend/title panel and subsequent elements
+are the plots for each variable.
+
+If `PPTX = TRUE`, the function writes a PowerPoint file to `target` and
+returns `NULL` invisibly.
 }
 \description{
-Function to build the lineplots
+Creates one line plot for each selected numeric variable measured over time.
+The function can display mean or median trajectories, optional interquartile
+range ribbons, observed data points, and individual subject trajectories.
+
+Plots can be generated overall or stratified by a grouping variable. The
+output is either a list of 'ggplot' objects or, if 'PPTX = TRUE', a
+PowerPoint file.
+}
+\examples{
+data_example <- data.frame(
+  ID = rep(1:20, each = 4),
+  Time = rep(0:3, times = 20),
+  Group = rep(rep(c("A", "B"), each = 10), each = 4),
+  marker1 = rnorm(80, mean = rep(0:3, times = 20)),
+  marker2 = rnorm(80, mean = rep(0:3, times = 20) / 2)
+)
+
+# One variable, overall median trajectory
+plots <- Lineplots(
+  data = data_example,
+  variables = "marker1",
+  time = "Time",
+  group = 1
+)
+
+plots[[1]]
+
+# Multiple variables stratified by group
+plots_grouped <- Lineplots(
+  data = data_example,
+  variables = c("marker1", "marker2"),
+  time = "Time",
+  group = "Group",
+  col_lines = c("salmon", "royalblue"),
+  ID_lines = TRUE,
+  Point = TRUE
+)
+
+plots_grouped[[2]]
+
+# Save to PowerPoint
+\dontrun{
+dir.create("Output")
+Lineplots(
+  data = data_example,
+  variables = c("marker1", "marker2"),
+  time = "Time",
+  group = "Group",
+  PPTX = TRUE,
+  target = "Output/Lineplots.pptx"
+)
+}
+
 }
