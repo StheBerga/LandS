@@ -1,60 +1,119 @@
-#' This function allows to create a KM survival curve overall or splitted by a categorical variable
+#' Plot a Kaplan-Meier survival curve
 #'
-#' @param Event Event variable
-#' @param tEvent Survival Time Variable
-#' @param strata Variable to stratify (Default = 1)
-#' @param data dataframe
-#' @param title Graph title (Default = "Prova")
-#' @param xlab x-axis title (Default = "Time in months")
-#' @param ylab y-axis title (Default = "Probaility of Surv")
-#' @param xlim limits of x-axis (Default is from 0 to maximum observed time)
-#' @param breaks_by breaks of risk table (Default = 3)
-#' @param legendlab title of at risk table (Default = "At risk")
-#' @param lwd_lines linewidth of survival curves
-#' @param alpha_CI transparency of CI of survival curves. To not display CI set it to 0 (default)
-#' @param size_pval size of log-rank-test p-value
-#' @param x_pval x-axis coordinates of pvalue, same scale of tEvent
-#' @param y_pval y-axis coordinates of pvalue, between 0 and 1
-#' @param size_title size of title
-#' @param size_title_x size of x-axis title
-#' @param size_title_y size of y-axis title
-#' @param size_text_x size of x-axis text
-#' @param size_text_y size of y-axis text
-#' @param size_legend_title size of legend title
-#' @param size_legend_text size of legend text
-#' @param at_risk_title_size size of at risk table title
-#' @param at_risk_size size of at risk table text
+#' @description
+#' Creates a Kaplan-Meier survival curve from time-to-event data, either overall
+#' or stratified by a categorical variable. The plot includes an optional
+#' confidence interval, a risk table, and, when stratified, a log-rank test
+#' p-value annotation.
 #'
-#' @return a KM graph
-#' @export
+#' @param data A data frame containing `Event`, `tEvent`, and, if used, `strata`.
+#' @param Event Character string giving the name of the event indicator
+#' variable. The variable should be coded as 0/1, where 1 indicates that the
+#' event occurred and 0 indicates censoring. Default is "OS_EVENT".
+#' @param tEvent Character string giving the name of the survival time variable.
+#' Default is "OS".
+#' @param strata Character string giving the name of the categorical
+#' stratification variable. Use `strata = 1` for an overall Kaplan-Meier curve.
+#' Default is 1.
+#' @param title Character string giving the plot title. Default is "KM plot".
+#' @param xlab Character string giving the x-axis label.
+#' Default is "Time in months".
+#' @param ylab Character string giving the y-axis label.
+#' Default is "Probability of Survival".
+#' @param atrisklab Character string giving the legend title and risk-table
+#' label. Default is "At risk".
+#' @param xlim Numeric vector of length 2 giving the x-axis limits.
+#' Default is xlim = c(0, max(data[, tEvent], na.rm = TRUE)).
+#' @param lwd_lines Numeric. Line width of the survival curves.
+#' Default is 1.
+#' @param alpha_CI Numeric. Transparency of the confidence interval. Use `0` to
+#' hide the confidence interval. Default is 0.
+#' @param size_pval Numeric. Text size of the log-rank p-value annotation.
+#' Default is 4.
+#' @param x_pval Numeric. X-axis coordinate for the p-value annotation.
+#' Default is 5.
+#' @param y_pval Numeric between 0 and 1. Y-axis coordinate for the p-value
+#' annotation. Default is 0.5.
+#' @param size_title Numeric. Plot title size. Default is 14.
+#' @param size_title_x Numeric. X-axis title size. Default is 12.
+#' @param size_title_y Numeric. Y-axis title size. Default is 12.
+#' @param size_text_x Numeric. X-axis tick-label size. Default is 10.
+#' @param size_text_y Numeric. Y-axis tick-label size. Default is 10.
+#' @param size_legend_title Numeric. Legend-title size. Default is 5.
+#' @param size_legend_text Numeric. Legend-text size. Default is 12.
+#' @param at_risk_title_size Numeric. Risk-table title size. Default is 10.75.
+#' @param at_risk_size Numeric. Risk-table text size.Default is 3.
+#' @param breaks_by Numeric. Spacing between x-axis breaks and risk-table time
+#' points. Default is 3.
+#'
+#' @return
+#' A `ggsurvfit`/`ggplot` object containing the Kaplan-Meier curve and risk
+#' table. The object can be printed directly or further modified with ggplot2
+#' layers.
+#'
+#' @examples
+#' if (requireNamespace("survival", quietly = TRUE) &&
+#'     requireNamespace("ggsurvfit", quietly = TRUE)) {
+#'
+#'   data(cancer, package="survival")
+#'   lung$status01 <- as.integer(lung$status == 2)
+#'   lung$sex <- factor(lung$sex, labels = c("Male", "Female"))
+#'
+#'   # Subset dataset for quick example
+#'   lung <- lung[1:100,]
+#'
+#'   # Overall Kaplan-Meier curve
+#'   plot_km_curve(
+#'     data = lung,
+#'     Event = "status01",
+#'     tEvent = "time",
+#'     strata = 1,
+#'     title = "Overall survival",
+#'     breaks_by=30,
+#'     xlab="Time",
+#'     size_text_x=5
+#'   )
+#'
+#'   # Stratified Kaplan-Meier curve
+#'   plot_km_curve(
+#'     data = lung,
+#'     Event = "status01",
+#'     tEvent = "time",
+#'     strata = "sex",
+#'     title = "Overall survival by sex",
+#'     breaks_by=30,
+#'     xlab="Time",
+#'     size_text_x=5
+#'   )
+#' }
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
-#' @examples
-KM  <- function(Event = "OS_EVENT",
-                tEvent = "OS",
-                strata = 1,
-                data = data,
-                title = "Prova",
-                xlab = "Time in months",
-                ylab = "Probability of Survival",
-                atrisklab = "At risk",
-                xlim = c(0, max(data[, tEvent], na.rm = T)),
-                lwd_lines = 1,
-                alpha_CI = 0,
-                size_pval = 4,
-                x_pval = 5,
-                y_pval = .5,
-                size_title = 14,
-                size_title_x = 12,
-                size_title_y = 12,
-                size_text_x = 10,
-                size_text_y = 10,
-                size_legend_title = 5,
-                size_legend_text = 12,
-                at_risk_title_size = 10.75,
-                at_risk_size = 3,
-                breaks_by = 3){
+#' @export
+plot_km_curve <- function(data,
+                          Event = "OS_EVENT",
+                          tEvent = "OS",
+                          strata = 1,
+                          title = "KM plot",
+                          xlab = "Time in months",
+                          ylab = "Probability of Survival",
+                          atrisklab = "At risk",
+                          xlim = c(0, max(data[, tEvent], na.rm = TRUE)),
+                          lwd_lines = 1,
+                          alpha_CI = 0,
+                          size_pval = 4,
+                          x_pval = 5,
+                          y_pval = .5,
+                          size_title = 14,
+                          size_title_x = 12,
+                          size_title_y = 12,
+                          size_text_x = 10,
+                          size_text_y = 10,
+                          size_legend_title = 5,
+                          size_legend_text = 12,
+                          at_risk_title_size = 10.75,
+                          at_risk_size = 3,
+                          breaks_by = 3){
 
   require(survival)
   require(ggsurvfit)
