@@ -2,18 +2,51 @@
 % Please edit documentation in R/olink_gsea_map.R
 \name{olink_gsea_map}
 \alias{olink_gsea_map}
-\title{Function which prepares names for olink_pathway_enrichment}
+\title{Map Olink protein names to gene names}
 \usage{
-olink_gsea_map(data, test_results)
+olink_gsea_map(data, test_results, gsea_mapping = prot2gene)
 }
 \arguments{
-\item{data}{NPX data frame in long format with at least protein name (Assay), OlinkID, UniProt,SampleID, QC_Warning, NPX, and LOD}
+\item{data}{NPX dataframe in long format with at least protein name (Assay),
+OlinkID, UniProt, SampleID, QC_Warning, NPX, and LOD.}
 
-\item{test_results}{a dataframe of statistical test results including Adjusted_pval and estimate columns.}
+\item{test_results}{A dataframe of statistical test results including
+Adjusted_pval and estimate columns obtained from package OlinkAnalyze.}
+
+\item{gsea_mapping}{Character vector mapping Olink protein names to gene
+names. Default is "prot2gene".}
 }
 \value{
-the two data frames with Assay column adjusted for the pathway analysis
+The two data frames "data" and "test_results" with "Assay" column
+overwritten for the pathway analysis.
 }
 \description{
-This function changes the Assay column in order to map all the genes in the pathway enrichment analysis
+This function changes the "Assay" column of NPX Olink data and statistical
+tests results from OlinkAnalyze package (e.g. olink_wilcox) in order to map
+all the protein names to gene names. This is necessary to allow
+OlinkAnalyze::olink_pathway_enrichment() to map the gene names to entrez IDs
+for pathway enrichment analysis.
+}
+\examples{
+if (requireNamespace("OlinkAnalyze", quietly = TRUE)){
+
+data("npx_data1", package = "OlinkAnalyze")
+
+# Select one panel
+data_example <- npx_data1[npx_data1$Panel == "Olink Inflammation",]
+
+# Remove controls
+npx_df <- data_example[!grepl("control", data_example$SampleID, ignore.case = TRUE),]
+
+# Run statistical test
+wilcox_results <- OlinkAnalyze::olink_wilcox(df = npx_df,
+variable = "Treatment", alternative = "two.sided")
+
+# Mapping
+olink_gsea_map(npx_df, wilcox_results)
+}
+
+}
+\author{
+Stefano Bergamini
 }

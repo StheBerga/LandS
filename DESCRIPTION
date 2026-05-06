@@ -30,5 +30,6 @@ Suggests:
     knitr,
     rmarkdown,
     rms,
-    survival
+    survival,
+    OlinkAnalyze
 VignetteBuilder: knitr
