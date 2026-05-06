@@ -1,19 +1,71 @@
-#' Function for outliers report in excel
+#' Generate an outlier report
 #'
-#' @param data a dataframe
-#' @param variables vector of variables to check
-#' @param ID ID variable. Default = "ID"
-#' @param Group Grouping variable. Default = "Time"
-#' @param excel Whether to create an excel file of the report
-#' @param excel_path Path for the excel file
-#' @param k Parameter between Q1-Q3 and IQR. Default = 1.5
+#' @description
+#' Identifies potential outliers in selected numeric variables using the
+#' interquartile range (IQR) rule. Outliers are flagged using both global
+#' thresholds, calculated across the full dataset, and stratified thresholds,
+#' calculated separately within each level of a grouping variable.
 #'
-#' @returns a list of dataframe one of the global variable, the other for the variable stratified for the grouping variable
+#' Optionally, the report can be exported to an Excel file.
+#'
+#' @param data A data frame containing the variables to be checked.
+#' @param variables Character vector giving the names of numeric variables
+#' for which outliers should be identified.
+#' @param ID Character string giving the name of the subject or observation
+#' identifier column. Default is "ID".
+#' @param Group Character string giving the name of the grouping variable used
+#' to compute stratified outlier thresholds. Default is "Time".
+#' @param k Numeric multiplier used to define the IQR outlier thresholds.
+#' Values below `Q1 - k * IQR` or above `Q3 + k * IQR` are flagged as
+#' outliers. Default is 1.5.
+#' @param excel Logical. If TRUE, the output is written to an Excel file.
+#' Default is FALSE.
+#' @param excel_path Character string giving the path where the Excel file
+#' should be saved when excel = TRUE. Default is "Output/Outlier Report.xlsx".
+#'
+#' @return
+#' A named list with two data frames:
+#' \describe{
+#'   \item{Global}{A data frame with the same rows as `data`, where selected
+#'   variables are replaced by `TRUE` for observations identified as outliers
+#'   using thresholds calculated across the full dataset, and `NA` otherwise.}
+#'   \item{Stratified}{A data frame with the same rows as `data`, where selected
+#'   variables are replaced by `TRUE` for observations identified as outliers
+#'   using thresholds calculated separately within each level of `Group`, and
+#'   `NA` otherwise.}
+#' }
+#'
+#' Non-selected columns are retained unchanged in both returned dataframes.
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
+#' @details
+#' For each variable in `variables`, the function computes lower and upper
+#' outlier thresholds using:
+#'
+#' \deqn{Q_1 - k \times IQR}
+#' \deqn{Q_3 + k \times IQR}
+#'
+#' where `Q1` and `Q3` are the first and third quartiles, respectively.
+#'
+#' The `Global` output uses thresholds computed on the full variable.
+#' The `Stratified` output uses thresholds computed separately within each
+#' level of `Group`.
+#'
 #' @examples
+#' data_example <- data.frame(
+#'   ID = rep(1:5, each = 2),
+#'   Time = rep(c("T0", "T1"), times = 5),
+#'   biomarker = c(10, 11, 12, 13, 10, 50, 11, 12, 9, 10)
+#' )
+#'
+#' Outlier_Report(
+#'   data = data_example,
+#'   variables = "biomarker",
+#'   ID = "ID",
+#'   Group = "Time"
+#' )
 Outlier_Report <- function (data,
                             variables,
                             ID = "ID",
