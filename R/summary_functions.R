@@ -112,7 +112,8 @@ summarise_numeric_vars_by_group <- function(data, numeric_vars, var_cat, digits 
   lista_tapply <- list()
   k_tap = 1
   for (i in numeric_vars) {
-    lista_tapply[[k_tap]] <- summary_by_group(data, var_quant = i, var_cat = var_cat)
+    lista_tapply[[k_tap]] <- summary_by_group(data, var_quant = i, var_cat = var_cat,
+                                              digits=digits)
     names(lista_tapply)[k_tap] <- as.character(i)
     k_tap <- k_tap + 1
   }
