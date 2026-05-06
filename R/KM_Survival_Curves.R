@@ -51,6 +51,8 @@
 #' table. The object can be printed directly or further modified with ggplot2
 #' layers.
 #'
+#' @author Luca Lalli, Stefano Bergamini
+#'
 #' @examples
 #' if (requireNamespace("survival", quietly = TRUE) &&
 #'     requireNamespace("ggsurvfit", quietly = TRUE)) {
@@ -87,7 +89,6 @@
 #'   )
 #' }
 #'
-#' @author Luca Lalli, Stefano Bergamini
 #'
 #' @export
 plot_km_curve <- function(data,

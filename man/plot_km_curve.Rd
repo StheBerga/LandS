@@ -142,4 +142,8 @@ if (requireNamespace("survival", quietly = TRUE) &&
   )
 }
 
+
+}
+\author{
+Luca Lalli, Stefano Bergamini
 }
