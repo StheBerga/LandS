@@ -12,12 +12,12 @@
 #' @param label_col_var Character string used as the display label for
 #' 'col_var'.
 #'
-#' @return A `flextable` object containing the cross-tabulation, row
+#' @return A flextable object containing the cross-tabulation, row
 #' percentages, and Fisher's exact test p-value.
 #'
 #' @details
 #' Missing values are excluded from the cross-tabulation with
-#' `missing = "no"`.
+#' missing = "no".
 #'
 #' Percentages are calculated by row. The p-value is computed using
 #' stats::fisher.test() through gtsummary::add_p() and formatted with

@@ -20,7 +20,7 @@ fisher_gt_flex(data, row_var, col_var, label_row_var, label_col_var)
 'col_var'.}
 }
 \value{
-A `flextable` object containing the cross-tabulation, row
+A flextable object containing the cross-tabulation, row
 percentages, and Fisher's exact test p-value.
 }
 \description{
@@ -30,7 +30,7 @@ computes Fisher's exact test, and returns the result as a formatted
 }
 \details{
 Missing values are excluded from the cross-tabulation with
-`missing = "no"`.
+missing = "no".
 
 Percentages are calculated by row. The p-value is computed using
 stats::fisher.test() through gtsummary::add_p() and formatted with
