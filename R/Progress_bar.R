@@ -7,15 +7,15 @@
 #' @param current Integer. Current iteration index (e.g., loop counter).
 #' @param total Integer. Total number of iterations.
 #' @param start_time POSIXct. Start time of the process, typically obtained with
-#'   'Sys.time()' before entering the loop.
-#' @param bar_length Integer. Width of the progress bar in characters (default 80).
-#' @param bar_fill Symbol used to represent completed progress (default "=").
+#' 'Sys.time()' before entering the loop.
+#' @param bar_length Integer. Width of the progress bar in characters (Default 80).
+#' @param bar_fill Symbol used to represent completed progress (Default "=").
 #' @param bar_void Character. Symbol used to represent remaining progress
-#' (default = " ").
+#' (Default = " ").
 #' @param logfile Character or 'NULL'. If a file path is provided, progress
 #' messages are appended to this file. Default to 'NULL' (no logging).
 #'
-#' @returns Invisibly returns `NULL`. The function is used for its side effects
+#' @returns Invisibly returns NULL. The function is used for its side effects
 #' (console output and optional logging).
 #' @export
 #'
@@ -72,10 +72,10 @@ Progress_bar <- function (current,
    flush.console()
    current_time <- format(Sys.time(), "%H:%M:%S")
    if (!is.null(logfile)) {
-      msg <- sprintf("[%s] Ciclo %d/%d %s - Elapsed: %s - RAM: %.2fGb",
+      msg <- sprintf("[%s] Cycle %d/%d %s - Elapsed: %s - RAM: %.2fGb",
                      current_time, current, total, if (current == total)
-                        "COMPLETATO"
-                     else "completato", format_hms(elapsed), ram_gb)
+                        "COMPLETED"
+                     else "completed", format_hms(elapsed), ram_gb)
       write(msg, file = logfile, append = TRUE)
    }
 }

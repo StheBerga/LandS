@@ -22,18 +22,18 @@ Progress_bar(
 \item{start_time}{POSIXct. Start time of the process, typically obtained with
 'Sys.time()' before entering the loop.}
 
-\item{bar_length}{Integer. Width of the progress bar in characters (default 80).}
+\item{bar_length}{Integer. Width of the progress bar in characters (Default 80).}
 
-\item{bar_fill}{Symbol used to represent completed progress (default "=").}
+\item{bar_fill}{Symbol used to represent completed progress (Default "=").}
 
 \item{bar_void}{Character. Symbol used to represent remaining progress
-(default = " ").}
+(Default = " ").}
 
 \item{logfile}{Character or 'NULL'. If a file path is provided, progress
 messages are appended to this file. Default to 'NULL' (no logging).}
 }
 \value{
-Invisibly returns `NULL`. The function is used for its side effects
+Invisibly returns NULL. The function is used for its side effects
 (console output and optional logging).
 }
 \description{
