@@ -1,21 +1,98 @@
-#' Function to compare similarity between two kinetics
+#' Compare similarity between longitudinal biomarker kinetics
 #'
-#' @param df_long Dataframe in full long format
-#' @param variables Vector of variables to compare
-#' @param grouping_var If NULL consider the global trend and compare the variables, if a two-level variable is indicated compare all the stratified variables for this
-#' @param trend If “similar” evaluates the similar kinetics of the curves, if “correlated” evaluates the correlation of the kinetics
-#' @param n_perm Number of permutations
-#' @param seed Seed to replicate permutations
-#' @param excel Path to export excel
-#' @param time_var Time variable name in the dataset
+#' @description
+#' Compares the temporal profiles of biomarkers using median values at each
+#' time point. The function can compare biomarker kinetics overall, or compare
+#' the same biomarker between two groups.
 #'
-#' @returns Results and file .xlsx
-#' @export
+#' In the overall mode, all pairwise combinations of `variables` are compared.
+#' In the stratified mode, each biomarker is compared between the two levels of
+#' `grouping_var`.
+#'
+#' @param df_long A dataframe in long format. It must contain one row per
+#' observation and include at least a biomarker column named `Biomarker`, a
+#' numeric measurement column named `Value`, and a time variable.
+#' @param variables Character vector of biomarker names to compare. These values
+#' must match entries in `df_long$Biomarker`.
+#' @param grouping_var Optional character string giving the name of a two-level
+#' grouping variable. If `NULL`, biomarker kinetics are compared overall.
+#' If provided, each biomarker is compared between the two groups.
+#' @param time_var Character string giving the name of the time variable.
+#' Default is "Time".
+#' @param trend Character string. Either "similar" or "correlated".
+#' "similar" performs a one-sided permutation test for positive similarity.
+#' "correlated" performs a two-sided permutation test based on absolute
+#' correlation.
+#' @param n_perm Integer. Number of permutations used to estimate p-values.
+#' Default is `10000`.
+#' @param seed Integer. Random seed for reproducibility. Default is `123`.
+#' @param excel Character string giving the path of the Excel file to write.
+#' Default is "similarity_output.xlsx".
+#'
+#' @return A dataframe with similarity estimates, raw p-values,
+#' FDR-adjusted p-values, and a logical column indicating whether
+#' `p_adj < 0.05`. The same table is also written to `excel`.
+#'
+#' @details
+#' Similarity is calculated as the Pearson correlation between standardized
+#' median biomarker curves across time points. For each biomarker and time point,
+#' the median of `Value` is used.
+#'
+#' Missing values in `Value` are ignored when calculating medians.
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
+#' @export
+#'
 #' @examples
-Similarity_Kinetic <- function(df_long, variables,
+#'
+#' library(dplyr)
+#'
+#' set.seed(1)
+#'
+#' df_long <- expand.grid(
+#'   Subject = seq_len(20),
+#'   Time = c(0, 1, 2, 4, 8),
+#'   Biomarker = c("IL6", "CRP", "TNF")
+#' )
+#'
+#' df_long$Group <- rep(c("Control", "Treatment"), length.out = nrow(df_long))
+#'
+#' df_long$Value <- with(
+#'   df_long,
+#'   ifelse(
+#'     Biomarker == "IL6",
+#'     10 + 2 * Time + rnorm(nrow(df_long), 0, 1),
+#'     ifelse(
+#'       Biomarker == "CRP",
+#'       8 + 1.8 * Time + rnorm(nrow(df_long), 0, 1),
+#'       12 - 1.5 * Time + rnorm(nrow(df_long), 0, 1)
+#'     )
+#'   )
+#' )
+#'
+#' # Overall comparison among biomarker kinetics
+#' similarity_kinetic(
+#'   df_long = df_long,
+#'   variables = c("IL6", "CRP", "TNF"),
+#'   time_var = "Time",
+#'   trend = "correlated",
+#'   n_perm = 100,
+#'   excel = tempfile(fileext = ".xlsx")
+#' )
+#'
+#' # Stratified comparison between two groups for each biomarker
+#' similarity_kinetic(
+#'   df_long = df_long,
+#'   variables = c("IL6", "CRP", "TNF"),
+#'   grouping_var = "Group",
+#'   time_var = "Time",
+#'   trend = "correlated",
+#'   n_perm = 100,
+#'   excel = tempfile(fileext = ".xlsx")
+#' )
+similarity_kinetic <- function(df_long,
+                               variables,
                                grouping_var = NULL,
                                time_var = "Time",
                                trend = "similar",
@@ -26,7 +103,7 @@ Similarity_Kinetic <- function(df_long, variables,
   set.seed(seed)
 
   if (!trend %in% c("similar", "correlated")) {
-    stop('trend deve essere "similar" oppure "correlated".')
+    stop('trend has to be set to "similar" or "correlated".')
   }
 
   # === Modalità OVERALL (confronto tra biomarcatori) ===
@@ -72,7 +149,7 @@ Similarity_Kinetic <- function(df_long, variables,
     combinazioni <- combn(variables, 2, simplify = FALSE)
     risultati <- vector("list", length(combinazioni))
 
-    cat("🔁 Avvio permutational test su", length(combinazioni), "coppie...\n")
+    cat("🔁 Start permutation test on", length(combinazioni), "pairs...\n")
     start_time <- Sys.time()
 
     for (i in seq_along(combinazioni)) {
@@ -96,20 +173,20 @@ Similarity_Kinetic <- function(df_long, variables,
       rename(Marker1 = MarkerA, Marker2 = MarkerB)
 
     writexl::write_xlsx(tab_sim_dup, path = excel)
-    cat("\n✅ Completato: salvato in", excel, "\n")
+    cat("\n✅ Completed: saved in", excel, "\n")
     return(tab_sim_dup)
   }
 
   # === Modalità STRATIFICATA ===
   else {
     group_levels <- unique(df_long[[grouping_var]])
-    if (length(group_levels) != 2) stop("La variabile di stratificazione deve avere esattamente 2 livelli.")
+    if (length(group_levels) != 2) stop("Stratification variable need to have exactly 2 levels.")
 
     groupA <- group_levels[1]
     groupB <- group_levels[2]
 
     risultati <- list()
-    cat("🔁 Avvio confronto tra gruppi su", length(variables), "biomarcatori...\n")
+    cat("🔁 Start comparison among groups on", length(variables), "biomarkers...\n")
     start_time <- Sys.time()
 
     for (i in seq_along(variables)) {
@@ -183,12 +260,8 @@ Similarity_Kinetic <- function(df_long, variables,
     tab_strata <- tab_strata %>% arrange(p_adj)
 
     writexl::write_xlsx(tab_strata, path = excel)
-    cat("\n✅ Completato: salvato in", excel, "\n")
+    cat("\n✅ Completed: saved in", excel, "\n")
     return(tab_strata)
   }
 }
-
-
-
-
 
