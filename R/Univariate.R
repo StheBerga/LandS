@@ -19,7 +19,7 @@
 #' \describe{
 #'   \item{Var}{Variable name or factor level.}
 #'   \item{HR}{Hazard ratio, or "ref" for the reference level.}
-#'   \item{95\%CI}{Formatted 95% confidence interval.}
+#'   \item{95\%CI}{Formatted 95\% confidence interval.}
 #'   \item{pvalue}{Formatted p-value.}
 #'   \item{pval_raw}{Raw numeric p-value where available.}
 #' }

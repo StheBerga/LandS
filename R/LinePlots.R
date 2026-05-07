@@ -106,7 +106,7 @@
 #' If `PPTX = TRUE`, the function writes a PowerPoint file to `target` and
 #' returns `NULL` invisibly.
 #'
-#' @authors Luca Lalli, Stefano Bergamini
+#' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
 #' data_example <- data.frame(

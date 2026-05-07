@@ -17,7 +17,14 @@ univariate_cox(data, vars, ptime, pevent)
 Typically coded as 0/1, where 1 indicates the event occurred.}
 }
 \value{
-
+A dataframe with one or more rows per variable:
+\describe{
+  \item{Var}{Variable name or factor level.}
+  \item{HR}{Hazard ratio, or "ref" for the reference level.}
+  \item{95\%CI}{Formatted 95\% confidence interval.}
+  \item{pvalue}{Formatted p-value.}
+  \item{pval_raw}{Raw numeric p-value where available.}
+}
 }
 \description{
 Fits separate univariate Cox proportional hazards models for a set of

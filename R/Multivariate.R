@@ -1,19 +1,66 @@
-#' Function to create a multivariate cph model with a vector of variables
+#' Fit a multivariate Cox proportional hazards model
 #'
-#' @param db A dataframe
-#' @param vars Vector of variables to be included in the multivariate model
-#' @param ptime Survival Time variable
-#' @param pevent Event variable
-#' @param dec_HR digits of HR (Default = 4)
+#' Fits a Cox proportional hazards regression model including multiple
+#' predictors and returns a formatted summary table with hazard ratios,
+#' confidence intervals, and p-values.
 #'
-#' @return the multivariate model
-#' @export
+#' Numeric variables are modeled as continuous predictors. Character, logical,
+#' and factor variables are treated as categorical predictors, with the first
+#' factor level used as the reference category.
+#'
+#' @param data A dataframe containing the survival outcome and predictor variables.
+#' @param vars Character vector of predictor variable names to include in the
+#' multivariable Cox model.
+#' @param ptime Character string giving the survival time variable name.
+#' @param pevent Character string giving the event indicator variable name.
+#' Usually coded as 0/1, where 1 indicates the event occurred.
+#' @param dec_HR Integer. Number of decimal places used to format hazard ratios
+#' and confidence limits. Default is 4.
+#'
+#' @return A data.frame with formatted model results. The table contains:
+#' \describe{
+#'   \item{Var}{Variable name or factor level.}
+#'   \item{HR}{Hazard ratio, or "ref" for the reference category.}
+#'   \item{Lower}{Lower bound of the 95\% confidence interval.}
+#'   \item{Upper}{Upper bound of the 95\% confidence interval.}
+#'   \item{Pvalue}{Formatted p-value.}
+#' }
+#'
+#' @details
+#' For categorical predictors, the first row reports the global variable-level
+#' p-value from the model analysis of variance table. The reference category is
+#' displayed as "ref", followed by one row for each non-reference level.
+#'
+#' The function uses Cox proportional hazards regression and assumes that the
+#' proportional hazards assumption is appropriate for the included predictors.
 #'
 #' @author Luca Lalli
 #'
+#' @export
+#'
 #' @examples
-multivariate <- function(db, vars, ptime, pevent, dec_HR = 4){
-  workdata <- db
+#' library(dplyr)
+#' library(rms)
+#' library(survival)
+#'
+#' data(cancer, package = "survival")
+#'
+#' bladder_first <- subset(bladder, enum == 1)
+#' bladder_first$rx <- factor(
+#'   bladder_first$rx,
+#'   levels = c(1, 2),
+#'   labels = c("placebo", "thiotepa")
+#' )
+#'
+#' # Multivariable Cox model with one categorical and two continuous predictors
+#' multivariate_cox(
+#'   data = bladder_first,
+#'   vars = c("rx", "number", "size"),
+#'   ptime = "stop",
+#'   pevent = "event"
+#' )
+multivariate_cox <- function(data, vars, ptime, pevent, dec_HR = 4){
+  workdata <- data
   options(warn=-1)   # suppress global warnings
   assign("dist",
          datadist(workdata, adjto.cat = "first"),
@@ -77,7 +124,7 @@ multivariate <- function(db, vars, ptime, pevent, dec_HR = 4){
   }
 
   string <- conv_to_string(workdata, pos, sep= "+") # JG: function "Stringa" was already in file String.R
-  frm <- formula(paste0("Surv(", ptime, ",", pevent, ")~", string))
+  frm <- formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", string))
 
   mod.cph <-   cph(frm, data = workdata, iter.max = 100000)
   mod.coxph <- coxph(frm, data = workdata, iter.max = 100000)
@@ -86,9 +133,6 @@ multivariate <- function(db, vars, ptime, pevent, dec_HR = 4){
   summ.coxph <- summary(mod.coxph)
 
   var_multi <- mod.cph$Design$name
-
-  var_cat     <- vector()
-  var_quan    <- vector()
 
   var_cat     <- vector()
   var_quan    <- vector()
