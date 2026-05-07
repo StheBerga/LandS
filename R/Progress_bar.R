@@ -40,9 +40,7 @@ Progress_bar <- function (current,
                           bar_void = " ",
                           logfile = NULL)
 {
-   # if (!requireNamespace("pryr", quietly = TRUE))
-   #    install.packages("pryr")
-   # library(pryr)
+
    format_hms <- function(seconds) {
       hrs <- floor(seconds/3600)
       mins <- floor((seconds%%3600)/60)

@@ -171,8 +171,7 @@ Boxplot <- function (data,
                      ratio = 1,
                      verbose = TRUE)
 {
-  require(ggplot2)
-  require(officer)
+
   # if (telegram != "none") {
   #   start_time <<- Sys.time()
   # }
@@ -186,58 +185,58 @@ Boxplot <- function (data,
                               "-ID_lines: ", ID_lines
   ))
 
-  theme_PPTX <- theme(axis.text.x = element_text(size = 14, colour = "black", vjust = -0),
-                      plot.margin = margin(2, 2, 2, 2, "mm"),
-                      axis.text.y = element_text(size = 14, colour = "black"),
-                      panel.border = element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
-                      axis.ticks = element_line(linewidth = 0.1),
-                      axis.ticks.length = unit(0.25, "mm"),
-                      panel.background = element_rect(fill = "transparent"),
-                      plot.background = element_rect(fill = "transparent"),
-                      panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                      panel.spacing.x = unit(1.5, "mm"))
-  themegrid <- theme(axis.text.x = element_text(size = size_axis_x, colour = "black", vjust = -0),
-                     plot.margin = margin(2, 2, 2, 2, "mm"),
-                     axis.text.y = element_text(size = size_axis_y,colour = "black"),
-                     panel.border = element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
-                     axis.ticks = element_line(linewidth = 0.1),
-                     axis.ticks.length = unit(0.25, "mm"),
-                     panel.background = element_rect(fill = "transparent"),
-                     plot.background = element_rect(fill = "transparent"),
-                     panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                     legend.position = c(0.87, 0.15), legend.title = element_blank(),
-                     panel.spacing.x = unit(1.5, "mm"), aspect.ratio = ratio)
+  theme_PPTX <- ggplot2::theme(axis.text.x = ggplot2::element_text(size = 14, colour = "black", vjust = -0),
+                      plot.margin = ggplot2::margin(2, 2, 2, 2, "mm"),
+                      axis.text.y = ggplot2::element_text(size = 14, colour = "black"),
+                      panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
+                      axis.ticks = ggplot2::element_line(linewidth = 0.1),
+                      axis.ticks.length = grid::unit(0.25, "mm"),
+                      panel.background = ggplot2::element_rect(fill = "transparent"),
+                      plot.background = ggplot2::element_rect(fill = "transparent"),
+                      panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(),
+                      panel.spacing.x = grid::unit(1.5, "mm"))
+  themegrid <- ggplot2::theme(axis.text.x = ggplot2::element_text(size = size_axis_x, colour = "black", vjust = -0),
+                     plot.margin = ggplot2::margin(2, 2, 2, 2, "mm"),
+                     axis.text.y = ggplot2::element_text(size = size_axis_y,colour = "black"),
+                     panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
+                     axis.ticks = ggplot2::element_line(linewidth = 0.1),
+                     axis.ticks.length = grid::unit(0.25, "mm"),
+                     panel.background = ggplot2::element_rect(fill = "transparent"),
+                     plot.background = ggplot2::element_rect(fill = "transparent"),
+                     panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(),
+                     legend.position = c(0.87, 0.15), legend.title = ggplot2::element_blank(),
+                     panel.spacing.x = grid::unit(1.5, "mm"), aspect.ratio = ratio)
   boxplot <- list()
 
   if (length(variables) > 1) {
-    boxplot[[1]] <- ggplot(data, aes_string(x = 1, y = 1)) +
+    boxplot[[1]] <- ggplot2::ggplot(data, ggplot2::aes_string(x = 1, y = 1)) +
       {
         if (group != 1)
-          geom_point(aes_string(colour = group), shape = NA,
+          ggplot2::geom_point(ggplot2::aes_string(colour = group), shape = NA,
                      show.legend = TRUE)
       } + {
         if (group == 1)
-          geom_point(shape = NA, show.legend = TRUE)
+          ggplot2::geom_point(shape = NA, show.legend = TRUE)
       } + {
         if (group != 1)
-          scale_color_manual(values = palette)
+          ggplot2::scale_color_manual(values = palette)
       } + {
         if (group == 1)
-          scale_color_manual(values = palette[1])
+          ggplot2::scale_color_manual(values = palette[1])
       } + {
         if (group != 1)
-          scale_fill_manual(values = palette)
+          ggplot2::scale_fill_manual(values = palette)
       } + {
         if (group == 1)
-          scale_fill_manual(values = palette[1])
+          ggplot2::scale_fill_manual(values = palette[1])
       } + ggpubr::theme_transparent() +
-      theme(legend.text = element_text(size = size_legend_text, face = "bold")) +
-      annotate(geom = "text", x = 1,
+      ggplot2::theme(legend.text = ggplot2::element_text(size = size_legend_text, face = "bold")) +
+      ggplot2::annotate(geom = "text", x = 1,
                y = 1.001, size = size_legend_title, label = label_legend_title,
                vjust = 1.25, fontface = "bold") +
-      guides(color = guide_legend(override.aes = list(size = size_legend_circle, shape = 20))) +
-      theme(legend.position = "inside",
-            legend.justification = c(0.5, 0.3), legend.title = element_blank())
+      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = size_legend_circle, shape = 20))) +
+      ggplot2::theme(legend.position = "inside",
+            legend.justification = c(0.5, 0.3), legend.title = ggplot2::element_blank())
   }
   else { }
 
@@ -263,40 +262,41 @@ Boxplot <- function (data,
     }
     else {
     }
-    gg <- ggplot(data = data, aes_string(x = data[, group])) +
-      geom_boxplot(aes_string(y = data[, i], fill = data[, group]), width = width_box, alpha = alpha_box,
+    gg <- ggplot2::ggplot(data = data, ggplot2::aes_string(x = data[, group])) +
+      ggplot2::geom_boxplot(ggplot2::aes_string(y = data[, i], fill = data[, group]),
+                            width = width_box, alpha = alpha_box,
                    notch = notch, notchwidth = notchwidth, outlier.shape = NA,
                    lwd = lwd_box, show.legend = F) +
       {
         if (Point)
-          geom_point(aes_string(y = data[, "Y"]), size = size_point,
+          ggplot2::geom_point(ggplot2::aes_string(y = data[, "Y"]), size = size_point,
                      alpha = alpha_point)
       } + {
         if (ID_lines)
-          geom_line(aes_string(y = data[, i], group = ID),
+          ggplot2::geom_line(ggplot2::aes_string(y = data[, i], group = ID),
                     alpha = alpha_ID_line, linewidth = lwd_ID_line,
                     colour = "black")
       } + {
         if (Median_line)
-          stat_summary(aes_string(y = data[, i], group = 1),
+          ggplot2::stat_summary(ggplot2::aes_string(y = data[, i], group = 1),
                        geom = "line", fun = median, linewidth = lwd_median_line,
                        colour = col_median_line, linetype = "solid", show.legend = F)
       } + {
         if (rm.outliers)
-          coord_cartesian(ylim = c(min(data[, "Y"], na.rm = T),
+          ggplot2::coord_cartesian(ylim = c(min(data[, "Y"], na.rm = T),
                                    min(max(data[, "Y"], ymax, na.rm = T))))
       } + {
 
         if (title_leg){
-          labs(title = title_legend(i), x = axis_x_title, y = axis_y_title)
+          ggplot2::labs(title = title_legend(i), x = axis_x_title, y = axis_y_title)
         } else {
-          labs(title = i, x = axis_x_title, y = axis_y_title)
+          ggplot2::labs(title = i, x = axis_x_title, y = axis_y_title)
         }
 
       } +
-      scale_color_manual(values = palette) +
-      scale_fill_manual(values = palette, guide = FALSE) +
-      scale_x_discrete(breaks = breaks_axis_x, labels = labels_axis_x) +
+      ggplot2::scale_color_manual(values = palette) +
+      ggplot2::scale_fill_manual(values = palette, guide = FALSE) +
+      ggplot2::scale_x_discrete(breaks = breaks_axis_x, labels = labels_axis_x) +
       {
         if (Posthoc)
           if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
@@ -307,28 +307,28 @@ Boxplot <- function (data,
                                        step.increase = 0.08, size = posthoc_test_size)
       } + {
         if (Overall)
-          annotate(geom = "text", x = -Inf, y = Inf, hjust = -0.1,
+          ggplot2::annotate(geom = "text", x = -Inf, y = Inf, hjust = -0.1,
                    vjust = 1.5, size = posthoc_test_size, label = LandS::formatz_p(Test_results[, 2][Test_results[, 1] == i]), colour = "black")
       } + {
         if (extra)
           extra_text(i)
       } + {
         if (grid)
-          themegrid + theme(plot.title = ggtext::element_textbox_simple(
+          themegrid + ggplot2::theme(plot.title = ggtext::element_textbox_simple(
             size = size_title, box.colour = "black", face = "bold",
             linewidth = .1, linetype = 1,
             hjust = 0, halign = .5,
-            padding = margin(6, 5, 4, 5),
-            margin = margin(0, 0, 0, 0),
+            padding = ggplot2::margin(6, 5, 4, 5),
+            margin = ggplot2::margin(0, 0, 0, 0),
             fill = scales::alpha(fill_title, alpha_fill_title)))
       } + {
         if (PPTX)
-          theme_PPTX + theme(plot.title = ggtext::element_textbox_simple(
+          theme_PPTX + ggplot2::theme(plot.title = ggtext::element_textbox_simple(
             size = size_title, box.colour = "black", face = "bold",
             linewidth = .1, linetype = 1,
             hjust = 0, halign = .5,
-            padding = margin(6, 5, 4, 5),
-            margin = margin(0, 0, 0, 0),
+            padding = ggplot2::margin(6, 5, 4, 5),
+            margin = ggplot2::margin(0, 0, 0, 0),
             fill = scales::alpha(fill_title, alpha_fill_title)))
       }
 
@@ -346,12 +346,12 @@ Boxplot <- function (data,
                                      bar_void = "\U2591")
   }
   if (PPTX == T) {
-    ppt <- read_pptx()
+    ppt <- officer::read_pptx()
     if (verbose) message("Printing PowerPoint")
     for (i in 1:length(boxplot)) {
       boxplot[[i]] <- rvg::dml(ggobj = boxplot[[i]])
-      ppt = add_slide(ppt, layout = "Title and Content")
-      ph_with(ppt, boxplot[[i]], ph_location(width = pptx_width, height = pptx_height))
+      ppt = officer::add_slide(ppt, layout = "Title and Content")
+      officer::ph_with(ppt, boxplot[[i]], officer::ph_location(width = pptx_width, height = pptx_height))
 
     }
     print(ppt, target = target)

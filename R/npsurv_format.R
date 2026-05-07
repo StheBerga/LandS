@@ -32,18 +32,15 @@
 #' @author Luca Lalli
 #'
 #' @examples
-#' if (requireNamespace("rms", quietly = TRUE) &&
-#'     requireNamespace("survival", quietly = TRUE)) {
+#' library(survival)
+#' library(rms)
 #'
 #' # Fit Kaplan-Meier / nonparametric survival estimate
-#'   fit <- rms::npsurv(
-#'     survival::Surv(time, status) ~ sex,
-#'     data = survival::lung
-#'   )
+#' fit <- npsurv(Surv(time, status) ~ sex, data = lung)
 #'
 #' # Format output
-#'   Npsurv_format(fit)
-#' }
+#' Npsurv_format(fit)
+#'
 Npsurv_format <- function(fit.npsurv){
   strata_len <- length(fit.npsurv$strata)
   if(strata_len == 0){

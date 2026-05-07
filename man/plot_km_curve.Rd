@@ -107,40 +107,38 @@ confidence interval, a risk table, and, when stratified, a log-rank test
 p-value annotation.
 }
 \examples{
-if (requireNamespace("survival", quietly = TRUE) &&
-    requireNamespace("ggsurvfit", quietly = TRUE)) {
+library(survival)
 
-  data(cancer, package="survival")
-  lung$status01 <- as.integer(lung$status == 2)
-  lung$sex <- factor(lung$sex, labels = c("Male", "Female"))
+data(cancer, package="survival")
+lung$status01 <- as.integer(lung$status == 2)
+lung$sex <- factor(lung$sex, labels = c("Male", "Female"))
 
-  # Subset dataset for quick example
-  lung <- lung[1:100,]
+# Subset dataset for quick example
+lung <- lung[1:100,]
 
-  # Overall Kaplan-Meier curve
-  plot_km_curve(
-    data = lung,
-    Event = "status01",
-    tEvent = "time",
-    strata = 1,
-    title = "Overall survival",
-    breaks_by=30,
-    xlab="Time",
-    size_text_x=5
-  )
+# Overall Kaplan-Meier curve
+plot_km_curve(
+  data = lung,
+  Event = "status01",
+  tEvent = "time",
+  strata = 1,
+  title = "Overall survival",
+  breaks_by=30,
+  xlab="Time",
+  size_text_x=5
+)
 
-  # Stratified Kaplan-Meier curve
-  plot_km_curve(
-    data = lung,
-    Event = "status01",
-    tEvent = "time",
-    strata = "sex",
-    title = "Overall survival by sex",
-    breaks_by=30,
-    xlab="Time",
-    size_text_x=5
-  )
-}
+# Stratified Kaplan-Meier curve
+plot_km_curve(
+  data = lung,
+  Event = "status01",
+  tEvent = "time",
+  strata = "sex",
+  title = "Overall survival by sex",
+  breaks_by=30,
+  xlab="Time",
+  size_text_x=5
+)
 
 
 }

@@ -71,10 +71,9 @@ correlations <- function(data,
   options(width=10000)
   options(max.print=99999)
   options(scipen = 9999) # JG: 99999 is invalid
-  require(dplyr)
 
   start_time <- Sys.time()
-  data_tmp <- dplyr::select(data, all_of(variables))
+  data_tmp <- dplyr::select(data, tidyselect::all_of(variables))
 
   # check numeric all variables
   for (i in variables) {
@@ -154,17 +153,17 @@ correlations <- function(data,
   df_all_pairs$pval <- as.numeric(df_all_pairs$pval)
 
   # Sort by rho
-  df_all_pairs <- arrange(df_all_pairs, desc(rho))
+  df_all_pairs <- dplyr::arrange(df_all_pairs, dplyr::desc(rho))
 
   # Sort by abs rho
-  df_all_pairs_abs_rho <- arrange(df_all_pairs, desc(abs(rho)))
+  df_all_pairs_abs_rho <- dplyr::arrange(df_all_pairs, dplyr::desc(abs(rho)))
 
   # Formatted rho
   df_formatted_abs <- df_all_pairs_abs_rho
 
   df_formatted_abs$rho <- round(df_formatted_abs$rho, digits = rho_dec)
 
-  df_formatted_abs$pval <- case_when(
+  df_formatted_abs$pval <- dplyr::case_when(
     df_formatted_abs$pval > 1 ~ NA_character_,
     df_formatted_abs$pval < 0 ~ NA_character_,
     df_formatted_abs$pval == 0 ~ "0",
@@ -177,7 +176,7 @@ correlations <- function(data,
 
   df_formatted$rho <- round(df_formatted$rho, digits = rho_dec)
 
-  df_formatted$pval <- case_when(
+  df_formatted$pval <- dplyr::case_when(
     df_formatted$pval > 1 ~ NA_character_,
     df_formatted$pval < 0 ~ NA_character_,
     df_formatted$pval == 0 ~ "0",
@@ -191,7 +190,7 @@ correlations <- function(data,
 
   df_pairs_sign$rho <- round(df_pairs_sign$rho, digits = rho_dec)
 
-  df_pairs_sign$pval <- case_when(
+  df_pairs_sign$pval <- dplyr::case_when(
     df_pairs_sign$pval > 1 ~ NA_character_,
     df_pairs_sign$pval < 0 ~ NA_character_,
     df_pairs_sign$pval == 0 ~ "0",

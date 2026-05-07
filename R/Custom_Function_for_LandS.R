@@ -132,11 +132,9 @@ vett.quoted <- function(vettore, sym = ", ", quote = T){
 #'
 #' @examples
 #' \dontrun{
-#' New_Project("my_project")
-#'
 #' New_Project(
 #'   "my_project",
-#'   root_manual = "~/Projects",
+#'   root_x86_64 = "~/Projects/",
 #'   subdirs = c("data/raw", "data/processed", "R", "outputs")
 #' )
 #' }
@@ -148,7 +146,6 @@ New_Project <- function(project_name,
                         root_manual = NULL,
                         subdirs = c("Analysis", "Data", "Data/Original", "Output"))
 {
-  require(usethis); require(fs)
 
   if(Sys.info()["machine"] %in% c("x86-64", "x86_64")){
     root <- root_x86_64
@@ -165,8 +162,8 @@ New_Project <- function(project_name,
 
 
   path <- usethis:::user_path_prep(paste0(root, project_name))
-  name <- fs::path_file(path_abs(path))
-  usethis:::challenge_nested_project(path_dir(path), name)
+  name <- fs::path_file(fs::path_abs(path))
+  usethis:::challenge_nested_project(fs::path_dir(path), name)
   usethis:::challenge_home_directory(path)
   usethis:::create_directory(path)
   usethis:::local_project(path, force = TRUE)
@@ -190,7 +187,7 @@ New_Project <- function(project_name,
       withr::deferred_clear()
     }
   }
-  invisible(proj_get())
+  invisible(usethis::proj_get())
 }
 
 
@@ -262,7 +259,7 @@ print_plot_grid <- function (plot_list,
                              height_pg = 29.7,
                              return_plot = FALSE)
 {
-  require(ggplot2)
+
   if(is.null(ext)){ext <- "pdf"}
 
   path_print <- paste0(path_print, ".", ext)
@@ -276,8 +273,8 @@ print_plot_grid <- function (plot_list,
       graphs[[i]] <- cowplot::plot_grid(plotlist = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
                                         nrow = nrow, ncol = ncol)
 
-      graphs[[i]] <- graphs[[i]] + theme_minimal() +
-        labs(title = paste0("Pag. ", i)) + theme(plot.title = element_text(hjust = .5, face = "bold"))
+      graphs[[i]] <- graphs[[i]] + ggplot2::theme_minimal() +
+        ggplot2::labs(title = paste0("Pag. ", i)) + ggplot2::theme(plot.title = ggplot2::element_text(hjust = .5, face = "bold"))
 
     }
   } else {
@@ -447,37 +444,36 @@ Distribution <- function(data, var, split = FALSE, cutoff = NULL){
     stop("Please provide a cutoff value if you use split=TRUE")
   }
 
-  require(ggplot2)
 
-  ggplot(data = data, aes_string(x = data[, var], y = 1))+
+  ggplot2::ggplot(data = data, ggplot2::aes_string(x = data[, var], y = 1))+
     {if (split == FALSE)
-      geom_point(size = 1.5)}+
+      ggplot2::geom_point(size = 1.5)}+
 
     {if (split == TRUE)
-      geom_point(aes(colour = data[, var] > cutoff), size = 1.5)}+
+      ggplot2::geom_point(aes(colour = data[, var] > cutoff), size = 1.5)}+
 
     {if (split == TRUE)
-      geom_vline(xintercept = cutoff, linetype = 2)}+
+      ggplot2::geom_vline(xintercept = cutoff, linetype = 2)}+
 
-    scale_colour_manual(values=c("salmon", "cornflowerblue"))+
+    ggplot2::scale_colour_manual(values=c("salmon", "cornflowerblue"))+
 
     {if (split == FALSE)
-      labs(x = NULL, y = NULL)}+
+      ggplot2::labs(x = NULL, y = NULL)}+
 
     {if (split == TRUE)
-      labs(x = paste0("Cut-off: ", cutoff), y = NULL)}+
+      ggplot2::labs(x = paste0("Cut-off: ", cutoff), y = NULL)}+
 
     # coord_fixed(ratio = 50/2)+
-    theme(plot.title = element_text(hjust = 0.5, size = 6, face = "bold"),
-          axis.text.x = element_text(size = 12, colour = "black"),
-          axis.text.y.left = element_blank(),
-          axis.ticks.y.left = element_blank(),
-          panel.background = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 6, face = "bold"),
+          axis.text.x = ggplot2::element_text(size = 12, colour = "black"),
+          axis.text.y.left = ggplot2::element_blank(),
+          axis.ticks.y.left = ggplot2::element_blank(),
+          panel.background = ggplot2::element_blank(),
+          panel.grid.major = ggplot2::element_blank(),
+          panel.grid.minor = ggplot2::element_blank(),
           legend.position = "bottom",
-          legend.title = element_blank(),
-          panel.border = element_rect(linetype = "solid", colour = "black", size=0.2, fill=NA))
+          legend.title = ggplot2::element_blank(),
+          panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", size=0.2, fill=NA))
 }
 
 
@@ -515,7 +511,7 @@ Distribution <- function(data, var, split = FALSE, cutoff = NULL){
 #'                                             threshold_posthoc=0.01, n)
 #' }
 Posthoc_lineplots <- function (Test_results, data, time, threshold_posthoc, i) {
-  require(dplyr)
+
   postmodel <- Test_results[Test_results[, 1] == i, ]
   posthoc_df <- combn(levels(factor(data[, time])), 2) %>%
     t() %>% as.data.frame() %>%

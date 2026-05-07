@@ -54,40 +54,38 @@
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
-#' if (requireNamespace("survival", quietly = TRUE) &&
-#'     requireNamespace("ggsurvfit", quietly = TRUE)) {
+#' library(survival)
 #'
-#'   data(cancer, package="survival")
-#'   lung$status01 <- as.integer(lung$status == 2)
-#'   lung$sex <- factor(lung$sex, labels = c("Male", "Female"))
+#' data(cancer, package="survival")
+#' lung$status01 <- as.integer(lung$status == 2)
+#' lung$sex <- factor(lung$sex, labels = c("Male", "Female"))
 #'
-#'   # Subset dataset for quick example
-#'   lung <- lung[1:100,]
+#' # Subset dataset for quick example
+#' lung <- lung[1:100,]
 #'
-#'   # Overall Kaplan-Meier curve
-#'   plot_km_curve(
-#'     data = lung,
-#'     Event = "status01",
-#'     tEvent = "time",
-#'     strata = 1,
-#'     title = "Overall survival",
-#'     breaks_by=30,
-#'     xlab="Time",
-#'     size_text_x=5
-#'   )
+#' # Overall Kaplan-Meier curve
+#' plot_km_curve(
+#'   data = lung,
+#'   Event = "status01",
+#'   tEvent = "time",
+#'   strata = 1,
+#'   title = "Overall survival",
+#'   breaks_by=30,
+#'   xlab="Time",
+#'   size_text_x=5
+#' )
 #'
-#'   # Stratified Kaplan-Meier curve
-#'   plot_km_curve(
-#'     data = lung,
-#'     Event = "status01",
-#'     tEvent = "time",
-#'     strata = "sex",
-#'     title = "Overall survival by sex",
-#'     breaks_by=30,
-#'     xlab="Time",
-#'     size_text_x=5
-#'   )
-#' }
+#' # Stratified Kaplan-Meier curve
+#' plot_km_curve(
+#'   data = lung,
+#'   Event = "status01",
+#'   tEvent = "time",
+#'   strata = "sex",
+#'   title = "Overall survival by sex",
+#'   breaks_by=30,
+#'   xlab="Time",
+#'   size_text_x=5
+#' )
 #'
 #'
 #' @export
@@ -116,48 +114,43 @@ plot_km_curve <- function(data,
                           at_risk_size = 3,
                           breaks_by = 3){
 
-  require(survival)
-  require(ggsurvfit)
-  require(ggplot2)
-  require(ggsci)
-
-  frm <- formula(paste0("Surv(", tEvent, ",", Event, ")~", strata))
-  surv_fit = survfit2(frm, data = data)
+  frm <- formula(paste0("survival::Surv(", tEvent, ",", Event, ")~", strata))
+  surv_fit = ggsurvfit::survfit2(frm, data = data)
 
 
   KM.fit <-
-    ggsurvfit(surv_fit, size = lwd_lines) +
-    scale_color_jco() +
-    add_confidence_interval(alpha = alpha_CI) +
-    add_risktable_strata_symbol(size = 5) +
-    add_risktable(risktable_stats = "n.risk", risktable_height = 0.15, size = at_risk_size,
-                  theme = theme_risktable_default(plot.title.size = at_risk_title_size)) +
+    ggsurvfit::ggsurvfit(surv_fit, size = lwd_lines) +
+    ggsci::scale_color_jco() +
+    ggsurvfit::add_confidence_interval(alpha = alpha_CI) +
+    ggsurvfit::add_risktable_strata_symbol(size = 5) +
+    ggsurvfit::add_risktable(risktable_stats = "n.risk", risktable_height = 0.15, size = at_risk_size,
+                  theme = ggsurvfit::theme_risktable_default(plot.title.size = at_risk_title_size)) +
 
     {
       if (strata != 1)
-        add_pvalue("annotation", size = size_pval, x = x_pval, y = y_pval, pvalue_fun = function(x) LandS::formatz_p(x))
+        ggsurvfit::add_pvalue("annotation", size = size_pval, x = x_pval, y = y_pval, pvalue_fun = function(x) LandS::formatz_p(x))
     } +
-    scale_x_continuous(breaks = seq(0, xlim[2], breaks_by), expand = expansion(mult = c(0.02))) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.01))) +
-    coord_cartesian(xlim = xlim, ylim = c(0,1)) +
-    labs(
+    ggplot2::scale_x_continuous(breaks = seq(0, xlim[2], breaks_by), expand = ggplot2::expansion(mult = c(0.02))) +
+    ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = ggplot2::expansion(mult = c(0, 0.01))) +
+    ggplot2::coord_cartesian(xlim = xlim, ylim = c(0,1)) +
+    ggplot2::labs(
       title = title,
       x = xlab,
       y = ylab,
       legend.title = atrisklab
     ) +
-    theme(
-      plot.title = element_text(size = size_title, hjust = 0.5, face = "bold"),
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(size = size_title, hjust = 0.5, face = "bold"),
       legend.position = "top",
-      axis.title.x = element_text(size = size_title_x, colour = "black"),
-      axis.title.y = element_text(size = size_title_y, colour = "black"),
-      axis.text.x = element_text(size = size_text_x, colour = "black"),
-      axis.text.y = element_text(size = size_text_y, colour = "black"),
-      legend.text = element_text(size = size_legend_text, colour = "black"),
-      legend.title = element_text(size = size_legend_title, colour = "black"),
-      panel.background = element_rect(fill = "transparent"),
-      panel.grid.major = element_line(linewidth = .1),
-      panel.grid.minor = element_line(linewidth = 0)
+      axis.title.x = ggplot2::element_text(size = size_title_x, colour = "black"),
+      axis.title.y = ggplot2::element_text(size = size_title_y, colour = "black"),
+      axis.text.x = ggplot2::element_text(size = size_text_x, colour = "black"),
+      axis.text.y = ggplot2::element_text(size = size_text_y, colour = "black"),
+      legend.text = ggplot2::element_text(size = size_legend_text, colour = "black"),
+      legend.title = ggplot2::element_text(size = size_legend_title, colour = "black"),
+      panel.background = ggplot2::element_rect(fill = "transparent"),
+      panel.grid.major = ggplot2::element_line(linewidth = .1),
+      panel.grid.minor = ggplot2::element_line(linewidth = 0)
     )
   return(KM.fit)
 }

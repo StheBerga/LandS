@@ -56,6 +56,8 @@
 #' }
 #' @export
 #'
+#' @importFrom magrittr %>%
+#'
 #' @details
 #' For paired analyses, subjects with missing values for a tested variable are
 #' removed from that variable-specific analysis to preserve complete pairs or
@@ -79,11 +81,6 @@ cont_var_test <- function (data,
                            verbose = TRUE)
 {
   options(warn=-1)
-  require(progress)
-  require(PMCMRplus)
-  require(rlang)
-  require(gtsummary)
-  require(dplyr)
 
   if(is.null(p.adjust.method)){
     p.adjust.method = "bonferroni"
@@ -596,7 +593,7 @@ cont_var_test <- function (data,
       }
 
       res <- list()
-      KW_test_df_ordered <- arrange(KW_test_df, Kruskal_Wallis)
+      KW_test_df_ordered <- dplyr::arrange(KW_test_df, Kruskal_Wallis)
       KW_test_df_form <- KW_test_df_ordered
       for(z in colnames(KW_test_df_form)[(2+n_lev_group):ncol(KW_test_df_form)]){
         KW_test_df_form[,z] <- LandS::formatz_p(KW_test_df_form[,z])

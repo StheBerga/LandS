@@ -213,16 +213,6 @@ Lineplots <- function (data,
 
 
 {
-  require(ggplot2)
-  require(ggpubr)
-  require(dplyr)
-  require(ggh4x)
-  require(grid)
-  require(gridExtra)
-  require(svMisc)
-  require(officer)
-  require(rvg)
-  require(progress)
 
 
   if (Posthoc == FALSE & Overall == FALSE) {
@@ -250,62 +240,62 @@ Lineplots <- function (data,
   start_time <- Sys.time()
 
   # Define Themes ----
-  themegrid <- theme(axis.text.x = element_text(size = size_axis_x, colour = "black", vjust = -0),
-                     plot.margin = margin(2, 2, 2, 2, "mm"),
-                     axis.text.y = element_text(size = size_axis_y, colour = "black"),
-                     panel.border = element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
-                     axis.ticks = element_line(linewidth = 0.1),
-                     axis.ticks.length = unit(0.25, "mm"),
-                     panel.background = element_rect(fill = "transparent"),
-                     plot.background = element_rect(fill = "transparent"),
-                     panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                     legend.title = element_blank(), panel.spacing.x = unit(1.5, "mm"), aspect.ratio = ratio)
+  themegrid <- ggplot2::theme(axis.text.x = ggplot2::element_text(size = size_axis_x, colour = "black", vjust = -0),
+                     plot.margin = ggplot2::margin(2, 2, 2, 2, "mm"),
+                     axis.text.y = ggplot2::element_text(size = size_axis_y, colour = "black"),
+                     panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
+                     axis.ticks = ggplot2::element_line(linewidth = 0.1),
+                     axis.ticks.length = grid::unit(0.25, "mm"),
+                     panel.background = ggplot2::element_rect(fill = "transparent"),
+                     plot.background = ggplot2::element_rect(fill = "transparent"),
+                     panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(),
+                     legend.title = ggplot2::element_blank(), panel.spacing.x = grid::unit(1.5, "mm"), aspect.ratio = ratio)
 
-  themePPTX <- theme(axis.text.x = element_text(size = size_axis_x, colour = "black", vjust = -0),
-                     plot.margin = margin(2, 2, 2, 2, "mm"),
-                     axis.text.y = element_text(size = size_axis_y, colour = "black"),
-                     panel.border = element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
-                     axis.ticks = element_line(linewidth = 0.1),
-                     axis.ticks.length = unit(0.25, "mm"),
-                     panel.background = element_rect(fill = "transparent"),
-                     plot.background = element_rect(fill = "transparent"),
-                     panel.grid.major.y = element_blank(),
-                     panel.grid.major.x = element_line(colour = "grey70", linewidth = 0.1, linetype = 2),
-                     panel.grid.minor = element_blank(),
-                     legend.key.width = unit(2, "cm"),
-                     panel.spacing.x = unit(1.5, "mm"))
+  themePPTX <- ggplot2::theme(axis.text.x = ggplot2::element_text(size = size_axis_x, colour = "black", vjust = -0),
+                     plot.margin = ggplot2::margin(2, 2, 2, 2, "mm"),
+                     axis.text.y = ggplot2::element_text(size = size_axis_y, colour = "black"),
+                     panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
+                     axis.ticks = ggplot2::element_line(linewidth = 0.1),
+                     axis.ticks.length = grid::unit(0.25, "mm"),
+                     panel.background = ggplot2::element_rect(fill = "transparent"),
+                     plot.background = ggplot2::element_rect(fill = "transparent"),
+                     panel.grid.major.y = ggplot2::element_blank(),
+                     panel.grid.major.x = ggplot2::element_line(colour = "grey70", linewidth = 0.1, linetype = 2),
+                     panel.grid.minor = ggplot2::element_blank(),
+                     legend.key.width = grid::unit(2, "cm"),
+                     panel.spacing.x = grid::unit(1.5, "mm"))
   list_reg <- list()
 
 
   # Creating a legend as the first graph ----
   if (length(variables) > 1) {
-    list_reg[[1]] <- ggplot(data, aes_string(x = 1, y = 1)) +
+    list_reg[[1]] <- ggplot2::ggplot(data, ggplot2::aes_string(x = 1, y = 1)) +
       {
         if (group != 1)
-          geom_point(aes_string(colour = group), shape = NA,
+          ggplot2::geom_point(ggplot2::aes_string(colour = group), shape = NA,
                      show.legend = TRUE)
       } + {
         if (group == 1)
-          geom_point(shape = NA, show.legend = TRUE)
+          ggplot2::geom_point(shape = NA, show.legend = TRUE)
       } + {
         if (group != 1)
-          scale_color_manual(values = col_lines)
+          ggplot2::scale_color_manual(values = col_lines)
       } + {
         if (group == 1)
-          scale_color_manual(values = col_lines[1])
+          ggplot2::scale_color_manual(values = col_lines[1])
       } + {
         if (group != 1)
-          scale_fill_manual(values = col_lines)
+          ggplot2::scale_fill_manual(values = col_lines)
       } + {
         if (group == 1)
-          scale_fill_manual(values = col_lines[1])
+          ggplot2::scale_fill_manual(values = col_lines[1])
       } + ggpubr::theme_transparent() +
 
-      annotate(geom = "text", x = 1, y = 1.001,
+      ggplot2::annotate(geom = "text", x = 1, y = 1.001,
                size = size_label_title, label = label_title,
                vjust = 1.25, fontface = "bold") +
-      guides(color = guide_legend(override.aes = list(size = 7.5, shape = 20))) +
-      theme(legend.position = "inside", legend.justification = c(0.5, 0.3), legend.title = element_blank())
+      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 7.5, shape = 20))) +
+      ggplot2::theme(legend.position = "inside", legend.justification = c(0.5, 0.3), legend.title = ggplot2::element_blank())
   } else { }
 
   # For cycle for all variables ----
@@ -365,78 +355,78 @@ Lineplots <- function (data,
                            Superior = tapply(data[, i], data[, time], FUN = function(z) quantile(z, ylim[2], na.rm = T)))
 
     # Define the graph
-    gg <- ggplot(data = data, aes_string(x = time, y = data[, i])) +
-      coord_cartesian(ylim = c(min(Quantili$Inferior), max(Quantili$Superior)))
+    gg <- ggplot2::ggplot(data = data, ggplot2::aes_string(x = time, y = data[, i])) +
+      ggplot2::coord_cartesian(ylim = c(min(Quantili$Inferior), max(Quantili$Superior)))
 
     if (col_title) {
       if (group != 1) {
 
         colour_title <- fill_title(i)
-        gg <- gg + aes_string(colour = group, fill = group) +
-          scale_color_manual(values = col_lines, drop = F) +
-          scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
+        gg <- gg + ggplot2::aes_string(colour = group, fill = group) +
+          ggplot2::scale_color_manual(values = col_lines, drop = F) +
+          ggplot2::scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
 
         if (ID_lines == TRUE) {
 
-          gg <- gg + geom_line(aes_string(y = data[, i], group = ID), alpha = alpha_ID_line, linewidth = lw_ID_line)
+          gg <- gg + ggplot2::geom_line(ggplot2::aes_string(y = data[, i], group = ID), alpha = alpha_ID_line, linewidth = lw_ID_line)
 
         } else { }
 
       } else {
         colour_title <- fill_title(i)
-        gg <- gg + aes(colour = "forestgreen", fill = "forestgreen") +
-          scale_color_manual(values = col_lines[1], drop = F) +
-          scale_fill_manual(values = col_lines[1], drop = F, guide = FALSE)
+        gg <- gg + ggplot2::aes(colour = "forestgreen", fill = "forestgreen") +
+          ggplot2::scale_color_manual(values = col_lines[1], drop = F) +
+          ggplot2::scale_fill_manual(values = col_lines[1], drop = F, guide = FALSE)
 
         if (ID_lines == TRUE) {
-          gg <- gg + geom_line(aes_string(y = data[, i], group = ID), alpha = alpha_ID_line, linewidth = lw_ID_line, colour = "black")
+          gg <- gg + ggplot2::geom_line(ggplot2::aes_string(y = data[, i], group = ID), alpha = alpha_ID_line, linewidth = lw_ID_line, colour = "black")
 
         } else { }
       }
     } else {
       if (group != 1) {
         colour_title <- "transparent"
-        gg <- gg + aes_string(colour = group, fill = group) +
-          scale_color_manual(values = col_lines, drop = F) +
-          scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
+        gg <- gg + ggplot2::aes_string(colour = group, fill = group) +
+          ggplot2::scale_color_manual(values = col_lines, drop = F) +
+          ggplot2::scale_fill_manual(values = col_lines, drop = F, guide = FALSE)
         if (ID_lines == TRUE) {
-          gg <- gg + geom_line(aes_string(y = data[, i], group = ID), alpha = alpha_ID_line, linewidth = lw_ID_line)
+          gg <- gg + ggplot2::geom_line(ggplot2::aes_string(y = data[, i], group = ID), alpha = alpha_ID_line, linewidth = lw_ID_line)
         } else { }
 
       } else {
         colour_title <- "transparent"
-        gg <- gg + aes(colour = "forestgreen", fill = "forestgreen") +
-          scale_color_manual(values = col_lines[1], drop = F) +
-          scale_fill_manual(values = col_lines[1], drop = F,
+        gg <- gg + ggplot2::aes(colour = "forestgreen", fill = "forestgreen") +
+          ggplot2::scale_color_manual(values = col_lines[1], drop = F) +
+          ggplot2::scale_fill_manual(values = col_lines[1], drop = F,
                             guide = FALSE)
         if (ID_lines == TRUE) {
-          gg <- gg + geom_line(aes_string(y = data[,
+          gg <- gg + ggplot2::geom_line(ggplot2::aes_string(y = data[,
                                                    i], group = ID), alpha = alpha_ID_line, linewidth = lw_ID_line,
                                colour = "black")
         } else { }
       }
     }
     if (Point) {
-      gg <- gg + geom_point(size = size_point, alpha = alpha_point)
+      gg <- gg + ggplot2::geom_point(size = size_point, alpha = alpha_point)
     }
     if (stat_line == "median") {
       if (smooth_line) {
-        gg <- gg + stat_smooth(data = smooth_data, aes(x = Time_num, y = smooth_y), geom = "line", alpha = alpha_line,
+        gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = smooth_y), geom = "line", alpha = alpha_line,
                                size = lw_reg, span = span_line, show.legend = F, method = "loess", formula = 'y ~ x')
       } else {
-        gg <- gg + stat_summary(geom = "line", fun = median,
+        gg <- gg + ggplot2::stat_summary(geom = "line", fun = median,
                                 alpha = alpha_line, linewidth = lw_reg, show.legend = FALSE) +
-          stat_summary(geom = "point", fun = median,
+          ggplot2::stat_summary(geom = "point", fun = median,
                        size = NA, show.legend = TRUE)
       }
     } else if (stat_line == "mean") {
       if (smooth_line) {
-        gg <- gg + stat_smooth(data = smooth_data, aes(x = Time_num, y = smooth_y), geom = "line", alpha = alpha_line,
+        gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = smooth_y), geom = "line", alpha = alpha_line,
                                size = lw_reg, span = span_line, show.legend = F, method = "loess", formula = 'y ~ x')
       } else {
-        gg <- gg + stat_summary(geom = "line", fun = mean,
+        gg <- gg + ggplot2::stat_summary(geom = "line", fun = mean,
                                 alpha = alpha_line, linewidth = lw_reg, show.legend = FALSE) +
-          stat_summary(geom = "point", fun = mean,
+          ggplot2::stat_summary(geom = "point", fun = mean,
                        size = NA, show.legend = TRUE)
       }
     }
@@ -449,38 +439,38 @@ Lineplots <- function (data,
     if (ribbon == TRUE) {
       if(smooth_line){
         if(group == 1){
-          gg <- gg + stat_smooth(data = smooth_data, aes(x = Time_num, y = Upper), geom = "line", alpha = alpha_line,
+          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = Upper), geom = "line", alpha = alpha_line,
                                  size = lw_reg, span = span_line, show.legend = F, colour = NA, method = "loess", formula = 'y ~ x')
 
-          gg <- gg + stat_smooth(data = smooth_data, aes(x = Time_num, y = Lower), geom = "line", alpha = alpha_line,
+          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = Lower), geom = "line", alpha = alpha_line,
                                  size = lw_reg, span = span_line, show.legend = F, colour = NA, method = "loess", formula = 'y ~ x')
 
-          gg1 <- ggplot_build(gg)
+          gg1 <- ggplot2::ggplot_build(gg)
 
           df2 <- data.frame(x = gg1$data[[1]]$x, ymin = gg1$data[[2]]$y, ymax = gg1$data[[3]]$y)
 
-          gg <- gg + geom_ribbon(data = df2, aes(x = x, ymin = ymin, ymax = ymax, y = 0),
+          gg <- gg + ggplot2::geom_ribbon(data = df2, ggplot2::aes(x = x, ymin = ymin, ymax = ymax, y = 0),
                                  fill = col_lines[1], alpha = alpha_ribbon, show.legend = F, linewidth = NA)
         } else if (group != 1) {
 
-          gg <- gg + stat_smooth(data = smooth_data, aes(x = Time_num, y = Upper), geom = "line", alpha = alpha_line,
+          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = Upper), geom = "line", alpha = alpha_line,
                                  size = lw_reg, span = span_line, show.legend = F, colour = NA, method = "loess", formula = 'y ~ x')
 
-          gg <- gg + stat_smooth(data = smooth_data, aes(x = Time_num, y = Lower), geom = "line", alpha = alpha_line,
+          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = Lower), geom = "line", alpha = alpha_line,
                                  size = lw_reg, span = span_line, show.legend = F, colour = NA, method = "loess", formula = 'y ~ x')
 
-          gg1 <- ggplot_build(gg)
+          gg1 <- ggplot2::ggplot_build(gg)
 
           df2 <- data.frame(x = gg1$data[[1]]$x, ymin = gg1$data[[2]]$y, ymax = gg1$data[[3]]$y, group = gg1$data[[1]]$group)
           df2$group <- factor(df2$group, levels = 1:nlevels(data[, group]), labels = levels(data[, group]))
           colnames(df2)[which(colnames(df2) == "group")] <- group
 
-          gg <- gg + geom_ribbon(data = df2, aes(x = x, ymin = ymin, ymax = ymax, y = 0), alpha = 0.1, show.legend = F,
+          gg <- gg + ggplot2::geom_ribbon(data = df2, ggplot2::aes(x = x, ymin = ymin, ymax = ymax, y = 0), alpha = 0.1, show.legend = F,
                                  linewidth = NA)
 
         }
       } else {
-        gg <- gg + stat_summary(geom = "ribbon", fun.min = function(z) {
+        gg <- gg + ggplot2::stat_summary(geom = "ribbon", fun.min = function(z) {
           quantile(z, 0.25)
         }, fun.max = function(z) {
           quantile(z, 0.75)
@@ -490,12 +480,12 @@ Lineplots <- function (data,
     if (extra) {
       gg <- gg + extra_text(i)
     }
-    gg <- gg + labs(title = i, x = NULL, y = NULL) +
-      scale_x_continuous(breaks = breaks, labels = label, guide = guide_axis(check.overlap = TRUE))
+    gg <- gg + ggplot2::labs(title = i, x = NULL, y = NULL) +
+      ggplot2::scale_x_continuous(breaks = breaks, labels = label, guide = ggplot2::guide_axis(check.overlap = TRUE))
 
     {
       if (Overall)
-        gg <- gg + annotate(geom = "text", x = -Inf,
+        gg <- gg + ggplot2::annotate(geom = "text", x = -Inf,
                             y = Inf, hjust = -0.1, vjust = 1.5, size = posthoc_test_size,
                             label = LandS::formatz_p(Test_results[Test_results[, 1] == i, 2]), colour = "black")
       }
@@ -507,27 +497,27 @@ Lineplots <- function (data,
                                                 step.increase = 0.08, size = posthoc_test_size)
     }
     if (grid == TRUE) {
-      gg <- gg + themegrid + theme(plot.title = ggtext::element_textbox_simple(
+      gg <- gg + themegrid + ggplot2::theme(plot.title = ggtext::element_textbox_simple(
         size = size_title, box.colour = "black", face = "bold",
         linewidth = .1, linetype = 1,
         hjust = 0, halign = .5,
-        padding = margin(6, 5, 4, 5),
-        margin = margin(0, 0, 0, 0),
+        padding = ggplot2::margin(6, 5, 4, 5),
+        margin = ggplot2::margin(0, 0, 0, 0),
         fill = scales::alpha(colour_title, alpha_fill_title)),
         legend.position = "none",
-        legend.title = element_blank())
+        legend.title = ggplot2::element_blank())
     }
     if (PPTX) {
-      gg <- gg + themePPTX + theme(plot.title = ggtext::element_textbox_simple(
+      gg <- gg + themePPTX + ggplot2::theme(plot.title = ggtext::element_textbox_simple(
         size = size_title, box.colour = "black", face = "bold",
         linewidth = .1, linetype = 1,
         hjust = 0, halign = .5,
-        padding = margin(6, 5, 4, 5),
-        margin = margin(0, 0, 0, 0),
+        padding = ggplot2::margin(6, 5, 4, 5),
+        margin = ggplot2::margin(0, 0, 0, 0),
         fill = scales::alpha(colour_title, alpha_fill_title)),
         legend.position = "none",
-        legend.title = element_blank(),
-        legend.background = element_rect(fill = "transparent"))
+        legend.title = ggplot2::element_blank(),
+        legend.background = ggplot2::element_rect(fill = "transparent"))
     }
     if (length(variables) > 1) {
       list_reg[[k + 1]] <- gg
@@ -542,12 +532,12 @@ Lineplots <- function (data,
                            bar_void = "\U2591")
   }
   if (PPTX == T) {
-    ppt <- read_pptx()
+    ppt <- officer::read_pptx()
     if (verbose) message("Printing PowerPoint")
     for (i in 1:length(list_reg)) {
       list_reg[[i]] <- rvg::dml(ggobj = list_reg[[i]])
-      ppt = add_slide(ppt, layout = "Title and Content")
-      ph_with(ppt, list_reg[[i]], ph_location(width = pptx_width,
+      ppt = officer::add_slide(ppt, layout = "Title and Content")
+      officer::ph_with(ppt, list_reg[[i]], officer::ph_location(width = pptx_width,
                                               height = pptx_height))
     }
     print(ppt, target = target)

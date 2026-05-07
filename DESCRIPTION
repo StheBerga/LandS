@@ -12,6 +12,8 @@ RoxygenNote: 7.3.3
 URL: https://stheberga.github.io/LandS/
 BugReports: https://github.com/StheBerga/LandS/issues
 Imports:
+    tidyselect,
+    magrittr,
     ggplot2, 
     dplyr,
     ggpubr, 
@@ -25,11 +27,18 @@ Imports:
     progress,
     PMCMRplus,
     ggtext, 
-    pryr
+    pryr,
+    rms,
+    survival,
+    gtsummary,
+    rlang,
+    usethis,
+    fs,
+    ggsurvfit,
+    ggsci,
+    svMisc
 Suggests: 
     knitr,
     rmarkdown,
-    rms,
-    survival,
     OlinkAnalyze
 VignetteBuilder: knitr

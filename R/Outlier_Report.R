@@ -53,6 +53,8 @@
 #' The `Stratified` output uses thresholds computed separately within each
 #' level of `Group`.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @examples
 #' data_example <- data.frame(
 #'   ID = rep(1:5, each = 2),
@@ -73,11 +75,9 @@ Outlier_Report <- function (data,
                             k = 1.5,
                             excel = FALSE,
                             excel_path = "Output/Outlier Report.xlsx") {
-  require(progress)
-  require(dplyr)
 
   # Progress bar
-  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
+  pb <- progress::progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(variables))
   pb$tick(0)
 
   df <- data; df2 <- data
@@ -89,7 +89,7 @@ Outlier_Report <- function (data,
                    (k * tapply(data[, p], data[, Group], FUN = function (x) IQR(x, na.rm = T))),
                  tapply(data[, p], data[, Group], FUN = function (x) quantile(x, probs = .75, na.rm = T)) +
                    (k * tapply(data[, p], data[, Group], FUN = function (x) IQR(x, na.rm = T)))) %>%  as.data.frame() %>%
-      mutate(Var = rownames(.)) %>%
+      dplyr::mutate(Var = rownames(.)) %>%
       `rownames<-`(NULL) %>%
       `colnames<-`(c("Min", "Max", "Group"))
 
@@ -111,8 +111,8 @@ Outlier_Report <- function (data,
     pb$tick(1)
     pb
   }
-  list <- list("Global" = df2, "Stratified" = df)
-  if (excel){writexl::write_xlsx(list, path = excel_path)}
-  return(list)
+  out <- list("Global" = df2, "Stratified" = df)
+  if (excel){writexl::write_xlsx(out, path = excel_path)}
+  return(out)
 }
 

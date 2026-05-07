@@ -48,11 +48,9 @@ it creates the subdirectories "Analysis", "Data", "Data/Original", and
 }
 \examples{
 \dontrun{
-New_Project("my_project")
-
 New_Project(
   "my_project",
-  root_manual = "~/Projects",
+  root_x86_64 = "~/Projects/",
   subdirs = c("data/raw", "data/processed", "R", "outputs")
 )
 }
