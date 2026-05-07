@@ -1,22 +1,70 @@
-#' This function allows you to create the univariate regression model for a vector of variables
+#' Run univariate Cox proportional hazards models
 #'
-#' @param db dataframe
-#' @param vars vector with variables name
-#' @param ptime Survival Time variable
-#' @param pevent Event variable
-#' @param dec_HR digits of HR (Default = 4)
+#' Fits separate univariate Cox proportional hazards models for a set of
+#' candidate predictors and returns formatted hazard ratios, 95% confidence
+#' intervals, and p-values.
 #'
-#' @return a dataframe with all univariate models
-#' @export
+#' Numeric variables are modeled as continuous predictors. Character, logical,
+#' and factor variables are converted to unordered factors and modeled as
+#' categorical predictors using treatment contrasts, with the first factor level
+#' used as the reference category.
+#'
+#' @param data A dataframe containing the survival outcome and predictor variables.
+#' @param vars Character vector of predictor variable names to test.
+#' @param ptime Character string giving the survival time variable name.
+#' @param pevent Character string giving the event indicator variable name.
+#' Typically coded as 0/1, where 1 indicates the event occurred.
+#'
+#' @return A dataframe with one or more rows per variable:
+#' \describe{
+#'   \item{Var}{Variable name or factor level.}
+#'   \item{HR}{Hazard ratio, or "ref" for the reference level.}
+#'   \item{95\%CI}{Formatted 95% confidence interval.}
+#'   \item{pvalue}{Formatted p-value.}
+#'   \item{pval_raw}{Raw numeric p-value where available.}
+#' }
+#'
+#' @details
+#' For categorical variables, the first row contains the global variable-level
+#' p-value, followed by a reference row and one row per non-reference level.
+#' For binary categorical variables, the variable-level p-value is currently the
+#' Wald p-value for the single coefficient. For variables with more than two
+#' levels, the likelihood-ratio test p-value is used.
 #'
 #' @author Luca Lalli
 #'
 #' @examples
-univariate <- function(db, vars, ptime, pevent, dec_HR = 4){
-  workdata <- db
+#' data(cancer, package = "survival")
+#'
+#' bladder_first <- subset(bladder, enum == 1)
+#' bladder_first$rx <- factor(
+#'   bladder_first$rx,
+#'   levels = c(1, 2),
+#'   labels = c("placebo", "thiotepa")
+#' )
+#'
+#' # Continuous variable example
+#' univariate_cox(
+#'   data = bladder_first,
+#'   vars = c("number", "size"),
+#'   ptime = "stop",
+#'   pevent = "event"
+#' )
+#'
+#' # Categorical variable example
+#' univariate_cox(
+#'   data = bladder_first,
+#'   vars = c("rx"),
+#'   ptime = "stop",
+#'   pevent = "event"
+#' )
+#'
+#' @export
+univariate_cox <- function(data, vars, ptime, pevent){
+  workdata <- data
 
   assign("dist",
-         rms::datadist(db[, vars], adjto.cat = "first"),
+         rms::datadist(data[, vars], adjto.cat = "first"),
          envir = .GlobalEnv)
   options(datadist = "dist")
   options(contrasts=c("contr.treatment", "contr.treatment"))
@@ -119,7 +167,7 @@ univariate <- function(db, vars, ptime, pevent, dec_HR = 4){
     if(is.ordered(workdata[, i])){
       workdata[, i] <- factor(workdata[, i], levels = levels(workdata[, i]), ordered = F)
 
-      message("La variabile ", colnames(workdata)[i], " è factor ordinata. rimuovo ordinamento", "\n")
+      message("Variable ", colnames(workdata)[i], " was an ordinal factor. Ordering was removed.", "\n")
       # stop(paste0("La variabile ", colnames(workdata)[i], " è factor ordinata. Stop funzione"))
     }
 
@@ -137,7 +185,7 @@ univariate <- function(db, vars, ptime, pevent, dec_HR = 4){
                             check.names = F)
   k <- 1
   for(i in var_quan){
-    frm <- as.formula(paste0("Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
+    frm <- as.formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
     mod  <- rms::cph(frm, data=workdata)
     summ <- summary(mod)
 
@@ -168,7 +216,7 @@ univariate <- function(db, vars, ptime, pevent, dec_HR = 4){
 
   for(i in var_cat){
 
-    frm <- as.formula(paste0("Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
+    frm <- as.formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
     mod  <- survival::coxph(frm, data= workdata)
     summ <- summary(mod)
     lev <- nlevels(workdata[,i])
