@@ -539,22 +539,20 @@ Posthoc_lineplots <- function (Test_results, data, time, threshold_posthoc, i) {
 #'
 #' @param data A `data.frame` to be converted into a table.
 #' @param fontname Character string for the font family. Default is `"Calibri Light"`.
-#' @param bold_cols Character vector or numeric indices of columns to be bolded. Default is `NULL` (no extra bold columns).
+#' @param bold_cols Character vector or numeric indices of columns to be bolded.
+#' Default is `NULL` (no extra bold columns).
 #' @param pval_col Character string specifying the exact name of the p-value column.
-#'   If provided, p-values < 0.05 will be colored red. Default is `NULL`.
+#' If provided, p-values < 0.05 will be colored red. Default is `NULL`.
 #' @param max_width Numeric. Maximum width of the table in centimeters. Default is `18`.
 #' @param width_border Numeric. Line width for the left and right outer borders. Default is `0.8`.
 #' @param caption Character string for the table caption. Default is `NULL`.
 #'
 #' @return A formatted `flextable` object.
 #'
-#' @importFrom flextable flextable align bold color autofit fit_to_width font vline_right vline_left set_caption as_paragraph as_chunk fp_border_default fp_text_default
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' df <- data.frame(Variable = c("Value_A", "Value_B", "Value_C"), p_val = c(0.01, 0.20, 0.002))
-
 #'
 #' # Advanced usage with new parameters
 #' Flex_format(
@@ -566,7 +564,6 @@ Posthoc_lineplots <- function (Test_results, data, time, threshold_posthoc, i) {
 #'   width_border = 1.2,
 #'   caption = "Table 1: Patient Characteristics"
 #' )
-#' }
 Flex_format <- function(data,
                         fontname = "Calibri Light",
                         bold_cols = NULL,

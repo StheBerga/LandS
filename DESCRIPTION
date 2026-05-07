@@ -36,7 +36,8 @@ Imports:
     fs,
     ggsurvfit,
     ggsci,
-    svMisc
+    svMisc,
+    flextable
 Suggests: 
     knitr,
     rmarkdown,

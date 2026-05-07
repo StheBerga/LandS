@@ -2,6 +2,7 @@
 
 export(Boxplot)
 export(Distribution)
+export(Flex_format)
 export(Lineplots)
 export(New_Project)
 export(Npsurv_format)
