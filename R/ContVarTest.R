@@ -36,9 +36,7 @@
 #' @param excel Logical. If TRUE, writes the result list to an Excel workbook
 #' with one sheet per result table (Default = FALSE).
 #' @param excel_path Path where you want to save the Excel file (Default
-#' paste0(path_out, "/Results.xlsx"))
-#' @param telegram Whether to send a telegram message when the job is completed.
-#' Default = "none" to not send any message.
+#' paste0(path_out, "/Results.xlsx")).
 #' @param verbose  Print progress bar and messages (Default=TRUE).
 #'
 #'
@@ -78,7 +76,6 @@ cont_var_test <- function (data,
                            p.adjust.method = NULL,
                            excel = F,
                            excel_path = paste0(path_out, "/Results.xlsx"),
-                           telegram = "none",
                            verbose = TRUE)
 {
   options(warn=-1)
@@ -92,9 +89,9 @@ cont_var_test <- function (data,
     p.adjust.method = "bonferroni"
   }
 
-  if(telegram != "none"){
-    start_time <<- Sys.time()
-  }
+  # if(telegram != "none"){
+  #   start_time <<- Sys.time()
+  # }
 
   start_time <- Sys.time()
 
@@ -695,14 +692,15 @@ cont_var_test <- function (data,
 
   }
   if (excel == FALSE){
-    if(telegram != "none"){
-      LandS::telegram_mess(dest = telegram, script = "Boxplot")
-    }
-    return(res)}else{
+    # if(telegram != "none"){
+    #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
+    # }
+    return(res)
+    }else{
       writexl::write_xlsx(res, path = excel_path)
-      if(telegram != "none"){
-        LandS::telegram_mess(dest = telegram, script = "Boxplot")
-      }
+      # if(telegram != "none"){
+      #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
+      # }
       return(res)
     }
   invisible(gc())

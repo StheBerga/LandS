@@ -58,7 +58,6 @@ Boxplot(
   size_legend_circle = 4,
   target = "Output/Boxplot.pptx",
   ratio = 1,
-  telegram = "none",
   verbose = TRUE
 )
 }
@@ -193,9 +192,6 @@ Default = 4.}
 
 \item{ratio}{Aspect ratio when grid = TRUE. Default = 1.}
 
-\item{telegram}{Whether to send a telegram message when the job is completed.
-Default = "none" to not send any message.}
-
 \item{verbose}{Print progress bar and messages (Default=TRUE).}
 }
 \value{
@@ -215,8 +211,6 @@ Overall and post-hoc tests can be displayed, but they need to be computed using
 LandS::cont_var_test() and then formatted using LandS::posthoc_df() function.
 Boxplots can be saved in a panel image using pptx format or as a list of
 ggplots for later saving in pdf format.
-
-Optionally, a Telegram message can be send when the job is complete.
 }
 \examples{
 mtcars$vs <- factor(mtcars$vs)

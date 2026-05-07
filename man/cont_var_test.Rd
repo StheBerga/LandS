@@ -16,7 +16,6 @@ cont_var_test(
   p.adjust.method = NULL,
   excel = F,
   excel_path = paste0(path_out, "/Results.xlsx"),
-  telegram = "none",
   verbose = TRUE
 )
 }
@@ -52,10 +51,7 @@ test functions. If NULL (Default), "bonferroni" is used.}
 with one sheet per result table (Default = FALSE).}
 
 \item{excel_path}{Path where you want to save the Excel file (Default
-paste0(path_out, "/Results.xlsx"))}
-
-\item{telegram}{Whether to send a telegram message when the job is completed.
-Default = "none" to not send any message.}
+paste0(path_out, "/Results.xlsx")).}
 
 \item{verbose}{Print progress bar and messages (Default=TRUE).}
 }

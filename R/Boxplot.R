@@ -86,8 +86,6 @@
 #' Default = 4.
 #' @param target Path where to save the PPTX file.
 #' @param ratio Aspect ratio when grid = TRUE. Default = 1.
-#' @param telegram Whether to send a telegram message when the job is completed.
-#' Default = "none" to not send any message.
 #' @param verbose Print progress bar and messages (Default=TRUE).
 #'
 #' @return If length(variables) > 1 returns a list of boxplot where the first one is
@@ -101,7 +99,6 @@
 #' Boxplots can be saved in a panel image using pptx format or as a list of
 #' ggplots for later saving in pdf format.
 #'
-#' Optionally, a Telegram message can be send when the job is complete.
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
@@ -172,14 +169,13 @@ Boxplot <- function (data,
                      size_legend_circle = 4,
                      target = "Output/Boxplot.pptx",
                      ratio = 1,
-                     telegram = "none",
                      verbose = TRUE)
 {
   require(ggplot2)
   require(officer)
-  if (telegram != "none") {
-    start_time <<- Sys.time()
-  }
+  # if (telegram != "none") {
+  #   start_time <<- Sys.time()
+  # }
   start_time <- Sys.time()
 
   if (verbose) message(paste0("Creazione ", length(variables), " boxplots con: \n",
@@ -360,14 +356,14 @@ Boxplot <- function (data,
     }
     print(ppt, target = target)
     if (verbose) message("Done printing :)")
-    if (telegram != "none") {
-      LandS::telegram_mess(dest = telegram, script = "Boxplot")
-    }
+    # if (telegram != "none") {
+    #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
+    # }
   }
   else {
-    if (telegram != "none") {
-      LandS::telegram_mess(dest = telegram, script = "Boxplot")
-    }
+    # if (telegram != "none") {
+    #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
+    # }
     return(boxplot)
   }
 }

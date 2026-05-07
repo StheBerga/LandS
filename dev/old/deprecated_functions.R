@@ -100,3 +100,127 @@ Kmax_aim <- function(kmax.cycle = kmax.cycle){
           aspect.ratio = 1)
   return(plot_kmax_cycle)
 }
+
+
+#' Sending a Pushover notification on your device
+#'
+#' @param dest Who is going to receive the notification (Default = both)
+#' @param script Text of your message
+#' @param timestamp If you want the time printed in your notification, if TRUE it requires a start_time in the .GlobalEnv
+#' @param priority Priority of your notification (-2; 2)
+#' @param app Your app API key
+#' @param title Your title notification
+#' @param attachment Path to an image, if you want to attach it
+#' @param start_time Start time (Default = NULL)
+#'
+#' @return
+#' @export
+#'
+#' @author Luca Lalli, Stefano Bergamini
+#'
+#' @examples
+Pushover <- function(dest = "both", script = 0, timestamp = TRUE, priority = 0,
+                     app = "ayje1n4x8fi64bupdn5shjnwd8ut95", title = "RStudio",
+                     attachment = NULL, start_time = NULL) {
+  chat_id <- switch(dest,
+                    both = c("grrzfbyxunvhecu46cr5m8mdiv9pno"),
+                    Ste = "uwtaoa255uoeauaktnh8cprn6xw3aa",
+                    Luca = "u6gu5qc6aujne8csirhbqmghsxzsud")
+
+  if (timestamp) {
+    if (!is.null(start_time)) {
+      process_time <- format(lubridate::seconds_to_period(
+        round(as.numeric(difftime(Sys.time(), start_time, units = "secs")))), "%H:%M:%S")
+    } else {
+      stop("Argument 'start_time' must be provided when 'timestamp' is TRUE.")
+    }
+
+    for (i in chat_id) {
+      if (script == 0) {
+        pushoverr::pushover(user = i, app = app,
+                            message = paste0("Lo script ha runnato correttamente in ", process_time),
+                            priority = priority, title = title, attachment = attachment)
+      } else {
+        pushoverr::pushover(user = i, app = app,
+                            message = paste0("Lo script ", script, " ha runnato correttamente in ", process_time),
+                            priority = priority, title = title, attachment = attachment)
+      }
+    }
+  } else {
+    for (i in chat_id) {
+      if (script == 0) {
+        pushoverr::pushover(user = i, app = app,
+                            message = paste0("Lo script ha runnato correttamente"),
+                            priority = priority, title = title, attachment = attachment)
+      } else {
+        pushoverr::pushover(user = i, app = app,
+                            message = script, priority = priority, title = title, attachment = attachment)
+      }
+    }
+  }
+}
+
+
+#' Function to send a Telegram message with BiostatUO9 bot. NB: must create a start_time before running it
+#'
+#' @param dest Who is going to receive the message
+#' @param script The title of the message
+#' @param rm_start_time If you want the start_time item to be removed after the message is sent
+#' @param timestamp Do you want the time in your message
+#'
+#' @return Nothing
+#' @export
+#'
+#' @author Luca Lalli, Stefano Bergamini
+#'
+#' @examples
+telegram_mess <- function(dest = "both",
+                          script = 0,
+                          rm_start_time = TRUE,
+                          timestamp = TRUE){
+
+  if(timestamp){
+    process_time <- format(lubridate::seconds_to_period(round(as.numeric(difftime(Sys.time(), start_time, units = "secs")))), "%H:%M:%S")
+  }
+
+  bot = telegram.bot::Bot(token = telegram.bot::bot_token("BiostatUO9_bot"))
+  updates = bot$getUpdates()
+
+  chat_id <- switch(dest,
+                    "both" = c(629518490, 285721593),
+                    "Ste" = 629518490,
+                    "Luca" = 285721593)
+
+  for (i in chat_id) {
+
+    if(timestamp){
+
+      if(script == 0){
+        bot$sendMessage(chat_id = i,
+                        text = paste0("Lo script ha runnato correttamente in ", process_time))
+      } else {
+
+        bot$sendMessage(chat_id = i,
+                        text = paste0("Lo script ", script,  " ha runnato correttamente in ", process_time))
+
+      }
+
+    }else{
+
+      if(script == 0){
+        bot$sendMessage(chat_id = i,
+                        text = paste0("Lo script ha runnato correttamente"))
+      } else {
+
+        bot$sendMessage(chat_id = i, text = script)
+
+      }
+
+    }
+
+  }
+
+  if(rm_start_time == T & timestamp == T){
+    rm(start_time, envir = .GlobalEnv)
+  }
+}
