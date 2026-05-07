@@ -164,7 +164,7 @@ similarity_kinetic <- function(df_long,
 
     tab_sim <- do.call(rbind, risultati)
     tab_sim$p_adj <- p.adjust(tab_sim$p_value, method = "fdr")
-    tab_sim$significativo <- tab_sim$p_adj < 0.05
+    tab_sim$significant <- tab_sim$p_adj < 0.05
 
     tab_sim_dup <- tab_sim %>%
       rename(MarkerA = Marker1, MarkerB = Marker2) %>%
@@ -256,7 +256,7 @@ similarity_kinetic <- function(df_long,
 
     tab_strata <- do.call(rbind, risultati)
     tab_strata$p_adj <- p.adjust(tab_strata$p_value, method = "fdr")
-    tab_strata$significativo <- tab_strata$p_adj < 0.05
+    tab_strata$significant <- tab_strata$p_adj < 0.05
     tab_strata <- tab_strata %>% arrange(p_adj)
 
     writexl::write_xlsx(tab_strata, path = excel)

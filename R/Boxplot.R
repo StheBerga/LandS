@@ -177,7 +177,7 @@ Boxplot <- function (data,
   # }
   start_time <- Sys.time()
 
-  if (verbose) message(paste0("Creazione ", length(variables), " boxplots con: \n",
+  if (verbose) message(paste0("Creating ", length(variables), " boxplots with: \n",
                               "-Split by ", group, "\n",
                               "-Points: ", Point, "\n",
                               "-Outliers: ", rm.outliers, "\n",

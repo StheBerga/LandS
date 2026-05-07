@@ -41,7 +41,6 @@ and borders. It also offers optional features like highlighting significant p-va
 bolding specific columns, and adding a styled table caption.
 }
 \examples{
-\dontrun{
 df <- data.frame(Variable = c("Value_A", "Value_B", "Value_C"), p_val = c(0.01, 0.20, 0.002))
 
 # Advanced usage with new parameters
@@ -54,5 +53,4 @@ Flex_format(
   width_border = 1.2,
   caption = "Table 1: Patient Characteristics"
 )
-}
 }

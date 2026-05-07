@@ -82,7 +82,7 @@ formatz_p <- function(value){
 #' @description Format a vector as a single string with a custom separator,
 #' optionally quoting each element. The result is printed to the console.
 #'
-#' @param vettore A vector of values to format.
+#' @param vect A vector of values to format.
 #' @param sym A character string used as separator between elements.
 #' Defaults to ", ".
 #' @param quote Logical. If TRUE, each element is wrapped in double quotes
@@ -92,13 +92,13 @@ formatz_p <- function(value){
 #' @export
 #'
 #' @examples
-#' vett.quoted(1:3, sym = " | ", quote = FALSE)
-#' vett.quoted(1:3, sym = " | ", quote = TRUE)
-vett.quoted <- function(vettore, sym = ", ", quote = T){
+#' vect.quoted(1:3, sym = " | ", quote = FALSE)
+#' vect.quoted(1:3, sym = " | ", quote = TRUE)
+vect.quoted <- function(vect, sym = ", ", quote = T){
   if (quote == T){
-    cat(dQuote(vettore, q = '"'), sep = sym)
+    cat(dQuote(vect, q = '"'), sep = sym)
   } else {
-    cat(vettore, sep = sym)
+    cat(vect, sep = sym)
   }
 }
 
@@ -274,7 +274,7 @@ print_plot_grid <- function (plot_list,
                                         nrow = nrow, ncol = ncol)
 
       graphs[[i]] <- graphs[[i]] + ggplot2::theme_minimal() +
-        ggplot2::labs(title = paste0("Pag. ", i)) + ggplot2::theme(plot.title = ggplot2::element_text(hjust = .5, face = "bold"))
+        ggplot2::labs(title = paste0("Page ", i)) + ggplot2::theme(plot.title = ggplot2::element_text(hjust = .5, face = "bold"))
 
     }
   } else {

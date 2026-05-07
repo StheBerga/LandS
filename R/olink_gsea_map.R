@@ -1,6 +1,6 @@
 #' Mapping of Olink protein names to gene names
 #'
-#' These mapping covers the following Olink 96 Panels:
+#' This mapping covers the following Olink 96 Panels:
 #' Immuno-oncology, Inflammation.
 #'
 #' @format A character vector.
