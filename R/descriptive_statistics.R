@@ -64,7 +64,7 @@ descriptive_stats <- function(dataset, path = NULL){
         value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6,
                         scientific=F, justify = "centre")
       }else{
-        value <- " <0.0001"}
+        value <- "<0.0001"}
       return(value)
     }
   }
@@ -108,7 +108,7 @@ descriptive_stats <- function(dataset, path = NULL){
   }
 
   cat("Total number of observations:", n_obs,"\n")
-  cat("Total number of variables:   ", n_var, "\n")
+  cat("Total number of variables: ", n_var, "\n")
 
   if (length(var_quan) == 0) {
     cat("\n", "QUANTITATIVE VARIABLES: 0")
@@ -161,7 +161,9 @@ descriptive_stats <- function(dataset, path = NULL){
       }
       k <- k + 1
     }
-    colnames(mat_level) <- c("Var", " Nlev", " Check")
+    colnames(mat_level) <- c("Var", " Nlev", "Check")
+
+    print(mat_level)
 
     var_cat_outp <- list()
     k_cat <- 1
@@ -189,6 +191,8 @@ descriptive_stats <- function(dataset, path = NULL){
       var_cat_outp[[k_cat]] <- mat_cat
       names(var_cat_outp)[k_cat] <- colnames(dataset_t)[k]
       k_cat <- k_cat + 1
+
+      print(mat_cat)
     }
     if(length(var_diverse)==0){
       cat("\n", "OTHER VARIABLES: 0")}
@@ -214,7 +218,10 @@ descriptive_stats <- function(dataset, path = NULL){
     k <- k+1
   }
 
-  colnames(mat_miss) <- c("Var", " Type", "  Miss", "  % miss", " Complete")
+  colnames(mat_miss) <- c("Var", "Type", "Miss", "% miss", "Complete")
+
+  print(mat_miss)
+
   rm(dataset_t)
   list_output <- list(Quant = index_matrix, Cat_level = mat_level,
                       Cat_out = var_cat_outp, Miss = mat_miss)
