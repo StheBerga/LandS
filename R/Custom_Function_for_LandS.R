@@ -528,3 +528,107 @@ Posthoc_lineplots <- function (Test_results, data, time, threshold_posthoc, i) {
   return(posthoc_df)
 }
 
+
+#' Create a Standardized and Formatted Flextable
+#'
+#' @description
+#' Converts a `data.frame` into a beautifully formatted `flextable`. It applies
+#' standard styling including center alignment, bold headers, customizable fonts,
+#' and borders. It also offers optional features like highlighting significant p-values,
+#' bolding specific columns, and adding a styled table caption.
+#'
+#' @param data A `data.frame` to be converted into a table.
+#' @param fontname Character string for the font family. Default is `"Calibri Light"`.
+#' @param bold_cols Character vector or numeric indices of columns to be bolded. Default is `NULL` (no extra bold columns).
+#' @param pval_col Character string specifying the exact name of the p-value column.
+#'   If provided, p-values < 0.05 will be colored red. Default is `NULL`.
+#' @param max_width Numeric. Maximum width of the table in centimeters. Default is `18`.
+#' @param width_border Numeric. Line width for the left and right outer borders. Default is `0.8`.
+#' @param caption Character string for the table caption. Default is `NULL`.
+#'
+#' @return A formatted `flextable` object.
+#'
+#' @importFrom flextable flextable align bold color autofit fit_to_width font vline_right vline_left set_caption as_paragraph as_chunk fp_border_default fp_text_default
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' df <- data.frame(Variable = c("Value_A", "Value_B", "Value_C"), p_val = c(0.01, 0.20, 0.002))
+
+#'
+#' # Advanced usage with new parameters
+#' Flex_format(
+#'   data = df,
+#'   fontname = "Arial",
+#'   bold_cols = 1,
+#'   pval_col = "p_val",
+#'   max_width = 15,
+#'   width_border = 1.2,
+#'   caption = "Table 1: Patient Characteristics"
+#' )
+#' }
+Flex_format <- function(data,
+                        fontname = "Calibri Light",
+                        bold_cols = NULL,
+                        pval_col = NULL,
+                        max_width = 18,
+                        width_border = 0.8,
+                        caption = NULL) {
+
+  # Initialize flextable
+  ft <- flextable::flextable(data)
+
+  # General standard formatting
+  ft <- flextable::align(ft, part = "all", align = "center")
+  ft <- flextable::bold(ft, part = "header")
+  ft <- flextable::font(ft, fontname = fontname, part = "all")
+
+  # Optional: Bold specific columns
+  if (!is.null(bold_cols)) {
+    ft <- flextable::bold(ft, j = bold_cols)
+  }
+
+  # Optional: Highlight significant p-values (p < 0.05 in red)
+  if (!is.null(pval_col) && pval_col %in% colnames(data)) {
+
+    # First, color the entire p-value column red
+    ft <- flextable::color(ft, color = "red", j = pval_col)
+
+    # Helper function to safely evaluate p-values, ignoring strings like "<0.001"
+    is_non_significant <- function(x) {
+      num_x <- suppressWarnings(as.numeric(gsub("[<>]", "", x)))
+      return(is.na(num_x) | num_x >= 0.05)
+    }
+
+    # Identify row indices where the p-value is NOT significant (>= 0.05)
+    row_idx <- which(is_non_significant(data[[pval_col]]))
+
+    # Revert those specific rows back to black
+    if (length(row_idx) > 0) {
+      ft <- flextable::color(ft, i = row_idx, j = pval_col, color = "black")
+    }
+  }
+
+  # Layout and sizing
+  ft <- flextable::autofit(ft)
+  ft <- flextable::fit_to_width(ft, max_width = max_width, unit = "cm")
+
+  # Borders (using flextable namespace)
+  border_style <- flextable::fp_border_default(color = "black", width = width_border)
+  ft <- flextable::vline_right(ft, border = border_style)
+  ft <- flextable::vline_left(ft, border = border_style)
+
+  # Optional: Add Caption
+  if (!is.null(caption)) {
+    ft <- flextable::set_caption(
+      ft,
+      caption = flextable::as_paragraph(
+        flextable::as_chunk(caption, props = flextable::fp_text_default(font.family = fontname))
+      ),
+      word_stylename = "Table Caption"
+    )
+  }
+
+  return(ft)
+}
+
