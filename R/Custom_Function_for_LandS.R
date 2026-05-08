@@ -629,3 +629,108 @@ Flex_format <- function(data,
   return(ft)
 }
 
+
+#' Export and Quickly Open Tables or Plots in Word or PowerPoint
+#'
+#' @description
+#' This function takes a `data.frame`, a `ggplot` object, or a `flextable`,
+#' formats it (applying `Flex_format` if necessary), saves it to a temporary file,
+#' and automatically opens the file using the system's default application.
+#'
+#' @param x The object to export. Can be a `data.frame`, a `ggplot` object,
+#' or a `flextable` compatible object.
+#' @param type string. The desired export format: `"docx"` (default) or `"pptx"`.
+#' Note: if `x` is a `ggplot` object, the export will be forced to `"pptx"`.
+#' @param pptx_width Numeric. Width of the plot in inches for PowerPoint export.
+#' Default: 4.
+#' @param pptx_height Numeric. Height of the plot in inches for PowerPoint export.
+#' Default: 5.
+#' @param as_dml Logical. If `TRUE` (default), `ggplot` objects are exported as
+#' editable vectorized graphic (DML).
+#' If `FALSE`, they are exported as static PNG images to save memory and
+#' processing time for heavy plots.
+#' @param ... Additional arguments passed to the `Flex_format` function
+#' (e.g., `caption`, `fontname`, `bold_cols`, `max_width`). See function
+#' `Flex_format` for the complete list of arguments.
+#'
+#' @return Returns `invisible(NULL)`. The function is called for its side
+#' effect (creating and opening a file).
+#'
+#' @export
+#'
+#' @seealso Flex_format
+#'
+#' @examples
+#' \dontrun{
+#' # Basic export of a data.frame to docx
+#' df <- data.frame(Variable = c("Age", "Weight"), p_val = c(0.01, 0.20))
+#' Printable(df, type = "docx")
+#'
+#' # Export a heavy ggplot as a static image to avoid huge file sizes
+#' library(ggplot2)
+#' p <- ggplot(diamonds, aes(carat, price)) + geom_point()
+#' Printable(p, as_dml = FALSE, pptx_width = 7, pptx_height = 5)
+#' }
+Printable <- function(x, type = c("docx", "pptx"), pptx_width = 4, pptx_height = 5,
+                      as_dml = TRUE, ...) {
+
+  # Validate the 'type' argument (defaults to the first element: "docx")
+  type <- match.arg(type)
+
+  # --- Internal helper function to open files across different operating systems ---
+  open_file <- function(path) {
+    if (.Platform$OS.type == "windows") {
+      shell.exec(normalizePath(path))
+    } else if (Sys.info()["sysname"] == "Darwin") {
+      system2("open", args = shQuote(normalizePath(path)))
+    } else {
+      system2("xdg-open", args = shQuote(normalizePath(path)))
+    }
+  }
+
+  # --- Handle ggplot objects ---
+  if (inherits(x, "ggplot")) {
+    tmp_path <- tempfile(fileext = ".pptx")
+    ppt <- officer::read_pptx()
+    ppt <- officer::add_slide(ppt, layout = "Blank")
+
+    # Check if user wants a vectorized (editable) plot or a static image
+    if (as_dml) {
+      val <- rvg::dml(ggobj = x)
+    } else {
+      tmp_img <- tempfile(fileext = ".png")
+      ggplot2::ggsave(filename = tmp_img, plot = x, width = pptx_width, height = pptx_height, units = "in", dpi = 300)
+      val <- officer::external_img(src = tmp_img, width = pptx_width, height = pptx_height)
+    }
+
+    ppt <- officer::ph_with(
+      x = ppt,
+      value = val,
+      location = officer::ph_location(width = pptx_width, height = pptx_height)
+    )
+    print(ppt, target = tmp_path)
+
+    open_file(tmp_path)
+    return(invisible(NULL))
+  }
+
+  # --- Handle data.frame objects ---
+  if (is.data.frame(x)) {
+    # Apply the Flex_format function, passing any additional arguments (...)
+    x <- Flex_format(data = x, ...)
+  }
+
+  # --- Handle Flextable export ---
+  if (type == "docx") {
+    tmp_path <- tempfile(fileext = ".docx")
+    flextable::save_as_docx(x, path = tmp_path)
+    open_file(tmp_path)
+  } else if (type == "pptx") {
+    tmp_path <- tempfile(fileext = ".pptx")
+    flextable::save_as_pptx(x, path = tmp_path)
+    open_file(tmp_path)
+  }
+
+  invisible(NULL)
+}
+

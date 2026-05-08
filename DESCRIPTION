@@ -1,10 +1,17 @@
 Package: LandS
 Type: Package
-Title: Biostatistical Tools for Daily Clinical Practice
+Title: Integrated Tools for Longitudinal Biomarker, Survival, and Clinical Data Analysis
 Version: 1.8.8
 Author: Stefano Bergamini, Luca Lalli, Jessica Gliozzo 
 Maintainer: Stefano Bergamini <stefano.bergamini@istitutotumori.mi.it>
-Description: This package provides useful functions in daily clinical pratice for biostatistics
+Description: Provides tools for longitudinal, survival, and exploratory analysis 
+    of clinical and biomarker data. The package includes utilities for descriptive 
+    statistics, correlation analysis, Cox proportional hazards models, Kaplan-Meier 
+    visualization, longitudinal trajectory plotting, outlier detection, formatted 
+    statistical reporting, and publication-ready tables and figures. Additional 
+    functionality supports translational proteomics workflows, including Olink data 
+    handling and pathway-analysis preparation. Functions are designed to simplify 
+    reproducible analysis pipelines and generation of presentation-ready outputs.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
