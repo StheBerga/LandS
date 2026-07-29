@@ -593,7 +593,7 @@ Flex_format <- function(data,
 
     # Helper function to safely evaluate p-values, ignoring strings like "<0.001"
     is_non_significant <- function(x) {
-      num_x <- suppressWarnings(as.numeric(gsub("[<>]", "", x)))
+      num_x <- as.numeric(gsub("[<>]", "", x))
       return(is.na(num_x) | num_x >= 0.05)
     }
 
