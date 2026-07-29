@@ -80,7 +80,6 @@ cont_var_test <- function (data,
                            excel_path = paste0(path_out, "/Results.xlsx"),
                            verbose = TRUE)
 {
-  options(warn=-1)
 
   if(is.null(p.adjust.method)){
     p.adjust.method = "bonferroni"
