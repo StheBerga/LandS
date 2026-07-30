@@ -346,8 +346,9 @@ Lineplots <- function (data,
 
     # If you want to add the brackets for the posthoc tests
     if (Posthoc == T) {
-      posthoc_df <- Posthoc_lineplots(Test_results = Test_results,
-                                      data = data, time = time, threshold_posthoc = threshold_posthoc, i)
+      posthoc_df <- posthoc_df(Test_results = Test_results,
+                              data = data, group = time,
+                              threshold_posthoc = threshold_posthoc, i)
     }
 
     Quantili <- data.frame(Tempo = unique(data[, time]),

@@ -2,7 +2,7 @@
 % Please edit documentation in R/Custom_Function_for_LandS.R
 \name{posthoc_df}
 \alias{posthoc_df}
-\title{Format p-values for Boxplots}
+\title{Format p-values for Boxplots and Lineplots}
 \usage{
 posthoc_df(Test_results, data, group, threshold_posthoc, i)
 }
@@ -13,8 +13,8 @@ or "no_corrected_ph". Default = NULL.}
 
 \item{data}{Dataframe containing numeric variables to plot.}
 
-\item{group}{string. Column name identifying factor grouping variable for split
-boxplots.}
+\item{group}{string. Column name identifying factor grouping variable for boxplots
+or the numeric variable containing time for lineplots.}
 
 \item{threshold_posthoc}{numeric. Threshold for post-hoc tests.}
 
@@ -25,11 +25,13 @@ Dataframe having has columns: group1, group2, y (i.e. the variable)
 and pval (i.e. formatted p-value).
 }
 \description{
-This is an internal function used to format p-values to display in boxplots.
+This is an internal function used to format p-values to display in boxplots and
+lineplots.
 If p-value < threshold_posthoc, the corresponding row in the output dataframe
 is removed.
 }
 \examples{
+# Example using factor group
 res <- cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
 group = "Species", paired = FALSE)
 
@@ -40,7 +42,19 @@ for(n in res$KW_ph_pval$Var){
   threshold_posthoc=0.01, n)
 }
 
+# Example using a numeric group
+mtcars$gear <- as.factor(mtcars$gear)
+res <- cont_var_test(data = mtcars, variables = c("mpg", "disp"),
+group = "gear", paired = FALSE)
+
+# Formatted results
+mtcars$gear <- as.numeric(levels(mtcars$gear))[mtcars$gear]
+formatted_list <- list()
+for(n in res$KW_ph_pval$Var){
+  formatted_list[[n]] <- LandS:::posthoc_df(res$KW_ph_pval, mtcars, group="gear",
+  threshold_posthoc=0.01, n)
+}
 }
 \author{
-Luca Lalli, Stefano Bergamini
+Luca Lalli, Stefano Bergamini, Jessica Gliozzo
 }

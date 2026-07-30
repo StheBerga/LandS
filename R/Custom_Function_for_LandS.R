@@ -369,10 +369,11 @@ format_sys_time <- function()
 }
 
 
-#' Format p-values for Boxplots
+#' Format p-values for Boxplots and Lineplots
 #'
 #' @description
-#' This is an internal function used to format p-values to display in boxplots.
+#' This is an internal function used to format p-values to display in boxplots and
+#' lineplots.
 #' If p-value < threshold_posthoc, the corresponding row in the output dataframe
 #' is removed.
 #'
@@ -380,17 +381,18 @@ format_sys_time <- function()
 #' using LandS::cont_var_test() function, in particular objects "KW_ph_pval" or "Friedman_ph_pval"
 #' or "no_corrected_ph". Default = NULL.
 #' @param data Dataframe containing numeric variables to plot.
-#' @param group string. Column name identifying factor grouping variable for split
-#' boxplots.
+#' @param group string. Column name identifying factor grouping variable for boxplots
+#' or the numeric variable containing time for lineplots.
 #' @param threshold_posthoc numeric. Threshold for post-hoc tests.
 #' @param i string. Name of variable to consider.
 #'
 #' @return Dataframe having has columns: group1, group2, y (i.e. the variable)
 #' and pval (i.e. formatted p-value).
 #'
-#' @author Luca Lalli, Stefano Bergamini
+#' @author Luca Lalli, Stefano Bergamini, Jessica Gliozzo
 #'
 #' @examples
+#' # Example using factor group
 #' res <- cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
 #' group = "Species", paired = FALSE)
 #'
@@ -401,11 +403,36 @@ format_sys_time <- function()
 #'   threshold_posthoc=0.01, n)
 #' }
 #'
+#' # Example using a numeric group
+#' mtcars$gear <- as.factor(mtcars$gear)
+#' res <- cont_var_test(data = mtcars, variables = c("mpg", "disp"),
+#' group = "gear", paired = FALSE)
+#'
+#' # Formatted results
+#' mtcars$gear <- as.numeric(levels(mtcars$gear))[mtcars$gear]
+#' formatted_list <- list()
+#' for(n in res$KW_ph_pval$Var){
+#'   formatted_list[[n]] <- LandS:::posthoc_df(res$KW_ph_pval, mtcars, group="gear",
+#'   threshold_posthoc=0.01, n)
+#' }
 posthoc_df <- function(Test_results, data, group, threshold_posthoc, i){
 
   postmodel <- Test_results[Test_results[, 1] == i, ]
-  posthoc_df <- as.data.frame(t(combn(levels(data[, group]),2)))
-  colnames(posthoc_df) <- c("group1", "group2")
+
+  if(is.factor(data[[group]])){
+
+    posthoc_df <- as.data.frame(t(combn(levels(data[, group]),2)))
+    colnames(posthoc_df) <- c("group1", "group2")
+  } else if(is.numeric(data[[group]])){
+
+    posthoc_df <- combn(levels(factor(data[, group])), 2) %>%
+      t() %>% as.data.frame() %>%
+      `colnames<-`(c("group1", "group2")) %>%
+      dplyr::mutate(across(1:2, as.numeric))
+  } else {
+    stop("group argument can be only a factor or numeric.")
+  }
+
   posthoc_df$y <- i
   posthoc_df$pval <- NA
   posthoc_df$pval <- as.numeric(as.vector(postmodel[, (ncol(postmodel)+1-nrow(posthoc_df)):ncol(postmodel)]))
@@ -477,56 +504,56 @@ Distribution <- function(data, var, split = FALSE, cutoff = NULL){
 }
 
 
-#' Format p-values for Lineplots
-#'
-#' @description
-#' This is an internal function used to format p-values to display in lineplots.
-#' If p-value < threshold_posthoc, the corresponding row in the output dataframe
-#' is removed.
-#'
-#' @param Test_results Dataframe containing the results of global and posthoc
-#' tests computed using LandS::cont_var_test() function, in particular objects
-#' "KW_ph_pval" or "Friedman_ph_pval" or "no_corrected_ph".
-#' @param data Dataframe containing numeric variables to plot.
-#' @param time string. Name of the numeric variable containing time.
-#' @param threshold_posthoc numeric. Threshold for post-hoc tests.
-#' @param i string. Name of variable to consider.
-#'
-#' @returns
-#' Dataframe having has columns: group1, group2, y (i.e. the variable)
-#' and pval (i.e. formatted p-value).
-#'
-#' @author Luca Lalli, Stefano Bergamini
-#'
-#' @examples
-#' mtcars$gear <- as.factor(mtcars$gear)
-#' res <- cont_var_test(data = mtcars, variables = c("mpg", "disp"),
-#' group = "gear", paired = FALSE)
-#'
-#' # Formatted results
-#' mtcars$gear <- as.numeric(levels(mtcars$gear))[mtcars$gear]
-#' formatted_list <- list()
-#' for(n in res$KW_ph_pval$Var){
-#'   formatted_list[[n]] <- LandS:::Posthoc_lineplots(res$KW_ph_pval, mtcars, time="gear",
-#'                                             threshold_posthoc=0.01, n)
-#' }
-Posthoc_lineplots <- function (Test_results, data, time, threshold_posthoc, i) {
-
-  postmodel <- Test_results[Test_results[, 1] == i, ]
-  posthoc_df <- combn(levels(factor(data[, time])), 2) %>%
-    t() %>% as.data.frame() %>%
-    `colnames<-`(c("group1", "group2")) %>%
-    mutate(across(1:2, as.numeric))
-  posthoc_df$y <- i
-  posthoc_df$pval <- NA
-  posthoc_df$pval <- as.numeric(as.vector(postmodel[, (ncol(postmodel) + 1 - nrow(posthoc_df)):ncol(postmodel)]))
-  posthoc_df <- posthoc_df[!posthoc_df$pval >= threshold_posthoc, ]
-  if (nrow(posthoc_df) == 0) {
-  } else {
-    posthoc_df$pval <- LandS::formatz_p(posthoc_df$pval)
-  }
-  return(posthoc_df)
-}
+# #' Format p-values for Lineplots
+# #'
+# #' @description
+# #' This is an internal function used to format p-values to display in lineplots.
+# #' If p-value < threshold_posthoc, the corresponding row in the output dataframe
+# #' is removed.
+# #'
+# #' @param Test_results Dataframe containing the results of global and posthoc
+# #' tests computed using LandS::cont_var_test() function, in particular objects
+# #' "KW_ph_pval" or "Friedman_ph_pval" or "no_corrected_ph".
+# #' @param data Dataframe containing numeric variables to plot.
+# #' @param time string. Name of the numeric variable containing time.
+# #' @param threshold_posthoc numeric. Threshold for post-hoc tests.
+# #' @param i string. Name of variable to consider.
+# #'
+# #' @returns
+# #' Dataframe having has columns: group1, group2, y (i.e. the variable)
+# #' and pval (i.e. formatted p-value).
+# #'
+# #' @author Luca Lalli, Stefano Bergamini
+# #'
+# #' @examples
+# #' mtcars$gear <- as.factor(mtcars$gear)
+# #' res <- cont_var_test(data = mtcars, variables = c("mpg", "disp"),
+# #' group = "gear", paired = FALSE)
+# #'
+# #' # Formatted results
+# #' mtcars$gear <- as.numeric(levels(mtcars$gear))[mtcars$gear]
+# #' formatted_list <- list()
+# #' for(n in res$KW_ph_pval$Var){
+# #'   formatted_list[[n]] <- LandS:::Posthoc_lineplots(res$KW_ph_pval, mtcars, time="gear",
+# #'                                             threshold_posthoc=0.01, n)
+# #' }
+# Posthoc_lineplots <- function (Test_results, data, time, threshold_posthoc, i) {
+#
+#   postmodel <- Test_results[Test_results[, 1] == i, ]
+#   posthoc_df <- combn(levels(factor(data[, time])), 2) %>%
+#     t() %>% as.data.frame() %>%
+#     `colnames<-`(c("group1", "group2")) %>%
+#     mutate(across(1:2, as.numeric))
+#   posthoc_df$y <- i
+#   posthoc_df$pval <- NA
+#   posthoc_df$pval <- as.numeric(as.vector(postmodel[, (ncol(postmodel) + 1 - nrow(posthoc_df)):ncol(postmodel)]))
+#   posthoc_df <- posthoc_df[!posthoc_df$pval >= threshold_posthoc, ]
+#   if (nrow(posthoc_df) == 0) {
+#   } else {
+#     posthoc_df$pval <- LandS::formatz_p(posthoc_df$pval)
+#   }
+#   return(posthoc_df)
+# }
 
 
 #' Create a Standardized and Formatted Flextable
