@@ -68,9 +68,15 @@ correlations <- function(data,
                          pval_dec = 4,
                          excel = FALSE,
                          excel_path = paste0(path_output, "/Results.xlsx")){
-  options(width=10000)
-  options(max.print=99999)
-  options(scipen = 9999) # JG: 99999 is invalid
+
+  withr::local_options(
+    width=10000,
+    max.print=99999,
+    scipen = 9999 # JG: 99999 is invalid
+  )
+  # options(width=10000)
+  # options(max.print=99999)
+  # options(scipen = 9999) # JG: 99999 is invalid
 
   start_time <- Sys.time()
   data_tmp <- dplyr::select(data, tidyselect::all_of(variables))
