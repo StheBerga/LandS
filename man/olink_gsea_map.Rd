@@ -17,8 +17,8 @@ Adjusted_pval and estimate columns obtained from package OlinkAnalyze.}
 names. Default is "prot2gene".}
 }
 \value{
-The two data frames "data" and "test_results" with "Assay" column
-overwritten for the pathway analysis.
+A list with the two data frames "data" and "test_results" having "Assay"
+column overwritten for the pathway analysis.
 }
 \description{
 This function changes the "Assay" column of NPX Olink data and statistical

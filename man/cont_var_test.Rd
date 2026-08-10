@@ -95,5 +95,5 @@ cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
               group = "Species", paired = FALSE)
 }
 \author{
-Luca Lalli, Stefano Bergamini
+Stefano Bergamini, Luca Lalli
 }

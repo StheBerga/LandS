@@ -61,12 +61,23 @@
 #' )
 multivariate_cox <- function(data, vars, ptime, pevent, dec_HR = 4){
   workdata <- data
-  options(warn=-1)   # suppress global warnings
-  assign("dist",
-         datadist(workdata, adjto.cat = "first"),
-         envir = .GlobalEnv)
-  options(datadist = "dist")
-  options(contrasts=c("contr.treatment", "contr.treatment"))
+  # options(warn=-1)   # suppress global warnings
+  # assign("dist",
+  #        datadist(workdata, adjto.cat = "first"),
+  #        envir = .GlobalEnv)
+  # options(datadist = "dist")
+  # options(contrasts=c("contr.treatment", "contr.treatment"))
+
+  dd <- rms::datadist(
+    workdata,
+    adjto.cat = "first"
+  )
+
+  withr::local_options(
+    datadist = dd,
+    contrasts = c("contr.treatment", "contr.treatment")
+  )
+
 
   # Funzioni fomattazione
   formatz <- function(value){

@@ -47,8 +47,8 @@ prot2gene <- c("TRAIL" = "TNFSF10", "Flt3L" = "FLT3LG",
 #' @param gsea_mapping Character vector mapping Olink protein names to gene
 #' names. Default is "prot2gene".
 #'
-#' @return The two data frames "data" and "test_results" with "Assay" column
-#' overwritten for the pathway analysis.
+#' @return A list with the two data frames "data" and "test_results" having "Assay"
+#' column overwritten for the pathway analysis.
 #'
 #' @author Stefano Bergamini
 #'
@@ -82,9 +82,6 @@ olink_gsea_map <- function(data, test_results, gsea_mapping=prot2gene) {
     stop("Estimate column is not present in test results. Please check arguments.")
   }
 
-  data_name <- as.character(match.call()$data)
-  test_results_name <- as.character(match.call()$test_results)
-
   test_results <- as.data.frame(test_results)
   data <- as.data.frame(data)
 
@@ -102,7 +99,7 @@ olink_gsea_map <- function(data, test_results, gsea_mapping=prot2gene) {
       data[, "Assay"][i] <- gsea_mapping[which(names(gsea_mapping) == data[i, "Assay"])]
     } else { }
   }
-  assign(data_name, data, .GlobalEnv)
-  assign(test_results_name, test_results, .GlobalEnv)
+
+  return(list(data = data, test_results = test_results))
 
 }

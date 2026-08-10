@@ -63,12 +63,21 @@
 univariate_cox <- function(data, vars, ptime, pevent){
   workdata <- data
 
-  assign("dist",
-         rms::datadist(data[, vars], adjto.cat = "first"),
-         envir = .GlobalEnv)
-  options(datadist = "dist")
-  options(contrasts=c("contr.treatment", "contr.treatment"))
+  # assign("dist",
+  #        rms::datadist(data[, vars], adjto.cat = "first"),
+  #        envir = .GlobalEnv)
+  # options(datadist = "dist")
+  # options(contrasts=c("contr.treatment", "contr.treatment"))
 
+  dd <- rms::datadist(
+    data[, vars],
+    adjto.cat = "first"
+  )
+
+  withr::local_options(
+    datadist = dd,
+    contrasts = c("contr.treatment", "contr.treatment")
+  )
   # Funzioni formattazione
   # formatz_p <- function(value){
   #   if(is.data.frame(value)==T){
