@@ -62,7 +62,7 @@
 #' For paired analyses, subjects with missing values for a tested variable are
 #' removed from that variable-specific analysis to preserve complete pairs or
 #' repeated-measure blocks.
-#' @author Luca Lalli, Stefano Bergamini
+#' @author Stefano Bergamini, Luca Lalli
 #'
 #' @examples
 #' cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
@@ -82,12 +82,8 @@ cont_var_test <- function (data,
 {
 
   if(is.null(p.adjust.method)){
-    p.adjust.method = "bonferroni"
+    p.adjust.method = "fdr"
   }
-
-  # if(telegram != "none"){
-  #   start_time <<- Sys.time()
-  # }
 
   start_time <- Sys.time()
 
@@ -113,42 +109,61 @@ cont_var_test <- function (data,
 
   statistic <- stringr::str_to_lower(statistic)
 
+  compute.stats <- function(data, group, name, levels, statistic, num_dec) {
+
+    stats <- sapply(levels, function(lvl) {
+
+      x <- data %>%
+        dplyr::filter(.data[[group]] == lvl) %>%
+        dplyr::pull(name)
+
+      vals <- list(
+        mean   = round(mean(x, na.rm = TRUE), num_dec),
+        sd     = round(sd(x, na.rm = TRUE), num_dec),
+        median = round(median(x, na.rm = TRUE), num_dec),
+        iqr    = round(IQR(x, na.rm = TRUE), num_dec),
+        min    = round(min(x, na.rm = TRUE), num_dec),
+        max    = round(max(x, na.rm = TRUE), num_dec),
+        q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
+        q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
+        n      = sum(!is.na(x)),
+        range  = paste0(
+          round(min(x, na.rm = TRUE), num_dec),
+          "-",
+          round(max(x, na.rm = TRUE), num_dec)
+        )
+      )
+      glue::glue_data(vals, statistic)
+    })
+
+    return(stats)
+  }
+
   # Split variable dicotomica
   if(nlevels(data[, group]) == 2){
 
+    levels <- levels(data[,group])
+    table.p <- matrix(nrow = length(variables), ncol = 5) %>%
+      as.data.frame %>%
+      `colnames<-`(c("Variable",
+                     paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[1]),
+                     paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[2]),
+                     "pvalue", 'padj')) %>%
+      mutate(Variable = variables)
+
     # Mann-Whitney Test
     if (paired == FALSE){
-      tabella <- data.frame(matrix(nrow = length(variables), ncol = 4))
-      levels <- levels(data[,group])
-      colnames(tabella) <- c("Variable",
-                             paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[1]),
-                             paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[2]),
-                             "pvalue")
-      tabella[,1] <- variables
 
       for (i in 1:length(variables)){
         name <- variables[i]
 
-        stats <- sapply(levels, function(lvl) {
-          x <- data[data[, group] == lvl, name]
-          vals <- list(
-            mean   = round(mean(x, na.rm = TRUE), num_dec),
-            sd     = round(sd(x, na.rm = TRUE), num_dec),
-            median = round(median(x, na.rm = TRUE), num_dec),
-            iqr    = round(IQR(x, na.rm = TRUE), num_dec),
-            min    = round(min(x, na.rm = TRUE), num_dec),
-            max    = round(max(x, na.rm = TRUE), num_dec),
-            q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
-            q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
-            n      = sum(!is.na(x)),
-            range  = paste0(round(min(x, na.rm = TRUE), num_dec), "-", round(max(x, na.rm = TRUE), num_dec))
-          )
-          glue::glue_data(vals, statistic)
-        })
+        stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
-        tabella[tabella$Variable == name, 2] <- stats[1]
-        tabella[tabella$Variable == name, 3] <- stats[2]
-        tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(data[, name] ~ data[, group])$p.value, 4)
+        table.p[table.p$Variable == name, 2] <- stats[1]
+        table.p[table.p$Variable == name, 3] <- stats[2]
+        table.p[table.p$Variable == name, 'pvalue'] <- as.numeric(wilcox.test(data[, name] ~ data[, group])$p.value, 4)
+        table.p[table.p$Variable == name, 'padj'] <-
+          p.adjust(table.p[table.p$Variable == name, 'pvalue'], method = p.adjust.method, n = length(variables))
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
@@ -156,61 +171,42 @@ cont_var_test <- function (data,
       }
 
       res <- list()
-      tabella_formatted <- dplyr::arrange(tabella, pvalue)
-      for(z in colnames(tabella_formatted)[ncol(tabella_formatted)]){
-        tabella_formatted[,z] <- LandS::formatz_p(tabella_formatted[,z])
-      }
-      tabella_p <- tabella[, c(1,4)]
-
-      res[[1]] <- tabella
-      res[[2]] <- tabella_formatted
-      res[[3]] <- tabella_p
-      names(res) <- c("Raw_tests", "Form_tests", "Raw_pval")
+      res[['Raw_tests']] <- table.p
+      res[['Form_tests']] <- table.p %>% dplyr::arrange(padj) %>%
+        mutate(pvalue = LandS::formatz_p(pvalue), padj = LandS::formatz_p(padj))
+      res[['Raw_pval']] <- table.p %>% dplyr::select(Variable, pvalue, padj)
 
       if (verbose) message("Mann-Whitney Rank Sum test used")
     }
 
     if (paired == TRUE){
-      tabella <- data.frame(matrix(nrow = length(variables), ncol = 4))
-      levels <- levels(data[, group])
-      colnames(tabella) <- c("Variable",
-                             paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[1]),
-                             paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[2]),
-                             "pvalue")
-      tabella[,1] <- variables
 
       for (i in 1:length(variables)){
         name <- variables[i]
 
         if (sum(is.na(data[, name])) >0){
-          vett_excl <- data[is.na(data[, name]), ID]
-          tmp <- data[!data[, ID] %in% vett_excl, ]
+          vett_excl <- data %>% dplyr::filter(is.na(name)) %>% dplyr::pull(ID)
+          tmp <- data %>% dplyr::filter(!ID %in% vett_excl)
         }else{
           tmp <- data
         }
 
-        stats <- sapply(levels, function(lvl) {
-          x <- tmp[tmp[, group] == lvl, name]
-          vals <- list(
-            mean   = round(mean(x, na.rm = TRUE), num_dec),
-            sd     = round(sd(x, na.rm = TRUE), num_dec),
-            median = round(median(x, na.rm = TRUE), num_dec),
-            iqr    = round(IQR(x, na.rm = TRUE), num_dec),
-            min    = round(min(x, na.rm = TRUE), num_dec),
-            max    = round(max(x, na.rm = TRUE), num_dec),
-            q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
-            q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
-            n      = sum(!is.na(x)),
-            range  = paste0(round(min(x, na.rm = TRUE), num_dec), "-", round(max(x, na.rm = TRUE), num_dec))
-          )
-          glue::glue_data(vals, statistic)
-        })
+        stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
-        tabella[tabella$Variable == name, 2] <- stats[1]
-        tabella[tabella$Variable == name, 3] <- stats[2]
-        tabella[tabella$Variable == name, 4] <- as.numeric(wilcox.test(Pair(tmp[tmp[, group] == levels[1], name],
-                                                                            tmp[tmp[, group] == levels[2], name]) ~ 1,
-                                                                       data = tmp)$p.value, 4)
+        pre <- tmp %>% dplyr::filter(.data[[group]] == levels[1]) %>% dplyr::pull(name)
+        names(pre) <- tmp %>% dplyr::filter(.data[[group]] == levels[1]) %>% dplyr::pull(ID)
+        post <- tmp %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(name)
+        names(post) <- tmp %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(ID)
+
+        if (names(pre) != names(post)){
+          stop('IDs are not sorted in the appropriate order between groups. \n Please refer to function description for details')
+        }
+
+        table.p[table.p$Variable == name, 2] <- stats[1]
+        table.p[table.p$Variable == name, 3] <- stats[2]
+        table.p[table.p$Variable == name, 'pvalue'] <- as.numeric(wilcox.test(pre, post, paired = TRUE)$p.value, 4)
+        table.p[table.p$Variable == name, 'padj'] <-
+          p.adjust(table.p[table.p$Variable == name, 'pvalue'], method = p.adjust.method, n = length(variables))
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
@@ -218,17 +214,10 @@ cont_var_test <- function (data,
       }
 
       res <- list()
-      tabella_formatted <- dplyr::arrange(tabella, pvalue)
-      for(z in colnames(tabella_formatted)[ncol(tabella_formatted)]){
-        tabella_formatted[,z] <- LandS::formatz_p(tabella_formatted[,z])
-      }
-
-      tabella_p <- tabella[, c(1,4)]
-
-      res[[1]] <- tabella
-      res[[2]] <- tabella_formatted
-      res[[3]] <- tabella_p
-      names(res) <- c("Raw_tests", "Form_tests", "Raw_pval")
+      res[['Raw_tests']] <- table.p
+      res[['Form_tests']] <- table.p %>% dplyr::arrange(padj) %>%
+        mutate(pvalue = LandS::formatz_p(pvalue), padj = LandS::formatz_p(padj))
+      res[['Raw_pval']] <- table.p %>% dplyr::select(Variable, pvalue, padj)
 
       if (verbose) message("Wilcoxon signed rank test used")
     }
@@ -280,22 +269,7 @@ cont_var_test <- function (data,
 
         if(nrow(tmp) > 0 ) {
 
-          stats <- sapply(levels_groups, function(lvl) {
-            x <- data[data[, group] == lvl, i]
-            vals <- list(
-              mean   = round(mean(x, na.rm = TRUE), num_dec),
-              sd     = round(sd(x, na.rm = TRUE), num_dec),
-              median = round(median(x, na.rm = TRUE), num_dec),
-              iqr    = round(IQR(x, na.rm = TRUE), num_dec),
-              min    = round(min(x, na.rm = TRUE), num_dec),
-              max    = round(max(x, na.rm = TRUE), num_dec),
-              q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
-              q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
-              n      = sum(!is.na(x)),
-              range  = paste0(round(min(x, na.rm = TRUE), num_dec), "-", round(max(x, na.rm = TRUE), num_dec))
-            )
-            glue::glue_data(vals, statistic)
-          })
+          stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
           for (o in 1:n_lev_group){
             Friedman_test_df[Friedman_test_df$Var == i, 1+o] <- stats[o]
@@ -500,22 +474,7 @@ cont_var_test <- function (data,
 
       for (i in variables){
 
-        stats <- sapply(levels_groups, function(lvl) {
-          x <- data[data[, group] == lvl, i]
-          vals <- list(
-            mean   = round(mean(x, na.rm = TRUE), num_dec),
-            sd     = round(sd(x, na.rm = TRUE), num_dec),
-            median = round(median(x, na.rm = TRUE), num_dec),
-            iqr    = round(IQR(x, na.rm = TRUE), num_dec),
-            min    = round(min(x, na.rm = TRUE), num_dec),
-            max    = round(max(x, na.rm = TRUE), num_dec),
-            q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
-            q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
-            n      = sum(!is.na(x)),
-            range  = paste0(round(min(x, na.rm = TRUE), num_dec), "-", round(max(x, na.rm = TRUE), num_dec))
-          )
-          glue::glue_data(vals, statistic)
-        })
+        stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
         # Mean and SD in group variable
         for (o in 1:n_lev_group){
@@ -692,12 +651,12 @@ cont_var_test <- function (data,
     #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
     # }
     return(res)
-    }else{
-      writexl::write_xlsx(res, path = excel_path)
-      # if(telegram != "none"){
-      #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
-      # }
-      return(res)
-    }
+  }else{
+    writexl::write_xlsx(res, path = excel_path)
+    # if(telegram != "none"){
+    #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
+    # }
+    return(res)
+  }
   invisible(gc())
 }
