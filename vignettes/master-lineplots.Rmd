@@ -114,7 +114,7 @@ df_legend$Colour <- c("red", "orange")
 colour_title <- function(i) df_legend$Colour[df_legend$Var == i]
 
 Lineplots_LB(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender", 
-             col_title = TRUE, colour_title = colour_title)
+             col_title = TRUE, fill_title = colour_title)
 ```
 
 

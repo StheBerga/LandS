@@ -1,10 +1,10 @@
 Package: LandS
 Type: Package
 Title: Biostatistic Tools for DCP
-Version: 1.8.11
+Version: 2.0.00
 Author: Stefano Bergamini and Luca Lalli 
 Maintainer: Stefano Bergamini <stefano.bergamini@istitutotumori.mi.it>
-Description: This package provides useful functions in daily clinical pratice for biostatistics
+Description: This package provides useful functions in daily clinical practice for biostatistics.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -20,7 +20,6 @@ Imports:
     svMisc,
     officer,
     rvg,
-    progress,
     PMCMRplus,
     ggtext
 Suggests: 
