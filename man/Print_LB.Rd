@@ -12,7 +12,8 @@ Print_LB(
   ext = NULL,
   width_pg = 21,
   height_pg = 29.7,
-  return = FALSE
+  return = FALSE,
+  warning = TRUE
 )
 }
 \arguments{

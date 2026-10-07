@@ -4,10 +4,12 @@
 \alias{formatz_p}
 \title{Function to get a formatted p-value for a number o a vector of numbers}
 \usage{
-formatz_p(value)
+formatz_p(value, digits = 4)
 }
 \arguments{
 \item{value}{a number or a vector of numbers to be formatted}
+
+\item{digits}{the number of decimal places (Default = 4)}
 }
 \value{
 a number or a vector of numbers formatted with 4 digits

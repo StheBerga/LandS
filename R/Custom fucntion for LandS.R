@@ -3,62 +3,33 @@
 #' Function to get a formatted p-value for a number o a vector of numbers
 #'
 #' @param value a number or a vector of numbers to be formatted
+#' @param digits the number of decimal places (Default = 4)
 #'
 #' @return a number or a vector of numbers formatted with 4 digits
 #' @export
 #'
 #' @examples formatz_p(c(1.000, 0.75643242, 0.000032431, 0.00214))
 #'
-formatz_p <- function(value){
-  if(is.data.frame(value)==T){
+formatz_p <- function(value, digits = 4) {
+  threshold <- 10^(-digits)
+  threshold_str <- paste0("<", format(threshold, scientific = FALSE))
+
+  format_core <- function(v) {
+    res <- format(round(v, digits), digits = digits, nsmall = digits, width = 6, scientific = FALSE, justify = "centre")
+
+    res[which(v < threshold & v != 0)] <- threshold_str
+    res[which(v == 0)] <- "0"
+    res[is.na(v)] <- NA
+
+    return(res)
+  }
+
+  if (is.data.frame(value)) {
     new_frame <- value
-
-    for(i in 1:dim(value)[1]){
-
-      if(is.na(value[i, 1]) == T) {
-
-        new_frame[i, 1] = NA
-      }
-
-      else if(value[i, 1] >= 0.0001){
-        new_frame[i, 1] <- format(round(value[i,1], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-      }else if (value[i, 1] < 0.0001){
-        new_frame[i, 1] <- "<0.0001"
-      }
-    }
+    new_frame[[1]] <- format_core(value[[1]])
     return(new_frame)
-  }else if (is.vector(value) == TRUE){
-    new_vett <- c()
-
-    for (i in 1:length(value)) {
-
-
-      if (is.na(value[i])){
-
-        p <- NA
-
-      }else if (value[i] > 0.0001){
-
-        p <- format(round(value[i], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-
-      }else if (value[i] < 0.0001){
-
-        p <- "<0.0001"
-      }
-      new_vett <- c(new_vett,p)
-    }
-    return(new_vett)
-  }else{
-
-    if(is.na(value) == T) {
-
-      value = NA
-    }
-    else if(value >= 0.0001){
-      value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-    }else if(value < 0.0001){
-      value <- " <0.0001"}
-    return(value)
+  } else {
+    return(format_core(value))
   }
 }
 
