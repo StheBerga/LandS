@@ -209,60 +209,74 @@ telegram_mess_LB <- function(dest = "both", script = 0, rm_start_time = TRUE, ti
 #' @param width_pg page width in cm
 #' @param height_pg page height in cm
 #' @param return if you want to assign your grid
+#' @param warning if you want to suppress warnings (Default = TRUE)
 #'
 #' @return A pdf in the path_output
 #' @export
 #'
 #' @examples
 
-Print_LB <- function (plot_list, path_print = path_print,
-                      nrow = 8, ncol = 6, ext = NULL,
-                      width_pg = 21, height_pg = 29.7, return = FALSE)
+Print_LB <- function (plot_list, path_print = path_print, nrow = 8, ncol = 6,
+                      ext = NULL, width_pg = 21, height_pg = 29.7, return = FALSE, warning = TRUE)
 {
   require(ggplot2)
-  if(is.null(ext)){ext <- "pdf"}
-
+  if (is.null(ext)) {
+    ext <- "pdf"
+  }
   path_print <- paste0(path_print, ".", ext)
-  variables <- length(plot_list)
-  graphs <- list()
 
-  if (ext == "pdf"){
-    npag <- ceiling(variables/(nrow * ncol))
-    for (i in 1:npag) {
+  core_execution <- function() {
+    variables <- length(plot_list)
+    graphs <- list()
 
-      graphs[[i]] <- cowplot::plot_grid(plotlist = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
+    if (ext == "pdf") {
+      npag <- ceiling(variables/(nrow * ncol))
+      for (i in 1:npag) {
+        graphs[[i]] <- cowplot::plot_grid(plotlist = plot_list[(((i -
+                                                                    1) * nrow * ncol) + 1):min(variables,
+                                                                                               (i * nrow *
+                                                                                                  ncol))], nrow = nrow, ncol = ncol)
+        graphs[[i]] <- graphs[[i]] + theme_minimal() +
+          labs(title = paste0("Pag. ",
+                              i)) + theme(plot.title = element_text(hjust = 0.5,
+                                                                    face = "bold"))
+      }
+    } else {
+
+      graphs[[1]] <- cowplot::plot_grid(plotlist = plot_list,
                                         nrow = nrow, ncol = ncol)
-
-      graphs[[i]] <- graphs[[i]] + theme_minimal() +
-        labs(title = paste0("Pag. ", i)) + theme(plot.title = element_text(hjust = .5, face = "bold"))
-
     }
+
+    message(paste0("Grid arrange Done! \nSaving in ", ext))
+
+    if (ext == "tiff") {
+      tiff(filename = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)
+    } else if (ext == "jpeg") {
+      jpeg(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)
+    } else if (ext == "pdf") {
+      pdf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))
+    } else if (ext == "svg") {
+      svg(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))
+    } else if (ext == "png") {
+      png(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)
+    } else if (ext == "emf") {
+      devEMF::emf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))
+    }
+
+    for (i in 1:length(graphs)) {
+      plot(graphs[[i]])
+    }
+    dev.off()
+
+    if (return == TRUE) {
+      return(graphs)
+    }
+  }
+
+  if (warning) {
+    core_execution()
   } else {
-
-    graphs[[1]] <- cowplot::plot_grid(plotlist = plot_list, nrow = nrow, ncol = ncol)
-
-  }
-  message(paste0("Grid arrange Done! \nSaving in ", ext))
-
-  if(ext == "tiff"){tiff(filename = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
-
-  if(ext == "jpeg"){jpeg(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
-
-  if(ext == "pdf"){pdf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
-
-  if(ext == "svg"){svg(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
-
-  if(ext == "png"){png(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
-
-  if(ext == "emf"){devEMF::emf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
-
-  for (i in 1:length(graphs)) {
-    plot(graphs[[i]])
-  }
-  dev.off()
-
-  if (return == TRUE){
-    return(graphs)
+    suppressWarnings(core_execution())
   }
 }
 

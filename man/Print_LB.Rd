@@ -31,6 +31,8 @@ Print_LB(
 \item{height_pg}{page height in cm}
 
 \item{return}{if you want to assign your grid}
+
+\item{warning}{if you want to suppress warnings (Default = TRUE)}
 }
 \value{
 A pdf in the path_output
