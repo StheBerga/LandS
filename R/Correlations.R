@@ -61,13 +61,14 @@
 #'   variables = c("mpg", "disp", "hp"),
 #'   method = "spearman"
 #' )
+#' @importFrom rlang .data
 correlations <- function(data,
                          variables,
                          method = "spearman",
                          rho_dec = 3,
                          pval_dec = 4,
                          excel = FALSE,
-                         excel_path = paste0(path_output, "/Results.xlsx")){
+                         excel_path = "Results.xlsx"){
 
   withr::local_options(
     width=10000,
@@ -100,10 +101,10 @@ correlations <- function(data,
   for (i in variables) {
     for (j in variables) {
 
-      coeff_rho <- cor.test(data_tmp[, i], data_tmp[, j], method = method, na.rm=T, exact = FALSE)$estimate
+      coeff_rho <- stats::cor.test(data_tmp[, i], data_tmp[, j], method = method, na.rm=T, exact = FALSE)$estimate
       df_corr[df_corr$Var == i, colnames(df_corr) == j] <- coeff_rho
 
-      coeff_pval <- cor.test(data_tmp[, i], data_tmp[, j], method = method, na.rm=T, exact = FALSE)$p.value
+      coeff_pval <- stats::cor.test(data_tmp[, i], data_tmp[, j], method = method, na.rm=T, exact = FALSE)$p.value
       df_pval[df_pval$Var == i, colnames(df_pval) == j] <- coeff_pval
     }
 
@@ -140,7 +141,7 @@ correlations <- function(data,
   df_corr_sign <- as.data.frame(df_corr_sign)
 
   # All raw pairs with rho & pvalue
-  df_all_pairs <- as.data.frame(t(combn(variables, 2)))
+  df_all_pairs <- as.data.frame(t(utils::combn(variables, 2)))
   colnames(df_all_pairs) <- c("Var1", "Var2")
   df_all_pairs$rho <- NA
   df_all_pairs$pval <- NA
@@ -159,10 +160,10 @@ correlations <- function(data,
   df_all_pairs$pval <- as.numeric(df_all_pairs$pval)
 
   # Sort by rho
-  df_all_pairs <- dplyr::arrange(df_all_pairs, dplyr::desc(rho))
+  df_all_pairs <- dplyr::arrange(df_all_pairs, dplyr::desc(.data$rho))
 
   # Sort by abs rho
-  df_all_pairs_abs_rho <- dplyr::arrange(df_all_pairs, dplyr::desc(abs(rho)))
+  df_all_pairs_abs_rho <- dplyr::arrange(df_all_pairs, dplyr::desc(abs(.data$rho)))
 
   # Formatted rho
   df_formatted_abs <- df_all_pairs_abs_rho

@@ -24,6 +24,7 @@ This function outputs a ggplot showing the distribution of a single variable,
 where points are optionally divided by a cut-off value (cutoff).
 }
 \examples{
+library(ggplot2)
 Distribution(data = mtcars, var = "mpg", split = TRUE, cutoff = 23)
 }
 \author{

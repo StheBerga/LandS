@@ -4,77 +4,55 @@
 #'
 #' @description
 #' Formats numeric p-values for display in tables and plot annotations.
-#' Values greater than or equal to '0.0001' are rounded to four decimal places
-#' and printed with four digits after the decimal point. Values below '0.0001'
+#' Values greater than or equal to '10^\(-digits\)' are rounded to correspondent decimal places
+#' and printed with digits after the decimal point. Values below '10^\(-digits\)'
 #' are displayed as "<0.0001". Missing values are preserved as NA.
 #'
 #' The function accepts a single numeric value, a numeric vector, or a data frame.
 #' If a data frame is supplied, only the first column is formatted and the other
 #' columns are returned unchanged.
 #'
-#' @param value A numeric scalar, numeric vector, or data frame containing
-#'   p-values to format. For data frames, p-values must be in the first column.
+#' @param x (`numeric`)\cr
+#'   Numeric vector
+#' @param digits (non-negative `integer`)\cr
+#'   Integer or vector of integers specifying the number of decimals
+#'   to round `x`. When vector is passed, each integer is mapped 1:1 to the
+#'   numeric values in `x`
+#' @param prepend_p (scalar `logical`)\cr
+#'   Logical. Should 'p=' be prepended to formatted p-value.
+#'   Default is `FALSE`
+#' @param na (`NA`/`string`)\cr
+#'   Character to replace `NA` values with. Default is `NA_character`
+#' @param ... Arguments passed on to `gtsummary::style_number()`
 #'
 #' @return
-#' An object of the same general type as 'value': a formatted character value,
-#' a character vector, or a data frame with its first column formatted.
+#' An object of the same general type as 'value': a formatted character value
+#' or a character vector
+#' @author Stefano Bergamini
 #' @export
-#'
 #' @examples
 #' formatz_p(0.03215)
-#' formatz_p(c(0.2, 0.0499, 0.00001, NA))
-#' formatz_p(data.frame(p = c(0.03, 0.00001, NA)))
-formatz_p <- function(value){
-  if(is.data.frame(value)==T){
-    new_frame <- value
+#' formatz_p(x = c(1, 0, 0.12, 0.012, 0.0012, 0.00012, 0.000012, NA),
+#' digits = 4, prepend_p = TRUE, na = '-')
+formatz_p <- function (x, digits = 4, prepend_p = FALSE, na = NA_character_, ...){
 
-    for(i in 1:dim(value)[1]){
-
-      if(is.na(value[i, 1]) == T) {
-
-        new_frame[i, 1] = NA
-      }
-
-      else if(value[i, 1] >= 0.0001){
-        new_frame[i, 1] <- format(round(value[i,1], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-      }else if (value[i, 1] < 0.0001){
-        new_frame[i, 1] <- "<0.0001"
-      }
-    }
-    return(new_frame)
-  }else if (is.vector(value) == TRUE){
-    new_vett <- c()
-
-    for (i in 1:length(value)) {
-
-
-      if (is.na(value[i])){
-
-        p <- NA
-
-      }else if (value[i] >= 0.0001){
-
-        p <- format(round(value[i], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-
-      }else if (value[i] < 0.0001){
-
-        p <- "<0.0001"
-      }
-      new_vett <- c(new_vett,p)
-    }
-    return(new_vett)
-  }else{
-
-    if(is.na(value) == T) {
-
-      value = NA
-    }
-    else if(value >= 0.0001){
-      value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-    }else if(value < 0.0001){
-      value <- "<0.0001"}
-    return(value)
+  digits <- rep(digits, length.out = length(x))
+  p_fmt <- rep(NA_character_, length.out = length(x))
+  for (d in unique(digits)) {
+    idx <- digits %in% d
+    p_fmt[idx] <- ifelse(x[idx] < 10^(-digits) & x[idx] != 0,
+                         paste0('<', format(10^(-digits), scientific = FALSE)),
+                         gtsummary::style_number(x[idx], digits = digits, ... = ...))
   }
+
+  p_fmt[is.na(x)] <- na
+
+  if (prepend_p == TRUE) {
+    p_fmt <- dplyr::case_when(is.na(p_fmt) ~ na,
+                              grepl(pattern = "<", x = p_fmt) ~ paste0("p", p_fmt),
+                              TRUE ~ paste0("p=", p_fmt))
+  }
+  return(p_fmt)
 }
 
 #' Collapse a vector into a formatted string
@@ -166,7 +144,7 @@ New_Project <- function(project_name,
   usethis:::challenge_nested_project(fs::path_dir(path), name)
   usethis:::challenge_home_directory(path)
   usethis:::create_directory(path)
-  usethis:::local_project(path, force = TRUE)
+  usethis::local_project(path, force = TRUE)
 
   # Add subdirectories
   for (dir in subdirs) {
@@ -212,6 +190,7 @@ New_Project <- function(project_name,
 #' @param height_pg Numeric. Output height in centimeters. Default is 29.7.
 #' @param return_plot Logical. If TRUE, returns the list of grid plots created
 #' by cowplot::plot_grid(). If FALSE, returns NULL.
+#' @param suppress_warning if you want to suppress warnings (Default = FALSE)
 #'
 #' @return
 #' Invisibly returns NULL if return_plot = FALSE. If return_plot = TRUE,
@@ -257,53 +236,67 @@ print_plot_grid <- function (plot_list,
                              ext = NULL,
                              width_pg = 21,
                              height_pg = 29.7,
-                             return_plot = FALSE)
+                             return_plot = FALSE,
+                             suppress_warning = FALSE)
 {
 
   if(is.null(ext)){ext <- "pdf"}
 
   path_print <- paste0(path_print, ".", ext)
-  variables <- length(plot_list)
-  graphs <- list()
 
-  if (ext == "pdf"){
-    npag <- ceiling(variables/(nrow * ncol))
-    for (i in 1:npag) {
 
-      graphs[[i]] <- cowplot::plot_grid(plotlist = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
-                                        nrow = nrow, ncol = ncol)
+  core_execution <- function() {
 
-      graphs[[i]] <- graphs[[i]] + ggplot2::theme_minimal() +
-        ggplot2::labs(title = paste0("Page ", i)) + ggplot2::theme(plot.title = ggplot2::element_text(hjust = .5, face = "bold"))
+    variables <- length(plot_list)
+    graphs <- list()
+
+    if (ext == "pdf"){
+      npag <- ceiling(variables/(nrow * ncol))
+      for (i in 1:npag) {
+
+        graphs[[i]] <- cowplot::plot_grid(plotlist = plot_list[(((i - 1) * nrow * ncol) + 1) : min(variables, (i * nrow * ncol))],
+                                          nrow = nrow, ncol = ncol)
+
+        graphs[[i]] <- graphs[[i]] + ggplot2::theme_minimal() +
+          ggplot2::labs(title = paste0("Page ", i)) + ggplot2::theme(plot.title = ggplot2::element_text(hjust = .5, face = "bold"))
+
+      }
+    } else {
+
+      graphs[[1]] <- cowplot::plot_grid(plotlist = plot_list, nrow = nrow, ncol = ncol)
 
     }
+    message(paste0("cowplot::plot_grid done! \nSaving in ", ext))
+
+    if(ext == "tiff"){grDevices::tiff(filename = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
+
+    if(ext == "jpeg"){grDevices::jpeg(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
+
+    if(ext == "pdf"){grDevices::pdf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
+
+    if(ext == "svg"){grDevices::svg(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
+
+    if(ext == "png"){grDevices::png(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
+
+    if(ext == "emf"){devEMF::emf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
+
+    for (i in 1:length(graphs)) {
+      plot(graphs[[i]])
+    }
+    grDevices::dev.off()
+
+    if (return_plot == TRUE){
+      return(graphs)
+    }
+
+  }
+
+  if (suppress_warning == FALSE) {
+    core_execution()
   } else {
-
-    graphs[[1]] <- cowplot::plot_grid(plotlist = plot_list, nrow = nrow, ncol = ncol)
-
+    suppressWarnings(core_execution())
   }
-  message(paste0("cowplot::plot_grid done! \nSaving in ", ext))
 
-  if(ext == "tiff"){tiff(filename = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
-
-  if(ext == "jpeg"){jpeg(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
-
-  if(ext == "pdf"){pdf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
-
-  if(ext == "svg"){svg(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
-
-  if(ext == "png"){png(file = path_print, width = width_pg, height = height_pg, units = "cm", res = 300)}
-
-  if(ext == "emf"){devEMF::emf(file = path_print, width = (width_pg/2.54), height = (height_pg/2.54))}
-
-  for (i in 1:length(graphs)) {
-    plot(graphs[[i]])
-  }
-  dev.off()
-
-  if (return_plot == TRUE){
-    return(graphs)
-  }
 }
 
 
@@ -326,14 +319,14 @@ print_plot_grid <- function (plot_list,
 #'
 #' @examples
 #' build_filename(filename = "example", extension = ".png", output = ".",
-#' datetime = F)
+#' datetime = FALSE)
 #' build_filename(filename = "example", extension = ".png", output = ".",
-#' datetime = T)
+#' datetime = TRUE)
 build_filename <- function(filename = "example",
                      extension = ".png",
                      output = ".",
-                     datetime = F){
-  if (datetime == F){
+                     datetime = FALSE){
+  if (datetime == FALSE){
     return(paste0(output, "/", filename, extension))
   }else {
     return(paste0(output, "/", filename, "_",
@@ -421,14 +414,14 @@ posthoc_df <- function(Test_results, data, group, threshold_posthoc, i){
 
   if(is.factor(data[[group]])){
 
-    posthoc_df <- as.data.frame(t(combn(levels(data[, group]),2)))
+    posthoc_df <- as.data.frame(t(utils::combn(levels(data[, group]),2)))
     colnames(posthoc_df) <- c("group1", "group2")
   } else if(is.numeric(data[[group]])){
 
-    posthoc_df <- combn(levels(factor(data[, group])), 2) %>%
+    posthoc_df <- utils::combn(levels(factor(data[, group])), 2) %>%
       t() %>% as.data.frame() %>%
       `colnames<-`(c("group1", "group2")) %>%
-      dplyr::mutate(across(1:2, as.numeric))
+      dplyr::mutate(dplyr::across(1:2, as.numeric))
   } else {
     stop("group argument can be only a factor or numeric.")
   }
@@ -464,6 +457,7 @@ posthoc_df <- function(Test_results, data, group, threshold_posthoc, i){
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
+#' library(ggplot2)
 #' Distribution(data = mtcars, var = "mpg", split = TRUE, cutoff = 23)
 Distribution <- function(data, var, split = FALSE, cutoff = NULL){
 
@@ -477,7 +471,7 @@ Distribution <- function(data, var, split = FALSE, cutoff = NULL){
       ggplot2::geom_point(size = 1.5)}+
 
     {if (split == TRUE)
-      ggplot2::geom_point(aes(colour = data[, var] > cutoff), size = 1.5)}+
+      ggplot2::geom_point(ggplot2::aes(colour = data[, var] > cutoff), size = 1.5)}+
 
     {if (split == TRUE)
       ggplot2::geom_vline(xintercept = cutoff, linetype = 2)}+

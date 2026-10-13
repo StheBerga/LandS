@@ -111,6 +111,7 @@ similarity_kinetic(
   n_perm = 100,
   excel = tempfile(fileext = ".xlsx")
 )
+
 }
 \author{
 Luca Lalli, Stefano Bergamini

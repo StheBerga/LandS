@@ -25,7 +25,7 @@
 #' @param no.adj Logical. If TRUE, also returns unadjusted pairwise post-hoc
 #' p-values. This is intended for sensitivity checks and is generally not
 #' recommended for confirmatory inference. Default=FALSE.
-#' @param statistic Specifies summary statistics to display for each variable. Default = "{mean} ({sd})".
+#' @param statistic Specifies summary statistics to display for each variable. Default = "\{mean\} (\{sd\})".
 #' Format is defined by gtsummary package.
 #' @param ID Character string giving the name of the subject identifier column,
 #' required when 'paired = TRUE'. Default = "ID".
@@ -36,7 +36,7 @@
 #' @param excel Logical. If TRUE, writes the result list to an Excel workbook
 #' with one sheet per result table (Default = FALSE).
 #' @param excel_path Path where you want to save the Excel file (Default
-#' paste0(path_out, "/Results.xlsx")).
+#' "Results.xlsx").
 #' @param verbose  Print progress bar and messages (Default=TRUE).
 #'
 #'
@@ -57,6 +57,7 @@
 #' @export
 #'
 #' @importFrom magrittr %>%
+#' @importFrom rlang .data
 #'
 #' @details
 #' For paired analyses, subjects with missing values for a tested variable are
@@ -77,7 +78,7 @@ cont_var_test <- function (data,
                            num_dec = 2,
                            p.adjust.method = NULL,
                            excel = F,
-                           excel_path = paste0(path_out, "/Results.xlsx"),
+                           excel_path = "Results.xlsx",
                            verbose = TRUE)
 {
 
@@ -119,13 +120,13 @@ cont_var_test <- function (data,
 
       vals <- list(
         mean   = round(mean(x, na.rm = TRUE), num_dec),
-        sd     = round(sd(x, na.rm = TRUE), num_dec),
-        median = round(median(x, na.rm = TRUE), num_dec),
-        iqr    = round(IQR(x, na.rm = TRUE), num_dec),
+        sd     = round(stats::sd(x, na.rm = TRUE), num_dec),
+        median = round(stats::median(x, na.rm = TRUE), num_dec),
+        iqr    = round(stats::IQR(x, na.rm = TRUE), num_dec),
         min    = round(min(x, na.rm = TRUE), num_dec),
         max    = round(max(x, na.rm = TRUE), num_dec),
-        q1     = round(quantile(x, 0.25, na.rm = TRUE), num_dec),
-        q3     = round(quantile(x, 0.75, na.rm = TRUE), num_dec),
+        q1     = round(stats::quantile(x, 0.25, na.rm = TRUE), num_dec),
+        q3     = round(stats::quantile(x, 0.75, na.rm = TRUE), num_dec),
         n      = sum(!is.na(x)),
         range  = paste0(
           round(min(x, na.rm = TRUE), num_dec),
@@ -149,7 +150,7 @@ cont_var_test <- function (data,
                      paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[1]),
                      paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[2]),
                      "pvalue", 'padj')) %>%
-      mutate(Variable = variables)
+      dplyr::mutate(Variable = variables)
 
     # Mann-Whitney Test
     if (paired == FALSE){
@@ -161,20 +162,20 @@ cont_var_test <- function (data,
 
         table.p[table.p$Variable == name, 2] <- stats[1]
         table.p[table.p$Variable == name, 3] <- stats[2]
-        table.p[table.p$Variable == name, 'pvalue'] <- as.numeric(wilcox.test(data[, name] ~ data[, group])$p.value, 4)
+        table.p[table.p$Variable == name, 'pvalue'] <- as.numeric(stats::wilcox.test(data[, name] ~ data[, group])$p.value, 4)
         table.p[table.p$Variable == name, 'padj'] <-
-          p.adjust(table.p[table.p$Variable == name, 'pvalue'], method = p.adjust.method, n = length(variables))
+          stats::p.adjust(table.p[table.p$Variable == name, 'pvalue'], method = p.adjust.method, n = length(variables))
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
-                                         bar_fill = "█", bar_void = "░")
+                                         bar_fill = "\u2588", bar_void = "\u2591")
       }
 
       res <- list()
       res[['Raw_tests']] <- table.p
-      res[['Form_tests']] <- table.p %>% dplyr::arrange(padj) %>%
-        mutate(pvalue = LandS::formatz_p(pvalue), padj = LandS::formatz_p(padj))
-      res[['Raw_pval']] <- table.p %>% dplyr::select(Variable, pvalue, padj)
+      res[['Form_tests']] <- table.p %>% dplyr::arrange(.data$padj) %>%
+        dplyr::mutate(pvalue = LandS::formatz_p(.data$pvalue), padj = LandS::formatz_p(.data$padj))
+      res[['Raw_pval']] <- table.p %>% dplyr::select(.data$Variable, .data$pvalue, .data$padj)
 
       if (verbose) message("Mann-Whitney Rank Sum test used")
     }
@@ -204,27 +205,27 @@ cont_var_test <- function (data,
 
         table.p[table.p$Variable == name, 2] <- stats[1]
         table.p[table.p$Variable == name, 3] <- stats[2]
-        table.p[table.p$Variable == name, 'pvalue'] <- as.numeric(wilcox.test(pre, post, paired = TRUE)$p.value, 4)
+        table.p[table.p$Variable == name, 'pvalue'] <- as.numeric(stats::wilcox.test(pre, post, paired = TRUE)$p.value, 4)
         table.p[table.p$Variable == name, 'padj'] <-
-          p.adjust(table.p[table.p$Variable == name, 'pvalue'], method = p.adjust.method, n = length(variables))
+          stats::p.adjust(table.p[table.p$Variable == name, 'pvalue'], method = p.adjust.method, n = length(variables))
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
-                                         bar_fill = "█", bar_void = "░")
+                                         bar_fill = "\u2588", bar_void = "\u2591")
       }
 
       res <- list()
       res[['Raw_tests']] <- table.p
-      res[['Form_tests']] <- table.p %>% dplyr::arrange(padj) %>%
-        mutate(pvalue = LandS::formatz_p(pvalue), padj = LandS::formatz_p(padj))
-      res[['Raw_pval']] <- table.p %>% dplyr::select(Variable, pvalue, padj)
+      res[['Form_tests']] <- table.p %>% dplyr::arrange(.data$padj) %>%
+        dplyr::mutate(pvalue = LandS::formatz_p(.data$pvalue), padj = LandS::formatz_p(.data$padj))
+      res[['Raw_pval']] <- table.p %>% dplyr::select(.data$Variable, .data$pvalue, .data$padj)
 
       if (verbose) message("Wilcoxon signed rank test used")
     }
 
   }else{
 
-    n_lev_posthoc <- length(combn(levels(data[, group]), 2))/2
+    n_lev_posthoc <- length(utils::combn(levels(data[, group]), 2))/2
     levels_groups <- levels(data[,group])
     n_lev_group <- nlevels(data[,group])
 
@@ -236,7 +237,7 @@ cont_var_test <- function (data,
         if (verbose) message("IDs with NA have been removed")
       }
       # Comparisons
-      matrix_comparison <- t(combn(levels_groups, 2))
+      matrix_comparison <- t(utils::combn(levels_groups, 2))
       vett_comparison <- as.vector(NA)
       for (x in 1:nrow(matrix_comparison)){
         vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
@@ -251,7 +252,9 @@ cont_var_test <- function (data,
 
       for (i in variables){
 
-        matt_combn <- as.data.frame(t(combn(levels_groups, 2)))
+        name <- i
+
+        matt_combn <- as.data.frame(t(utils::combn(levels_groups, 2)))
         colnames(matt_combn) <- c("Var1", "Var2")
         matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
         matt_combn$pval <- NA
@@ -275,7 +278,7 @@ cont_var_test <- function (data,
             Friedman_test_df[Friedman_test_df$Var == i, 1+o] <- stats[o]
           }
           # Friedman test
-          Friedman_test_df[Friedman_test_df$Var == i, "Friedman"] <- as.numeric(friedman.test(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID])$p.val)
+          Friedman_test_df[Friedman_test_df$Var == i, "Friedman"] <- as.numeric(stats::friedman.test(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID])$p.val)
 
           # Post hoc test
           df_posthoc <- as.data.frame(PMCMRplus::frdAllPairsExactTest(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID], p.adjust.method = p.adjust.method)$p.value)
@@ -343,11 +346,11 @@ cont_var_test <- function (data,
 
         if (verbose) LandS::Progress_bar(current = which(i == variables),
                                          total = length(variables), start_time = start_time,
-                                         bar_fill = "█", bar_void = "░")
+                                         bar_fill = "\u2588", bar_void = "\u2591")
       }
 
       res <- list()
-      Friedman_test_df_ordered <- dplyr::arrange(Friedman_test_df, Friedman)
+      Friedman_test_df_ordered <- dplyr::arrange(Friedman_test_df, .data$Friedman)
       Friedman_test_df_form <- Friedman_test_df_ordered
 
       for(z in colnames(Friedman_test_df_form)[(2+n_lev_group):ncol(Friedman_test_df_form)]){
@@ -363,11 +366,11 @@ cont_var_test <- function (data,
         names(res) <- c("Raw_tests", "Form_tests", "Friedman_ph_pval")
       }else{
 
-        n_lev_posthoc <- length(combn(levels(data[, group]), 2))/2
+        n_lev_posthoc <- length(utils::combn(levels(data[, group]), 2))/2
         levels_groups <- levels(data[,group])
         n_lev_group <- nlevels(data[,group])
 
-        matrix_comparison <- t(combn(levels(data[, group]), 2))
+        matrix_comparison <- t(utils::combn(levels(data[, group]), 2))
         vett_comparison <- as.vector(NA)
 
         for (x in 1:nrow(matrix_comparison)){
@@ -381,7 +384,7 @@ cont_var_test <- function (data,
 
         for (i in variables){
 
-          matt_combn <- as.data.frame(t(combn(levels(data[, group]), 2)))
+          matt_combn <- as.data.frame(t(utils::combn(levels(data[, group]), 2)))
           colnames(matt_combn) <- c("Var1", "Var2")
           matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
           matt_combn$pval <- NA
@@ -411,7 +414,7 @@ cont_var_test <- function (data,
                 } else {
 
                   df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <-
-                    wilcox.test(Pair(data1, data2) ~ 1, data = tmp)$p.value
+                    stats::wilcox.test(Pair(data1, data2) ~ 1, data = tmp)$p.value
                 }
               }
             }
@@ -458,7 +461,7 @@ cont_var_test <- function (data,
       # Kruskal Wallis and post hoc tests
 
       # Comparazioni
-      matrix_comparison <- t(combn(levels_groups, 2))
+      matrix_comparison <- t(utils::combn(levels_groups, 2))
       vett_comparison <- as.vector(NA)
       for (x in 1:nrow(matrix_comparison)){
         vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
@@ -474,6 +477,8 @@ cont_var_test <- function (data,
 
       for (i in variables){
 
+        name <- i
+
         stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
         # Mean and SD in group variable
@@ -481,13 +486,13 @@ cont_var_test <- function (data,
           KW_test_df[KW_test_df$Var == i, 1+o] <- stats[o]
         }
 
-        matt_combn <- as.data.frame(t(combn(levels_groups, 2)))
+        matt_combn <- as.data.frame(t(utils::combn(levels_groups, 2)))
         colnames(matt_combn) <- c("Var1", "Var2")
         matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
         matt_combn$pval <- NA
 
         # Kruskal-Wallis test
-        KW_test_df[KW_test_df$Var == i, "Kruskal_Wallis"] <- as.numeric(kruskal.test(x = data[, i], g = data[, group])$p.val)
+        KW_test_df[KW_test_df$Var == i, "Kruskal_Wallis"] <- as.numeric(stats::kruskal.test(x = data[, i], g = data[, group])$p.val)
 
         # Post hoc test
         df_posthoc <- as.data.frame(PMCMRplus::kwAllPairsDunnTest(x = data[, i], g = data[, group], p.adjust.method = p.adjust.method)$p.value)
@@ -547,11 +552,11 @@ cont_var_test <- function (data,
 
         if (verbose) LandS::Progress_bar(current = which(i == variables),
                                          total = length(variables), start_time = start_time,
-                                         bar_fill = "█", bar_void = "░")
+                                         bar_fill = "\u2588", bar_void = "\u2591")
       }
 
       res <- list()
-      KW_test_df_ordered <- dplyr::arrange(KW_test_df, Kruskal_Wallis)
+      KW_test_df_ordered <- dplyr::arrange(KW_test_df, .data$Kruskal_Wallis)
       KW_test_df_form <- KW_test_df_ordered
       for(z in colnames(KW_test_df_form)[(2+n_lev_group):ncol(KW_test_df_form)]){
         KW_test_df_form[,z] <- LandS::formatz_p(KW_test_df_form[,z])
@@ -566,11 +571,11 @@ cont_var_test <- function (data,
         names(res) <- c("Raw_tests", "Form_tests", "KW_ph_pval")
       }else{
 
-        n_lev_posthoc <- length(combn(levels(data[, group]), 2))/2
+        n_lev_posthoc <- length(utils::combn(levels(data[, group]), 2))/2
         levels_groups <- levels(data[,group])
         n_lev_group <- nlevels(data[,group])
 
-        matrix_comparison <- t(combn(levels(data[, group]), 2))
+        matrix_comparison <- t(utils::combn(levels(data[, group]), 2))
         vett_comparison <- as.vector(NA)
         for (x in 1:nrow(matrix_comparison)){
           vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
@@ -583,7 +588,7 @@ cont_var_test <- function (data,
 
         for (i in variables){
 
-          matt_combn <- as.data.frame(t(combn(levels(data[, group]), 2)))
+          matt_combn <- as.data.frame(t(utils::combn(levels(data[, group]), 2)))
           colnames(matt_combn) <- c("Var1", "Var2")
           matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
           matt_combn$pval <- NA
@@ -613,7 +618,7 @@ cont_var_test <- function (data,
                 data2 <- data[, i][data[, group] %in% k ]
 
                 df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <-
-                  wilcox.test(data1, data2)$p.val
+                  stats::wilcox.test(data1, data2)$p.val
               }
             }
           }

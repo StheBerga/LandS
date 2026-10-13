@@ -91,6 +91,8 @@
 #'   n_perm = 100,
 #'   excel = tempfile(fileext = ".xlsx")
 #' )
+#'
+#' @importFrom rlang .data
 similarity_kinetic <- function(df_long,
                                variables,
                                grouping_var = NULL,
@@ -106,29 +108,29 @@ similarity_kinetic <- function(df_long,
     stop('trend has to be set to "similar" or "correlated".')
   }
 
-  # === Modalità OVERALL (confronto tra biomarcatori) ===
+  # === Modalita' OVERALL (confronto tra biomarcatori) ===
   if (is.null(grouping_var)) {
 
     test_similarity_perm <- function(marker1, marker2) {
       curve1 <- df_long %>%
-        filter(Biomarker == marker1) %>%
-        group_by(.data[[time_var]]) %>%
-        summarise(val = median(Value, na.rm = TRUE)) %>%
-        pull(val)
+        dplyr::filter(.data$Biomarker == marker1) %>%
+        dplyr::group_by(.data[[time_var]]) %>%
+        dplyr::summarise(val = stats::median(.data$Value, na.rm = TRUE)) %>%
+        dplyr::pull(.data$val)
 
       curve2 <- df_long %>%
-        filter(Biomarker == marker2) %>%
-        group_by(.data[[time_var]]) %>%
-        summarise(val = median(Value, na.rm = TRUE)) %>%
-        pull(val)
+        dplyr::filter(.data$Biomarker == marker2) %>%
+        dplyr::group_by(.data[[time_var]]) %>%
+        dplyr::summarise(val = stats::median(.data$Value, na.rm = TRUE)) %>%
+        dplyr::pull(.data$val)
 
       if (length(curve1) != length(curve2)) return(NULL)
 
       curve1 <- scale(curve1)[, 1]
       curve2 <- scale(curve2)[, 1]
 
-      sim_obs <- cor(curve1, curve2, method = "pearson", use = "pairwise.complete.obs")
-      sim_perm <- replicate(n_perm, cor(curve1, sample(curve2), method = "pearson"))
+      sim_obs <- stats::cor(curve1, curve2, method = "pearson", use = "pairwise.complete.obs")
+      sim_perm <- replicate(n_perm, stats::cor(curve1, sample(curve2), method = "pearson"))
 
       p_val <- if (trend == "similar") {
         mean(sim_perm >= sim_obs)
@@ -146,10 +148,10 @@ similarity_kinetic <- function(df_long,
       ))
     }
 
-    combinazioni <- combn(variables, 2, simplify = FALSE)
+    combinazioni <- utils::combn(variables, 2, simplify = FALSE)
     risultati <- vector("list", length(combinazioni))
 
-    cat("🔁 Start permutation test on", length(combinazioni), "pairs...\n")
+    cat("Start permutation test on", length(combinazioni), "pairs...\n")
     start_time <- Sys.time()
 
     for (i in seq_along(combinazioni)) {
@@ -163,21 +165,21 @@ similarity_kinetic <- function(df_long,
     }
 
     tab_sim <- do.call(rbind, risultati)
-    tab_sim$p_adj <- p.adjust(tab_sim$p_value, method = "fdr")
+    tab_sim$p_adj <- stats::p.adjust(tab_sim$p_value, method = "fdr")
     tab_sim$significant <- tab_sim$p_adj < 0.05
 
     tab_sim_dup <- tab_sim %>%
-      rename(MarkerA = Marker1, MarkerB = Marker2) %>%
-      bind_rows(tab_sim %>% rename(MarkerA = Marker2, MarkerB = Marker1)) %>%
-      arrange(p_adj) %>%
-      rename(Marker1 = MarkerA, Marker2 = MarkerB)
+      dplyr::rename(MarkerA = "Marker1", MarkerB = "Marker2") %>%
+      dplyr::bind_rows(tab_sim %>% dplyr::rename(MarkerA = "Marker2", MarkerB = "Marker1")) %>%
+      dplyr::arrange(.data$p_adj) %>%
+      dplyr::rename(Marker1 = "MarkerA", Marker2 = "MarkerB")
 
     writexl::write_xlsx(tab_sim_dup, path = excel)
-    cat("\n✅ Completed: saved in", excel, "\n")
+    cat("\n Completed: saved in", excel, "\n")
     return(tab_sim_dup)
   }
 
-  # === Modalità STRATIFICATA ===
+  # === Modalita' STRATIFICATA ===
   else {
     group_levels <- unique(df_long[[grouping_var]])
     if (length(group_levels) != 2) stop("Stratification variable need to have exactly 2 levels.")
@@ -186,52 +188,52 @@ similarity_kinetic <- function(df_long,
     groupB <- group_levels[2]
 
     risultati <- list()
-    cat("🔁 Start comparison among groups on", length(variables), "biomarkers...\n")
+    cat("Start comparison among groups on", length(variables), "biomarkers...\n")
     start_time <- Sys.time()
 
     for (i in seq_along(variables)) {
       marker <- variables[i]
-      df_sub <- df_long %>% filter(Biomarker == marker)
+      df_sub <- df_long %>% dplyr::filter(.data$Biomarker == marker)
 
       curveA <- df_sub %>%
-        filter(.data[[grouping_var]] == groupA) %>%
-        group_by(.data[[time_var]]) %>%
-        summarise(med = median(Value, na.rm = TRUE)) %>%
-        pull(med)
+        dplyr::filter(.data[[grouping_var]] == groupA) %>%
+        dplyr::group_by(.data[[time_var]]) %>%
+        dplyr::summarise(med = stats::median(.data$Value, na.rm = TRUE)) %>%
+        dplyr::pull(.data$med)
 
       curveB <- df_sub %>%
-        filter(.data[[grouping_var]] == groupB) %>%
-        group_by(.data[[time_var]]) %>%
-        summarise(med = median(Value, na.rm = TRUE)) %>%
-        pull(med)
+        dplyr::filter(.data[[grouping_var]] == groupB) %>%
+        dplyr::group_by(.data[[time_var]]) %>%
+        dplyr::summarise(med = stats::median(.data$Value, na.rm = TRUE)) %>%
+        dplyr::pull(.data$med)
 
       if (length(curveA) != length(curveB)) next
 
       curveA <- scale(curveA)[, 1]
       curveB <- scale(curveB)[, 1]
-      sim_obs <- cor(curveA, curveB, method = "pearson")
+      sim_obs <- stats::cor(curveA, curveB, method = "pearson")
 
       sim_perm <- numeric(n_perm)
       for (k in 1:n_perm) {
         df_perm <- df_sub %>%
-          mutate(gruppo_perm = sample(.data[[grouping_var]]))
+          dplyr::mutate(gruppo_perm = sample(.data[[grouping_var]]))
 
         curveA_perm <- df_perm %>%
-          filter(gruppo_perm == groupA) %>%
-          group_by(.data[[time_var]]) %>%
-          summarise(med = median(Value, na.rm = TRUE)) %>%
-          pull(med)
+          dplyr::filter(.data$gruppo_perm == groupA) %>%
+          dplyr::group_by(.data[[time_var]]) %>%
+          dplyr::summarise(med = stats::median(.data$Value, na.rm = TRUE)) %>%
+          dplyr::pull(.data$med)
 
         curveB_perm <- df_perm %>%
-          filter(gruppo_perm == groupB) %>%
-          group_by(.data[[time_var]]) %>%
-          summarise(med = median(Value, na.rm = TRUE)) %>%
-          pull(med)
+          dplyr::filter(.data$gruppo_perm == groupB) %>%
+          dplyr::group_by(.data[[time_var]]) %>%
+          dplyr::summarise(med = stats::median(.data$Value, na.rm = TRUE)) %>%
+          dplyr::pull(.data$med)
 
         if (length(curveA_perm) == length(curveB_perm)) {
           curveA_perm <- scale(curveA_perm)[, 1]
           curveB_perm <- scale(curveB_perm)[, 1]
-          sim_perm[k] <- cor(curveA_perm, curveB_perm, method = "pearson")
+          sim_perm[k] <- stats::cor(curveA_perm, curveB_perm, method = "pearson")
         } else {
           sim_perm[k] <- NA
         }
@@ -255,12 +257,12 @@ similarity_kinetic <- function(df_long,
     }
 
     tab_strata <- do.call(rbind, risultati)
-    tab_strata$p_adj <- p.adjust(tab_strata$p_value, method = "fdr")
+    tab_strata$p_adj <- stats::p.adjust(tab_strata$p_value, method = "fdr")
     tab_strata$significant <- tab_strata$p_adj < 0.05
-    tab_strata <- tab_strata %>% arrange(p_adj)
+    tab_strata <- tab_strata %>% dplyr::arrange(.data$p_adj)
 
     writexl::write_xlsx(tab_strata, path = excel)
-    cat("\n✅ Completed: saved in", excel, "\n")
+    cat("\nCompleted: saved in", excel, "\n")
     return(tab_strata)
   }
 }

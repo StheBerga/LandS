@@ -15,7 +15,7 @@ cont_var_test(
   num_dec = 2,
   p.adjust.method = NULL,
   excel = F,
-  excel_path = paste0(path_out, "/Results.xlsx"),
+  excel_path = "Results.xlsx",
   verbose = TRUE
 )
 }
@@ -35,7 +35,7 @@ This column must be a factor with at least two levels.}
 p-values. This is intended for sensitivity checks and is generally not
 recommended for confirmatory inference. Default=FALSE.}
 
-\item{statistic}{Specifies summary statistics to display for each variable. Default = "{mean} ({sd})".
+\item{statistic}{Specifies summary statistics to display for each variable. Default = "\{mean\} (\{sd\})".
 Format is defined by gtsummary package.}
 
 \item{ID}{Character string giving the name of the subject identifier column,
@@ -51,7 +51,7 @@ test functions. If NULL (Default), "bonferroni" is used.}
 with one sheet per result table (Default = FALSE).}
 
 \item{excel_path}{Path where you want to save the Excel file (Default
-paste0(path_out, "/Results.xlsx")).}
+"Results.xlsx").}
 
 \item{verbose}{Print progress bar and messages (Default=TRUE).}
 }

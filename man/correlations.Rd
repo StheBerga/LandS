@@ -11,7 +11,7 @@ correlations(
   rho_dec = 3,
   pval_dec = 4,
   excel = FALSE,
-  excel_path = paste0(path_output, "/Results.xlsx")
+  excel_path = "Results.xlsx"
 )
 }
 \arguments{

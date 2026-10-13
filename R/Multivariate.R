@@ -135,10 +135,10 @@ multivariate_cox <- function(data, vars, ptime, pevent, dec_HR = 4){
   }
 
   string <- conv_to_string(workdata, pos, sep= "+") # JG: function "Stringa" was already in file String.R
-  frm <- formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", string))
+  frm <- stats::formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", string))
 
-  mod.cph <-   cph(frm, data = workdata, iter.max = 100000)
-  mod.coxph <- coxph(frm, data = workdata, iter.max = 100000)
+  mod.cph <- rms::cph(frm, data = workdata, iter.max = 100000)
+  mod.coxph <- survival::coxph(frm, data = workdata, iter.max = 100000)
 
   summ.cph <- summary(mod.cph)
   summ.coxph <- summary(mod.coxph)
@@ -190,7 +190,7 @@ multivariate_cox <- function(data, vars, ptime, pevent, dec_HR = 4){
     "Upper" = summ.cph[,"Upper 0.95"][seq(2,rows_mod,2)],
     "Pvalue" = NA)
 
-  pvalue.coxph <- as.data.frame(coefficients(summ.coxph))
+  pvalue.coxph <- as.data.frame(stats::coefficients(summ.coxph))
   pvalue.coxph$Var <- rownames(pvalue.coxph)
   rownames(pvalue.coxph) <- NULL
   pvalue.coxph <- pvalue.coxph[,c(6,5)]
@@ -233,7 +233,7 @@ multivariate_cox <- function(data, vars, ptime, pevent, dec_HR = 4){
   }
 
   # Sistemo pvalue anova nel tot.df
-  anova_df <- as.data.frame(anova(mod.cph))
+  anova_df <- as.data.frame(stats::anova(mod.cph))
   anova_df$Var <- rownames(anova_df)
   colnames(anova_df)[3] <- "pvalue"
   anova_df <- anova_df[,c("Var", "pvalue")]
@@ -299,7 +299,7 @@ multivariate_cox <- function(data, vars, ptime, pevent, dec_HR = 4){
 
   # Aggiungo pvalue
   tmp1 <- pvalue_df
-  df.design <- left_join(df.design, tmp1)
+  df.design <- dplyr::left_join(df.design, tmp1)
   df.design
   rm(tmp1)
 
@@ -308,7 +308,7 @@ multivariate_cox <- function(data, vars, ptime, pevent, dec_HR = 4){
   tmp1 <- mod.df[,1:4]
   colnames(tmp1)[1] <- "name_mod"
 
-  df.merge <- inner_join(df.design, tmp1)
+  df.merge <- dplyr::inner_join(df.design, tmp1)
   rm(tmp1)
 
   # Sistemazione importante df.tot da merge #

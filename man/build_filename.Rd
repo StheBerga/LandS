@@ -8,7 +8,7 @@ build_filename(
   filename = "example",
   extension = ".png",
   output = ".",
-  datetime = F
+  datetime = FALSE
 )
 }
 \arguments{
@@ -30,9 +30,9 @@ output path + filename + extension.
 }
 \examples{
 build_filename(filename = "example", extension = ".png", output = ".",
-datetime = F)
+datetime = FALSE)
 build_filename(filename = "example", extension = ".png", output = ".",
-datetime = T)
+datetime = TRUE)
 }
 \author{
 Luca Lalli, Stefano Bergamini

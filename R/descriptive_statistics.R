@@ -124,12 +124,12 @@ descriptive_stats <- function(dataset, path = NULL){
     for (i in var_quan) {
       index_matrix[k, "Miss"]    <- sum(is.na(dataset_t[, i]))
       index_matrix[k, "Min"]     <- round(min(dataset_t[, i], na.rm = TRUE), 3)
-      index_matrix[k, "1Q"]      <- round(quantile(dataset_t[, i], 0.25, na.rm = TRUE), 3)
-      index_matrix[k, "Median"]  <- round(median(dataset_t[, i], na.rm = TRUE), 3)
+      index_matrix[k, "1Q"]      <- round(stats::quantile(dataset_t[, i], 0.25, na.rm = TRUE), 3)
+      index_matrix[k, "Median"]  <- round(stats::median(dataset_t[, i], na.rm = TRUE), 3)
       index_matrix[k, "Mean"]    <- round(mean(dataset_t[, i], na.rm = TRUE), 3)
-      index_matrix[k, "3Q"]      <- round(quantile(dataset_t[, i], 0.75, na.rm = TRUE), 3)
+      index_matrix[k, "3Q"]      <- round(stats::quantile(dataset_t[, i], 0.75, na.rm = TRUE), 3)
       index_matrix[k, "Max"]     <- round(max(dataset_t[, i], na.rm = TRUE), 3)
-      index_matrix[k, "Stdev"]   <- round(sd(dataset_t[, i], na.rm = TRUE), 3)
+      index_matrix[k, "Stdev"]   <- round(stats::sd(dataset_t[, i], na.rm = TRUE), 3)
 
       k <- k + 1
     }

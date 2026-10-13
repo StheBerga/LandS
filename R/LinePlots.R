@@ -154,6 +154,7 @@
 #' }
 #'
 #' @export
+#' @importFrom rlang .data
 Lineplots <- function (data,
                        variables,
                        time,
@@ -308,17 +309,17 @@ Lineplots <- function (data,
       if (stat_line == "median") {
 
         if (group == 1) {
-          smooth_data <- aggregate(data[[i]], by = list(Time_num = data[, time]),
-                                   FUN = function(x) c(median = median(x, na.rm = TRUE),
-                                                       lower = quantile(x, 0.25, na.rm = TRUE),
-                                                       upper = quantile(x, 0.75, na.rm = TRUE)))
+          smooth_data <- stats::aggregate(data[[i]], by = list(Time_num = data[, time]),
+                                   FUN = function(x) c(median = stats::median(x, na.rm = TRUE),
+                                                       lower = stats::quantile(x, 0.25, na.rm = TRUE),
+                                                       upper = stats::quantile(x, 0.75, na.rm = TRUE)))
           smooth_data <- do.call(data.frame, smooth_data)
           colnames(smooth_data) <- c("Time_num", "smooth_y", "Lower", "Upper")
         } else {
-          smooth_data <- aggregate(data[[i]], by = list(Time_num = data[, time], Group = data[, group]),
-                                   FUN = function(x) c(median = median(x, na.rm = TRUE),
-                                                       lower = quantile(x, 0.25, na.rm = TRUE),
-                                                       upper = quantile(x, 0.75, na.rm = TRUE)))
+          smooth_data <- stats::aggregate(data[[i]], by = list(Time_num = data[, time], Group = data[, group]),
+                                   FUN = function(x) c(median = stats::median(x, na.rm = TRUE),
+                                                       lower = stats::quantile(x, 0.25, na.rm = TRUE),
+                                                       upper = stats::quantile(x, 0.75, na.rm = TRUE)))
           smooth_data <- do.call(data.frame, smooth_data)
           colnames(smooth_data) <- c("Time_num", group, "smooth_y", "Lower", "Upper")
         }
@@ -326,17 +327,17 @@ Lineplots <- function (data,
       } else if (stat_line == "mean") {
 
         if (group == 1) {
-          smooth_data <- aggregate(data[[i]], by = list(Time_num = data[, time]),
+          smooth_data <- stats::aggregate(data[[i]], by = list(Time_num = data[, time]),
                                    FUN = function(x) c(mean = mean(x, na.rm = TRUE),
-                                                       lower = quantile(x, 0.25, na.rm = TRUE),
-                                                       upper = quantile(x, 0.75, na.rm = TRUE)))
+                                                       lower = stats::quantile(x, 0.25, na.rm = TRUE),
+                                                       upper = stats::quantile(x, 0.75, na.rm = TRUE)))
           smooth_data <- do.call(data.frame, smooth_data)
           colnames(smooth_data) <- c("Time_num", "smooth_y", "Lower", "Upper")
         } else {
-          smooth_data <- aggregate(data[[i]], by = list(Time_num = data[, time], Group = data[, group]),
+          smooth_data <- stats::aggregate(data[[i]], by = list(Time_num = data[, time], Group = data[, group]),
                                    FUN = function(x) c(mean = mean(x, na.rm = TRUE),
-                                                       lower = quantile(x, 0.25, na.rm = TRUE),
-                                                       upper = quantile(x, 0.75, na.rm = TRUE)))
+                                                       lower = stats::quantile(x, 0.25, na.rm = TRUE),
+                                                       upper = stats::quantile(x, 0.75, na.rm = TRUE)))
           smooth_data <- do.call(data.frame, smooth_data)
           colnames(smooth_data) <- c("Time_num", group, "smooth_y", "Lower", "Upper")
         }
@@ -352,8 +353,8 @@ Lineplots <- function (data,
     }
 
     Quantili <- data.frame(Tempo = unique(data[, time]),
-                           Inferior = tapply(data[, i], data[, time], FUN = function(z) quantile(z, ylim[1], na.rm = T)),
-                           Superior = tapply(data[, i], data[, time], FUN = function(z) quantile(z, ylim[2], na.rm = T)))
+                           Inferior = tapply(data[, i], data[, time], FUN = function(z) stats::quantile(z, ylim[1], na.rm = T)),
+                           Superior = tapply(data[, i], data[, time], FUN = function(z) stats::quantile(z, ylim[2], na.rm = T)))
 
     # Define the graph
     gg <- ggplot2::ggplot(data = data, ggplot2::aes_string(x = time, y = data[, i])) +
@@ -412,17 +413,17 @@ Lineplots <- function (data,
     }
     if (stat_line == "median") {
       if (smooth_line) {
-        gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = smooth_y), geom = "line", alpha = alpha_line,
+        gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = .data$Time_num, y = .data$smooth_y), geom = "line", alpha = alpha_line,
                                size = lw_reg, span = span_line, show.legend = F, method = "loess", formula = 'y ~ x')
       } else {
-        gg <- gg + ggplot2::stat_summary(geom = "line", fun = median,
+        gg <- gg + ggplot2::stat_summary(geom = "line", fun = stats::median,
                                 alpha = alpha_line, linewidth = lw_reg, show.legend = FALSE) +
-          ggplot2::stat_summary(geom = "point", fun = median,
+          ggplot2::stat_summary(geom = "point", fun = stats::median,
                        size = NA, show.legend = TRUE)
       }
     } else if (stat_line == "mean") {
       if (smooth_line) {
-        gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = smooth_y), geom = "line", alpha = alpha_line,
+        gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = .data$Time_num, y = .data$smooth_y), geom = "line", alpha = alpha_line,
                                size = lw_reg, span = span_line, show.legend = F, method = "loess", formula = 'y ~ x')
       } else {
         gg <- gg + ggplot2::stat_summary(geom = "line", fun = mean,
@@ -440,24 +441,24 @@ Lineplots <- function (data,
     if (ribbon == TRUE) {
       if(smooth_line){
         if(group == 1){
-          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = Upper), geom = "line", alpha = alpha_line,
+          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = .data$Time_num, y = .data$Upper), geom = "line", alpha = alpha_line,
                                  size = lw_reg, span = span_line, show.legend = F, colour = NA, method = "loess", formula = 'y ~ x')
 
-          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = Lower), geom = "line", alpha = alpha_line,
+          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = .data$Time_num, y = .data$Lower), geom = "line", alpha = alpha_line,
                                  size = lw_reg, span = span_line, show.legend = F, colour = NA, method = "loess", formula = 'y ~ x')
 
           gg1 <- ggplot2::ggplot_build(gg)
 
           df2 <- data.frame(x = gg1$data[[1]]$x, ymin = gg1$data[[2]]$y, ymax = gg1$data[[3]]$y)
 
-          gg <- gg + ggplot2::geom_ribbon(data = df2, ggplot2::aes(x = x, ymin = ymin, ymax = ymax, y = 0),
+          gg <- gg + ggplot2::geom_ribbon(data = df2, ggplot2::aes(x = .data$x, ymin = .data$ymin, ymax = .data$ymax, y = 0),
                                  fill = col_lines[1], alpha = alpha_ribbon, show.legend = F, linewidth = NA)
         } else if (group != 1) {
 
-          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = Upper), geom = "line", alpha = alpha_line,
+          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = .data$Time_num, y = .data$Upper), geom = "line", alpha = alpha_line,
                                  size = lw_reg, span = span_line, show.legend = F, colour = NA, method = "loess", formula = 'y ~ x')
 
-          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = Time_num, y = Lower), geom = "line", alpha = alpha_line,
+          gg <- gg + ggplot2::stat_smooth(data = smooth_data, ggplot2::aes(x = .data$Time_num, y = .data$Lower), geom = "line", alpha = alpha_line,
                                  size = lw_reg, span = span_line, show.legend = F, colour = NA, method = "loess", formula = 'y ~ x')
 
           gg1 <- ggplot2::ggplot_build(gg)
@@ -466,15 +467,15 @@ Lineplots <- function (data,
           df2$group <- factor(df2$group, levels = 1:nlevels(data[, group]), labels = levels(data[, group]))
           colnames(df2)[which(colnames(df2) == "group")] <- group
 
-          gg <- gg + ggplot2::geom_ribbon(data = df2, ggplot2::aes(x = x, ymin = ymin, ymax = ymax, y = 0), alpha = 0.1, show.legend = F,
+          gg <- gg + ggplot2::geom_ribbon(data = df2, ggplot2::aes(x = .data$x, ymin = .data$ymin, ymax = .data$ymax, y = 0), alpha = 0.1, show.legend = F,
                                  linewidth = NA)
 
         }
       } else {
         gg <- gg + ggplot2::stat_summary(geom = "ribbon", fun.min = function(z) {
-          quantile(z, 0.25)
+          stats::quantile(z, 0.25)
         }, fun.max = function(z) {
-          quantile(z, 0.75)
+          stats::quantile(z, 0.75)
         }, linewidth = NA, alpha = alpha_ribbon, show.legend = F)
       }
     } else { }
@@ -494,7 +495,7 @@ Lineplots <- function (data,
       if (Posthoc)
         if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
           gg <- gg + ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pval}",
-                                                y.position = max(tapply(data[, i], data[, time], median, na.rm = T)),
+                                                y.position = max(tapply(data[, i], data[, time], stats::median, na.rm = T)),
                                                 step.increase = 0.08, size = posthoc_test_size)
     }
     if (grid == TRUE) {

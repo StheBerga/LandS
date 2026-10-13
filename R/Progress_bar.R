@@ -56,7 +56,7 @@ Progress_bar <- function (current,
    eta <- if (current < total)
       avg_time * (total - current)
    else 0
-   ram_gb <- round(as.numeric(pryr::mem_used())/1024^3, 2)
+   ram_gb <- round(as.numeric(lobstr::mem_used())/1024^3, 2)
    bar <- paste0("\033[92m", strrep(bar_fill, filled_length),
                  "\033[90m", strrep(bar_void, bar_length - filled_length),
                  "\033[0m")
@@ -67,7 +67,7 @@ Progress_bar <- function (current,
                if (current == total) "\n" else ""))
 
 
-   flush.console()
+   utils::flush.console()
    current_time <- format(Sys.time(), "%H:%M:%S")
    if (!is.null(logfile)) {
       msg <- sprintf("[%s] Cycle %d/%d %s - Elapsed: %s - RAM: %.2fGb",

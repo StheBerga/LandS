@@ -57,7 +57,7 @@ summary_by_group <- function(data, var_quant, var_cat, digits = 2){
 
   tab_t <- tapply(data[, var_quant], data[, var_cat], summary, na.rm=T)
   tab_miss <- tapply(is.na(data[, var_quant]), data[, var_cat], sum)
-  tab_std <- tapply(data[, var_quant], data[, var_cat], sd, na.rm = T)
+  tab_std <- tapply(data[, var_quant], data[, var_cat], stats::sd, na.rm = T)
 
   for (i in df[, 1]) {
     df$Min[df[, 1] == i] <- round(tab_t[[i]]["Min."], digits = digits)

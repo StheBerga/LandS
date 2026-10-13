@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 In this vingette we will see how to master the Lineplots_LB function to build perfect lineplots. First we configure the environment and load all necessary packages. 
 
 ```{r setup}
-options(scipen = 999999)
+options(scipen = 9999)
 library(LandS)
 library(ggplot2)
 ```
@@ -45,9 +45,9 @@ In this case the generated data is simulated, for more info on how to set a data
 You can build a single graph using the following code:
 
 ```{r single graph}
-Lineplots_LB(data = data01, 
-             variables = "Marker_1", 
-             time = "Time")
+Lineplots(data = data01, 
+          variables = "Marker_1", 
+          time = "Time")
 ```
 
 You can see that the arguments used by the function are: 
@@ -65,7 +65,7 @@ We can change the lineplot graphics as follows:
 
 ```{r customized single graph}
 
-Lineplots_LB(data = data01, variables = "Marker_1", time = "Time")
+Lineplots(data = data01, variables = "Marker_1", time = "Time")
 
 ```
 
@@ -74,13 +74,13 @@ Lineplots_LB(data = data01, variables = "Marker_1", time = "Time")
 We can also get separated curves for a specific grouping variable: 
 
 ```{r split a single graph}
-Lineplots_LB(data = data01, variables = "Marker_1", time = "Time", group = "Gender")
+Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Gender")
 ```
 
 ## Build a list of lineplots
 
 ```{r graphs list}
-Lineplots_LB(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender")
+Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender")
 ```
 
 ## Save a list of lineplots
@@ -91,15 +91,15 @@ You can save a list of lineplots in two different ways: you can build a grid and
 
 ```{r save a list as pdf, eval=FALSE}
 
-List_reg <- Lineplots_LB(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender")
+List_reg <- Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender")
 
-LandS::Print_LB(plot_list = List_reg, path_print = "your/directory", ext = "pdf")
+LandS::print_plot_grid(plot_list = List_reg, path_print = "your/directory", ext = "pdf")
 
 ```
 ### Save a list of lineplots as a PPTX file
 
 ```{r save a list as pptx, eval=FALSE}
-Lineplots_LB(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender", 
+Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender", 
              PPTX = TRUE, grid = FALSE, pptx_width = 6, pptx_height = 4, target = "your/directory/new_presentation.pptx")
 ```
 
@@ -113,8 +113,8 @@ df_legend$Colour <- c("red", "orange")
 
 colour_title <- function(i) df_legend$Colour[df_legend$Var == i]
 
-Lineplots_LB(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender", 
-             col_title = TRUE, colour_title = colour_title)
+Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender", 
+             col_title = TRUE, fill_title = colour_title)
 ```
 
 
@@ -125,13 +125,13 @@ Lineplots_LB(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time"
 data01$Time_fac <- factor(data01$Time, levels = c(1:5), ordered = TRUE)
 
 # Run cont_var_test
-Tests <- LandS::cont_var_test_LB(data = data01, variables = c("Marker_1", "Marker_2"), group = "Time_fac", 
-                                 paired = TRUE, p.adjust.method = "bonferroni")
+Tests <- LandS::cont_var_test(data = data01, 
+                              variables = c("Marker_1", "Marker_2"), 
+                              group = "Time_fac", 
+                              paired = TRUE, 
+                              p.adjust.method = "bonferroni")
 
-Lineplots_LB(data = data01, time = "Time", variables = "Marker_1", Overall = TRUE, Test_results = Tests[[3]], 
+Lineplots(data = data01, time = "Time", variables = "Marker_1", Overall = TRUE, Test_results = Tests[[3]], 
              Posthoc = TRUE, posthoc_test_size = 2, threshold_posthoc = 1)
 
 ```
-
-
-## Add extra text to the graphs

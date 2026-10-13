@@ -4,20 +4,34 @@
 \alias{formatz_p}
 \title{Format p-values for reporting}
 \usage{
-formatz_p(value)
+formatz_p(x, digits = 4, prepend_p = FALSE, na = NA_character_, ...)
 }
 \arguments{
-\item{value}{A numeric scalar, numeric vector, or data frame containing
-p-values to format. For data frames, p-values must be in the first column.}
+\item{x}{(`numeric`)\cr
+Numeric vector}
+
+\item{digits}{(non-negative `integer`)\cr
+Integer or vector of integers specifying the number of decimals
+to round `x`. When vector is passed, each integer is mapped 1:1 to the
+numeric values in `x`}
+
+\item{prepend_p}{(scalar `logical`)\cr
+Logical. Should 'p=' be prepended to formatted p-value.
+Default is `FALSE`}
+
+\item{na}{(`NA`/`string`)\cr
+Character to replace `NA` values with. Default is `NA_character`}
+
+\item{...}{Arguments passed on to `gtsummary::style_number()`}
 }
 \value{
-An object of the same general type as 'value': a formatted character value,
-a character vector, or a data frame with its first column formatted.
+An object of the same general type as 'value': a formatted character value
+or a character vector
 }
 \description{
 Formats numeric p-values for display in tables and plot annotations.
-Values greater than or equal to '0.0001' are rounded to four decimal places
-and printed with four digits after the decimal point. Values below '0.0001'
+Values greater than or equal to '10^\(-digits\)' are rounded to correspondent decimal places
+and printed with digits after the decimal point. Values below '10^\(-digits\)'
 are displayed as "<0.0001". Missing values are preserved as NA.
 
 The function accepts a single numeric value, a numeric vector, or a data frame.
@@ -26,6 +40,9 @@ columns are returned unchanged.
 }
 \examples{
 formatz_p(0.03215)
-formatz_p(c(0.2, 0.0499, 0.00001, NA))
-formatz_p(data.frame(p = c(0.03, 0.00001, NA)))
+formatz_p(x = c(1, 0, 0.12, 0.012, 0.0012, 0.00012, 0.000012, NA),
+digits = 4, prepend_p = TRUE, na = '-')
+}
+\author{
+Stefano Bergamini
 }

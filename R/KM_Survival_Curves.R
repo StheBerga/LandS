@@ -114,7 +114,7 @@ plot_km_curve <- function(data,
                           at_risk_size = 3,
                           breaks_by = 3){
 
-  frm <- formula(paste0("survival::Surv(", tEvent, ",", Event, ")~", strata))
+  frm <- stats::formula(paste0("survival::Surv(", tEvent, ",", Event, ")~", strata))
   surv_fit = ggsurvfit::survfit2(frm, data = data)
 
 
@@ -122,7 +122,7 @@ plot_km_curve <- function(data,
     ggsurvfit::ggsurvfit(surv_fit, size = lwd_lines) +
     ggsci::scale_color_jco() +
     ggsurvfit::add_confidence_interval(alpha = alpha_CI) +
-    ggsurvfit::add_risktable_strata_symbol(size = 5) +
+    ggsurvfit::add_risktable_strata_symbol(size = 5, symbol = "-") +
     ggsurvfit::add_risktable(risktable_stats = "n.risk", risktable_height = 0.15, size = at_risk_size,
                   theme = ggsurvfit::theme_risktable_default(plot.title.size = at_risk_title_size)) +
 

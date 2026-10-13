@@ -85,10 +85,10 @@ Outlier_Report <- function (data,
 
   for (p in variables){
 
-    tmp <- cbind(tapply(data[, p], data[, Group], FUN = function (x) quantile(x, probs = .25, na.rm = T)) -
-                   (k * tapply(data[, p], data[, Group], FUN = function (x) IQR(x, na.rm = T))),
-                 tapply(data[, p], data[, Group], FUN = function (x) quantile(x, probs = .75, na.rm = T)) +
-                   (k * tapply(data[, p], data[, Group], FUN = function (x) IQR(x, na.rm = T)))) %>%  as.data.frame() %>%
+    tmp <- cbind(tapply(data[, p], data[, Group], FUN = function (x) stats::quantile(x, probs = .25, na.rm = T)) -
+                   (k * tapply(data[, p], data[, Group], FUN = function (x) stats::IQR(x, na.rm = T))),
+                 tapply(data[, p], data[, Group], FUN = function (x) stats::quantile(x, probs = .75, na.rm = T)) +
+                   (k * tapply(data[, p], data[, Group], FUN = function (x) stats::IQR(x, na.rm = T)))) %>%  as.data.frame() %>%
       dplyr::mutate(Var = rownames(.)) %>%
       `rownames<-`(NULL) %>%
       `colnames<-`(c("Min", "Max", "Group"))
@@ -101,8 +101,8 @@ Outlier_Report <- function (data,
                    data[data[, Group] == i & data[, ID] == j, p] > tmp[tmp$Group == i, "Max"], TRUE, NA)
 
         df2[df2[, ID] == j & df2[, Group] == i, p] <- ifelse(
-          data[data[, Group] == i & data[, ID] == j, p] > quantile(data[, p], probs = 0.75, na.rm = T) + (k * IQR(data[, p], na.rm = T)) |
-          data[data[, Group] == i & data[, ID] == j, p] < quantile(data[, p], probs = 0.25, na.rm = T) - (k * IQR(data[, p], na.rm = T)),
+          data[data[, Group] == i & data[, ID] == j, p] > stats::quantile(data[, p], probs = 0.75, na.rm = T) + (k * stats::IQR(data[, p], na.rm = T)) |
+          data[data[, Group] == i & data[, ID] == j, p] < stats::quantile(data[, p], probs = 0.25, na.rm = T) - (k * stats::IQR(data[, p], na.rm = T)),
           TRUE, NA)
 
       }

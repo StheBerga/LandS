@@ -248,11 +248,11 @@ Boxplot <- function (data,
     }
     k <- which(variables == i)
     if (Posthoc == T) {
-      posthoc_df <- LandS::posthoc_df(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i)
+      posthoc_df <- posthoc_df(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i)
     }
-    A = tapply(data[, i], data[, group], quantile, c(0.75), na.rm = T)
-    B = tapply(data[, i], data[, group], quantile, c(0.25), na.rm = T)
-    C = tapply(data[, i], data[, group], IQR, na.rm = T)
+    A = tapply(data[, i], data[, group], stats::quantile, c(0.75), na.rm = T)
+    B = tapply(data[, i], data[, group], stats::quantile, c(0.25), na.rm = T)
+    C = tapply(data[, i], data[, group], stats::IQR, na.rm = T)
     ymax <- max(A + th.outliers * C, na.rm = T)
     ymin <- min(B - th.outliers * C, na.rm = T)
     data[, "Y"] <- data[, i]
@@ -279,7 +279,7 @@ Boxplot <- function (data,
       } + {
         if (Median_line)
           ggplot2::stat_summary(ggplot2::aes_string(y = data[, i], group = 1),
-                       geom = "line", fun = median, linewidth = lwd_median_line,
+                       geom = "line", fun = stats::median, linewidth = lwd_median_line,
                        colour = col_median_line, linetype = "solid", show.legend = F)
       } + {
         if (rm.outliers)
@@ -302,8 +302,8 @@ Boxplot <- function (data,
           if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
             ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pval}", bracket.shorten = bracket_shorten, bracket.nudge.y = bracket.nudge.y,
                                        y.position =
-                                         max(tapply(data[, i], data[, group], quantile, na.rm = T, probs = 0.75) +
-                                               tapply(data[, i], data[, group], IQR, na.rm = T)),
+                                         max(tapply(data[, i], data[, group], stats::quantile, na.rm = T, probs = 0.75) +
+                                               tapply(data[, i], data[, group], stats::IQR, na.rm = T)),
                                        step.increase = 0.08, size = posthoc_test_size)
       } + {
         if (Overall)

@@ -78,59 +78,6 @@ univariate_cox <- function(data, vars, ptime, pevent){
     datadist = dd,
     contrasts = c("contr.treatment", "contr.treatment")
   )
-  # Funzioni formattazione
-  # formatz_p <- function(value){
-  #   if(is.data.frame(value)==T){
-  #     new_frame <- value
-  #
-  #     for(i in 1:dim(value)[1]){
-  #
-  #       if(is.na(value[i, 1]) == T) {
-  #
-  #         new_frame[i, 1] = NA
-  #       }
-  #
-  #       else if(value[i, 1] >= 0.0001){
-  #         new_frame[i, 1] <- format(round(value[i,1], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-  #       }else if (value[i, 1] < 0.0001){
-  #         new_frame[i, 1] <- "<0.0001"
-  #       }
-  #     }
-  #     return(new_frame)
-  #   }else if (is.vector(value) == TRUE){
-  #     new_vett <- c()
-  #
-  #     for (i in 1:length(value)) {
-  #
-  #
-  #       if (is.na(value[i])){
-  #
-  #         p <- NA
-  #
-  #       }else if (value[i] > 0.0001){
-  #
-  #         p <- format(round(value[i], 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-  #
-  #       }else if (value[i] < 0.0001){
-  #
-  #         p <- "<0.0001"
-  #       }
-  #       new_vett <- c(new_vett,p)
-  #     }
-  #     return(new_vett)
-  #   }else{
-  #
-  #     if(is.na(value) == T) {
-  #
-  #       value = NA
-  #     }
-  #     else if(value >= 0.0001){
-  #       value <- format(round(value, 4), digits = 4, nsmall = 4, width = 6, scientific=F, justify = "centre")
-  #     }else if(value < 0.0001){
-  #       value <- " <0.0001"}
-  #     return(value)
-  #   }
-  # }
 
   # Inizio funzione
   var_uni <- vars
@@ -194,7 +141,7 @@ univariate_cox <- function(data, vars, ptime, pevent){
                             check.names = F)
   k <- 1
   for(i in var_quan){
-    frm <- as.formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
+    frm <- stats::as.formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
     mod  <- rms::cph(frm, data=workdata)
     summ <- summary(mod)
 
@@ -225,7 +172,7 @@ univariate_cox <- function(data, vars, ptime, pevent){
 
   for(i in var_cat){
 
-    frm <- as.formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
+    frm <- stats::as.formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
     mod  <- survival::coxph(frm, data= workdata)
     summ <- summary(mod)
     lev <- nlevels(workdata[,i])
@@ -246,7 +193,7 @@ univariate_cox <- function(data, vars, ptime, pevent){
     CI.u <- formatz_p(summ$conf.int[, "upper .95"])
     CI <- paste0(CI.l, "-", CI.u)
     CI <- gsub(" ", "", CI)
-    p <- data.frame(value = summ$coefficients[, "Pr(>|z|)"])
+    p <- summ$coefficients[, "Pr(>|z|)"]
     pg <- p
     p <- formatz_p(p)
 
@@ -254,7 +201,7 @@ univariate_cox <- function(data, vars, ptime, pevent){
     cox_model_cat <- rbind(cox_model_cat, row_ref)
 
     for (i in 1:(lev-1)) {
-      row_lev <- c(name_lev[i+1], HR[i], CI[i], p[i, 1], pg[i, 1])
+      row_lev <- c(name_lev[i+1], HR[i], CI[i], p[i], pg[i])
       cox_model_cat <- rbind(cox_model_cat, row_lev)
     }
   }

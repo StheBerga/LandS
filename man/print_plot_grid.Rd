@@ -12,7 +12,8 @@ print_plot_grid(
   ext = NULL,
   width_pg = 21,
   height_pg = 29.7,
-  return_plot = FALSE
+  return_plot = FALSE,
+  suppress_warning = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ Default is ".".}
 
 \item{return_plot}{Logical. If TRUE, returns the list of grid plots created
 by cowplot::plot_grid(). If FALSE, returns NULL.}
+
+\item{suppress_warning}{if you want to suppress warnings (Default = FALSE)}
 }
 \value{
 Invisibly returns NULL if return_plot = FALSE. If return_plot = TRUE,
