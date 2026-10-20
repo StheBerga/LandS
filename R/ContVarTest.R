@@ -10,10 +10,12 @@
 #'   \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests by default.
 #' }
 #'
-#' You can also perform post-hoc tests without correcting for test multiplicity (option no.adj = T),
+#' You can also perform post-hoc tests without correcting for test multiplicity (option `type = "none"`),
 #' even if it is not recommended.
 #' The following summary statistics can be computed:
 #' `median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
+#' For paired analyses, the summary statistics will be computed only for
+#' complete observations.
 #'
 #' @param data dataframe containing the variables to test.
 #' @param variables Character vector with the names of continuous numeric
@@ -28,7 +30,7 @@
 #' required when `paired = TRUE`. Default = "ID".
 #' @param num_dec Decimal number for summary statistics (Default = 2).
 #' @param p_adjust_method Character string specifying the multiplicity
-#' adjustment method used for post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
+#' adjustment method used for overall and post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
 #' Passed to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), "fdr" is used.
 #' @param excel Logical. If `TRUE`, writes the result list to an Excel workbook
 #' with one sheet per result table (Default = `FALSE`).
@@ -46,13 +48,11 @@
 #' \describe{
 #'   \item{Raw_tests}{Summary statistics and unformatted p-values.}
 #'   \item{Form_tests}{Summary statistics and formatted p-values.}
-#'   \item{MW or WS _type}{Returned for two-group analyses. }
-#'   \item{Friedman_ph_pval}{Friedman global and post-hoc p-values; returned
-#'   for paired analyses with more than two groups.}
-#'   \item{KW_ph_pval}{Kruskal-Wallis global and post-hoc p-values; returned for
-#'   unpaired analyses with more than two groups.}
+#'   \item{MW or WS _type}{Raw and adjusted p-values; returned for two-group analyses.}
+#'   \item{FR or KW _type_p_adjust_method}{Global test with raw and adjusted p-values,
+#'   adjusted p-values for post-hoc comparisons; returned for analyses with more than two groups.}
 #' }
-#' The name of the last data frame is given by the overall test, posthoc comparisons if performed, and p-adjust method
+#' The name of the last data frame is given by the overall test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
 #' @export
 #'
 #' @importFrom magrittr %>%
@@ -61,12 +61,13 @@
 #' @details
 #' For paired analyses, subjects with missing values for a tested variable are
 #' removed from that variable-specific analysis to preserve complete pairs or
-#' repeated-measure blocks.
+#' repeated-measure blocks; subjects names must be in the same order across
+#' group variable to perform paired analyses correctly.
 #' @author Stefano Bergamini, Luca Lalli
 #'
 #' @examples
 #' cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
-#'               group = "Species", paired = FALSE)
+#'               group = "Species", paired = FALSE, verbose = FALSE)
 cont_var_test <- function(data,
                           variables,
                           paired = FALSE,
@@ -155,7 +156,7 @@ cont_var_test <- function(data,
     # Mann-Whitney Test
     if (paired == FALSE) {
 
-      for (i in seq_along(length(variables))) {
+      for (i in seq_along(variables)) {
         name <- variables[i]
 
         stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
@@ -163,8 +164,6 @@ cont_var_test <- function(data,
         table.p[table.p$Variable == name, 2] <- stats[1]
         table.p[table.p$Variable == name, 3] <- stats[2]
         table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(data[[name]] ~ data[[group]])$p.value
-        table.p[table.p$Variable == name, "padj"] <-
-          stats::p.adjust(table.p[table.p$Variable == name, "pvalue"], method = p_adjust_method, n = length(variables))
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
@@ -181,7 +180,7 @@ cont_var_test <- function(data,
         warning("IDs with NA will be removed \n Summary statistics are computed on filtered data")
       }
 
-      for (i in seq_along(length(variables))) {
+      for (i in seq_along(variables)) {
         name <- variables[i]
 
         if (sum(is.na(data[[name]])) > 0) {
@@ -204,8 +203,6 @@ cont_var_test <- function(data,
         table.p[table.p$Variable == name, 2] <- stats[1]
         table.p[table.p$Variable == name, 3] <- stats[2]
         table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(pre, post, paired = TRUE)$p.value
-        table.p[table.p$Variable == name, "padj"] <-
-          stats::p.adjust(table.p[table.p$Variable == name, "pvalue"], method = p_adjust_method, n = length(variables))
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
@@ -227,11 +224,11 @@ cont_var_test <- function(data,
     vett_contrasts <- paste(matrix_contrasts[, 1], "vs", matrix_contrasts[, 2])
 
     # Dataframe results
-    table.p <- matrix(nrow = length(variables), ncol = 2 + nlevels(data[[group]]) + length(vett_contrasts)) %>%
+    table.p <- matrix(nrow = length(variables), ncol = 3 + nlevels(data[[group]]) + length(vett_contrasts)) %>%
       as.data.frame %>%
       `colnames<-`(c("Variable",
                      paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels(data[[group]])),
-                     "Overall", vett_contrasts)) %>%
+                     "Overall.raw", "Overall.padj", vett_contrasts)) %>%
       dplyr::mutate(Variable = variables)
 
     # Friedman test and post hoc tests
@@ -241,7 +238,7 @@ cont_var_test <- function(data,
         warning("IDs with NA will be removed \n Summary statistics are computed on filtered data")
       }
 
-      for (i in seq_along(length(variables))) {
+      for (i in seq_along(variables)) {
         name <- variables[i]
 
         if (sum(is.na(data[[name]])) > 0) {
@@ -256,10 +253,10 @@ cont_var_test <- function(data,
             compute.stats(data = data_filtered, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
           # Friedman test
-          table.p[table.p$Variable == name, "Overall"] <- stats::friedman.test(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]])$p.value
+          table.p[table.p$Variable == name, "Overall.raw"] <- stats::friedman.test(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]])$p.value
 
         } else {
-          table.p[table.p$Variable == name, "Overall"] <- NA
+          table.p[table.p$Variable == name, "Overall.raw"] <- NA
         }
 
         if(stats::friedman.test(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]])$p.value > overall_threshold) {
@@ -306,14 +303,14 @@ cont_var_test <- function(data,
     # Kruskal Wallis and post hoc tests
     if(paired == FALSE) {
 
-      for (i in seq_along(length(variables))) {
+      for (i in seq_along(variables)) {
         name <- variables[i]
 
         table.p[table.p$Variable == name, 1+(1:nlevels(data[[group]]))] <-
           compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
         # Kruskal-Wallis test
-        table.p[table.p$Variable == name, "Overall"] <- stats::kruskal.test(x = data[[i]], g = data[[group]])$p.val
+        table.p[table.p$Variable == name, "Overall.raw"] <- stats::kruskal.test(x = data[[i]], g = data[[group]])$p.val
 
 
         if(stats::kruskal.test(x = data[[name]], g = data[[group]])$p.val > overall_threshold) {
@@ -353,16 +350,23 @@ cont_var_test <- function(data,
       if (verbose) message(paste("Kruskal-Wallis rank sum overall and", posthoc, "were used"))
     }
 
-    res[["Raw_tests"]] <- table.p
+    res[["Raw_tests"]] <- table.p %>%
+      dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
+                    dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method)))
     res[["Form_tests"]] <- table.p %>%
-      dplyr::arrange(.data[[if ("Overall" %in% names(table.p)) "Overall" else "padj"]]) %>%
+      dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
+                    dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method))) %>%
+      dplyr::arrange(.data[[if ("Overall.padj" %in% names(table.p)) "Overall.padj" else "padj"]]) %>%
       dplyr::mutate(dplyr::across((2+length(levels)):dplyr::last_col(), function(x) LandS::formatz_p(x)))
     res[[3]] <- table.p %>%
-      dplyr::select(.data$Variable, (2+length(levels)):dplyr::last_col()) %>%
-      `names<-`(dplyr::case_when(nlevels(data[[group]]) == 2 & paired == FALSE ~ paste('MW', type, sep = '_'),
-                                 nlevels(data[[group]]) == 2 & paired == TRUE ~ paste('WS', type, sep = '_'),
-                                 nlevels(data[[group]]) > 2 & paired == FALSE ~ paste('KW', type, p_adjust_method, sep = '_'),
-                                 nlevels(data[[group]]) > 2 & paired == TRUE ~ paste('FR', type, p_adjust_method, sep = '_')))
+      dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(Overall.raw, p_adjust_method)),
+                    dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(Overall.raw, p_adjust_method))) %>%
+      dplyr::select(.data$Variable, (2+length(levels)):dplyr::last_col())
+
+    names(res)[3] <- dplyr::case_when(nlevels(data[[group]]) == 2 & paired == FALSE ~ paste('MW', type, sep = '_'),
+                                      nlevels(data[[group]]) == 2 & paired == TRUE ~ paste('WS', type, sep = '_'),
+                                      nlevels(data[[group]]) > 2 & paired == FALSE ~ paste('KW', type, p_adjust_method, sep = '_'),
+                                      nlevels(data[[group]]) > 2 & paired == TRUE ~ paste('FR', type, p_adjust_method, sep = '_'))
 
   }
   if (excel == FALSE) {

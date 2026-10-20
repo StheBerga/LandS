@@ -49,7 +49,7 @@ required when `paired = TRUE`. Default = "ID".}
 \item{overall_threshold}{Sets a threhold to not perform posthoc comparisons when the overall test's raw p-value is over (Default = 0.1).}
 
 \item{p_adjust_method}{Character string specifying the multiplicity
-adjustment method used for post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
+adjustment method used for overall and post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
 Passed to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), "fdr" is used.}
 
 \item{excel}{Logical. If `TRUE`, writes the result list to an Excel workbook
@@ -64,13 +64,11 @@ A named list of data frames. The exact elements depend on the selected test:
 \describe{
   \item{Raw_tests}{Summary statistics and unformatted p-values.}
   \item{Form_tests}{Summary statistics and formatted p-values.}
-  \item{MW or WS _type}{Returned for two-group analyses. }
-  \item{Friedman_ph_pval}{Friedman global and post-hoc p-values; returned
-  for paired analyses with more than two groups.}
-  \item{KW_ph_pval}{Kruskal-Wallis global and post-hoc p-values; returned for
-  unpaired analyses with more than two groups.}
+  \item{MW or WS _type}{Raw and adjusted p-values; returned for two-group analyses.}
+  \item{FR or KW _type_p_adjust_method}{Global test with raw and adjusted p-values,
+  adjusted p-values for post-hoc comparisons; returned for analyses with more than two groups.}
 }
-The name of the last data frame is given by the overall test, posthoc comparisons if performed, and p-adjust method
+The name of the last data frame is given by the overall test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
 }
 \description{
 The test is selected automatically according to the number of groups and
@@ -82,19 +80,22 @@ whether observations are paired:
   \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests by default.
 }
 
-You can also perform post-hoc tests without correcting for test multiplicity (option no.adj = T),
+You can also perform post-hoc tests without correcting for test multiplicity (option `type = "none"`),
 even if it is not recommended.
 The following summary statistics can be computed:
 `median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
+For paired analyses, the summary statistics will be computed only for
+complete observations.
 }
 \details{
 For paired analyses, subjects with missing values for a tested variable are
 removed from that variable-specific analysis to preserve complete pairs or
-repeated-measure blocks.
+repeated-measure blocks; subjects names must be in the same order across
+group variable to perform paired analyses correctly.
 }
 \examples{
 cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
-              group = "Species", paired = FALSE)
+              group = "Species", paired = FALSE, verbose = FALSE)
 }
 \author{
 Stefano Bergamini, Luca Lalli
