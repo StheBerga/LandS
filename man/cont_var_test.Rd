@@ -90,8 +90,34 @@ complete observations.
 \details{
 For paired analyses, subjects with missing values for a tested variable are
 removed from that variable-specific analysis to preserve complete pairs or
-repeated-measure blocks; subjects names must be in the same order across
-group variable to perform paired analyses correctly.
+repeated-measure blocks; when performing Wilcoxon's signed rank test, subjects
+ids must be in the same order across group variable to perform paired analyses
+correctly.
+For paired analyses involving more than two groups, the Friedman test
+requires a complete block design, where each subject must have
+exactly one observation for every level of the grouping variable.
+
+Missing subject-group combinations are not allowed, even when the
+miaaing observations do not contain any non-`NA` values.
+
+A simple way to create a complete block design is:
+
+\preformatted{
+design <- expand.grid(
+  ID = unique(data$ID),
+  group = unique(data$group)
+)
+
+data_complete <- dplyr::left_join(
+  design,
+  data,
+  by = c("ID", "group")
+)
+}
+
+This operation creates all expected subject-group combinations and
+makes any missing observations explicit, allowing them to be identified
+and handled before running the analysis.
 }
 \examples{
 cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
