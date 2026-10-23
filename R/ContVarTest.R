@@ -6,54 +6,53 @@
 #' \itemize{
 #'   \item 2 groups, unpaired: Wilcoxon rank-sum test / Mann-Whitney U test.
 #'   \item 2 groups, paired: Wilcoxon signed-rank test.
-#'   \item >2 groups, unpaired: Kruskal-Wallis rank-sum test, with Dunn post-hoc tests.
-#'   \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests.
+#'   \item >2 groups, unpaired: Kruskal-Wallis rank-sum test, with Dunn post-hoc tests by default.
+#'   \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests by default.
 #' }
 #'
-#' You can also perform post-hoc tests without correcting for test multiplicity (option no.adj = T),
+#' You can also perform post-hoc tests without correcting for test multiplicity (option `type = "none"`),
 #' even if it is not recommended.
 #' The following summary statistics can be computed:
-#' median, mean, sd, min, max, q1, q3, n, and range.
+#' `median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
+#' For paired analyses, the summary statistics will be computed only for
+#' complete observations.
 #'
 #' @param data dataframe containing the variables to test.
 #' @param variables Character vector with the names of continuous numeric
 #' variables to test.
-#' @param paired Logical. If TRUE, observations are treated as paired or
-#' repeated measures across levels of group. Default=FALSE.
+#' @param paired Logical. If `TRUE`, observations are treated as paired or
+#' repeated measures across levels of group. (Default=`FALSE`).
 #' @param group Character string giving the name of the grouping variable.
 #' This column must be a factor with at least two levels.
-#' @param no.adj Logical. If TRUE, also returns unadjusted pairwise post-hoc
-#' p-values. This is intended for sensitivity checks and is generally not
-#' recommended for confirmatory inference. Default=FALSE.
 #' @param statistic Specifies summary statistics to display for each variable. Default = "\{mean\} (\{sd\})".
-#' Format is defined by gtsummary package.
-#' @param ID Character string giving the name of the subject identifier column,
-#' required when 'paired = TRUE'. Default = "ID".
+#' Format is defined by `gtsummary` package.
+#' @param id Character string giving the name of the subject identifier column,
+#' required when `paired = TRUE`. Default = "ID".
 #' @param num_dec Decimal number for summary statistics (Default = 2).
-#' @param p.adjust.method Character string specifying the multiplicity
-#' adjustment method used for post-hoc tests. Passed to the PMCMRplus post-hoc
-#' test functions. If NULL (Default), "bonferroni" is used.
-#' @param excel Logical. If TRUE, writes the result list to an Excel workbook
-#' with one sheet per result table (Default = FALSE).
-#' @param excel_path Path where you want to save the Excel file (Default
-#' "Results.xlsx").
-#' @param verbose  Print progress bar and messages (Default=TRUE).
-#'
+#' @param p_adjust_method Character string specifying the multiplicity
+#' adjustment method used for overall and post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
+#' Passed to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), "fdr" is used.
+#' @param excel Logical. If `TRUE`, writes the result list to an Excel workbook
+#' with one sheet per result table (Default = `FALSE`).
+#' @param excel_path Path where you want to save the Excel file (Default "Results.xlsx").
+#' @param verbose  Print progress bar and messages (Default=`TRUE`).
+#' @param type Choose the posthoc test to perform when `levels(group)>2`.
+#' The function supports all the tests from the `PMCMRplus` package,
+#' as well as Pairwise Wilcoxon Rank Sum tests and Pairwise Wilcoxon Signed Rank Tests.
+#' By default is set the Exact All-Pairs Comparisons Test when `paired=TRUE`,
+#' and the Dunn's All-Pairs Rank Comparison Test when `paired=FALSE`.
+#' @param overall_threshold Sets a threhold to not perform posthoc comparisons when the overall test's raw p-value is over (Default = 0.1).
 #'
 #' @return
 #' A named list of data frames. The exact elements depend on the selected test:
 #' \describe{
 #'   \item{Raw_tests}{Summary statistics and unformatted p-values.}
 #'   \item{Form_tests}{Summary statistics and formatted p-values.}
-#'   \item{Raw_pval}{P-values only; returned for two-group analyses.}
-#'   \item{Friedman_ph_pval}{Friedman global and post-hoc p-values; returned
-#'   for paired analyses with more than two groups.}
-#'   \item{KW_ph_pval}{Kruskal-Wallis global and post-hoc p-values; returned for
-#'   unpaired analyses with more than two groups.}
-#'   \item{no_corrected_ph}{Unadjusted post-hoc p-values; returned only when no.adj = TRUE.}
-#'   \item{Form_no_corrected_ph}{Formatted unadjusted post-hoc p-values; returned only
-#'   for Friedman analyses when no.adj = TRUE.}
+#'   \item{MW or WS _type}{Raw and adjusted p-values; returned for two-group analyses.}
+#'   \item{FR or KW _type_p_adjust_method}{Global test with raw and adjusted p-values,
+#'   adjusted p-values for post-hoc comparisons; returned for analyses with more than two groups.}
 #' }
+#' The name of the last data frame is given by the overall test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
 #' @export
 #'
 #' @importFrom magrittr %>%
@@ -62,50 +61,83 @@
 #' @details
 #' For paired analyses, subjects with missing values for a tested variable are
 #' removed from that variable-specific analysis to preserve complete pairs or
-#' repeated-measure blocks.
+#' repeated-measure blocks; when performing Wilcoxon's signed rank test, subjects
+#' ids must be in the same order across group variable to perform paired analyses
+#' correctly.
+#' For paired analyses involving more than two groups, the Friedman test
+#' requires a complete block design, where each subject must have
+#' exactly one observation for every level of the grouping variable.
+#'
+#' Missing subject-group combinations are not allowed, even when the
+#' miaaing observations do not contain any non-`NA` values.
+#'
+#' A simple way to create a complete block design is:
+#'
+#' \preformatted{
+#' design <- expand.grid(
+#'   ID = unique(data$ID),
+#'   group = unique(data$group)
+#' )
+#'
+#' data_complete <- dplyr::left_join(
+#'   design,
+#'   data,
+#'   by = c("ID", "group")
+#' )
+#' }
+#'
+#' This operation creates all expected subject-group combinations and
+#' makes any missing observations explicit, allowing them to be identified
+#' and handled before running the analysis.
 #' @author Stefano Bergamini, Luca Lalli
 #'
 #' @examples
-#' cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
-#'               group = "Species", paired = FALSE)
-cont_var_test <- function (data,
-                           variables,
-                           paired = FALSE,
-                           group,
-                           no.adj = FALSE,
-                           statistic = "{mean} ({sd})",
-                           ID = "ID",
-                           num_dec = 2,
-                           p.adjust.method = NULL,
-                           excel = F,
-                           excel_path = "Results.xlsx",
-                           verbose = TRUE)
-{
+#' mtcars$vs <- factor(mtcars$vs)
+#' cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'vs',
+#' paired = FALSE, verbose = FALSE)
+#'
+#' mtcars$cyl <- factor(mtcars$cyl)
+#' cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'cyl',
+#' paired = FALSE, verbose = FALSE)
+cont_var_test <- function(data,
+                          variables,
+                          paired = FALSE,
+                          group,
+                          type = NULL,
+                          statistic = "{mean} ({sd})",
+                          id = "ID",
+                          num_dec = 2,
+                          overall_threshold = 0.1,
+                          p_adjust_method = NULL,
+                          excel = FALSE,
+                          excel_path = "Results.xlsx",
+                          verbose = TRUE) {
 
-  if(is.null(p.adjust.method)){
-    p.adjust.method = "fdr"
+  if (is.null(p_adjust_method)) {
+    p_adjust_method = "fdr"
   }
 
   start_time <- Sys.time()
+  res <- list()
 
   # Check if data is a data frame
-  if("tbl_df" %in% base::class(data)){
-    stop(paste0(base::substitute(data), " is not a data frame, please make it a data frame!"))
+  if ("tbl_df" %in% base::class(data)) {
+    stop(paste(base::substitute(data), "is not a data frame, please make it a data frame!"))
   }
 
   # Error check: split variable numeric
-  if(!is.factor(data[, group])){
-    stop(paste0("Variable ", group, " is not factor, please make it factor"))
+  if (!is.factor(data[[group]])) {
+    stop(paste("Variable", group, "is not factor, please make it factor"))
   }
 
   # Error check: T/F assigned to something else
-  if(T != TRUE | F != FALSE){
+  if (T != TRUE || F != FALSE) {
     stop("T or F are not assigned as TRUE or FALSE. Check your .GlobalEnv")
   }
 
   # Error check: split variable with just one level
-  if(nlevels(data[,group]) == 1){
-    stop(paste0("Variable ", group, " has just 1 level"))
+  if (nlevels(data[[group]]) == 1) {
+    stop(paste("Variable", group, "has just 1 level"))
   }
 
   statistic <- stringr::str_to_lower(statistic)
@@ -140,528 +172,250 @@ cont_var_test <- function (data,
     return(stats)
   }
 
-  # Split variable dicotomica
-  if(nlevels(data[, group]) == 2){
+  # Split dichotomous variable
+  if (nlevels(data[[group]]) == 2) {
 
-    levels <- levels(data[,group])
+    levels <- levels(data[[group]])
     table.p <- matrix(nrow = length(variables), ncol = 5) %>%
       as.data.frame %>%
       `colnames<-`(c("Variable",
                      paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[1]),
                      paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels[2]),
-                     "pvalue", 'padj')) %>%
+                     "pvalue", "padj")) %>%
       dplyr::mutate(Variable = variables)
 
     # Mann-Whitney Test
-    if (paired == FALSE){
+    if (paired == FALSE) {
 
-      for (i in 1:length(variables)){
+      for (i in seq_along(variables)) {
         name <- variables[i]
 
         stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
         table.p[table.p$Variable == name, 2] <- stats[1]
         table.p[table.p$Variable == name, 3] <- stats[2]
-        table.p[table.p$Variable == name, 'pvalue'] <- as.numeric(stats::wilcox.test(data[, name] ~ data[, group])$p.value, 4)
-        table.p[table.p$Variable == name, 'padj'] <-
-          stats::p.adjust(table.p[table.p$Variable == name, 'pvalue'], method = p.adjust.method, n = length(variables))
+        table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(data[[name]] ~ data[[group]])$p.value
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
                                          bar_fill = "\u2588", bar_void = "\u2591")
       }
-
-      res <- list()
-      res[['Raw_tests']] <- table.p
-      res[['Form_tests']] <- table.p %>% dplyr::arrange(.data$padj) %>%
-        dplyr::mutate(pvalue = LandS::formatz_p(.data$pvalue), padj = LandS::formatz_p(.data$padj))
-      res[['Raw_pval']] <- table.p %>% dplyr::select(.data$Variable, .data$pvalue, .data$padj)
 
       if (verbose) message("Mann-Whitney Rank Sum test used")
     }
 
-    if (paired == TRUE){
+    # Wilcoxon Test
+    if (paired == TRUE) {
 
-      for (i in 1:length(variables)){
+      if (sum(is.na(data[, variables])) > 0) {
+        warning("IDs with NA will be removed \n Summary statistics are computed on filtered data")
+      }
+
+      for (i in seq_along(variables)) {
         name <- variables[i]
 
-        if (sum(is.na(data[, name])) >0){
-          vett_excl <- data %>% dplyr::filter(is.na(name)) %>% dplyr::pull(ID)
-          tmp <- data %>% dplyr::filter(!ID %in% vett_excl)
-        }else{
-          tmp <- data
+        if (sum(is.na(data[[name]])) > 0) {
+          vett_excl <- data %>% dplyr::filter(is.na(name)) %>% dplyr::pull(id)
+          data_filtered <- data %>% dplyr::filter(!id %in% vett_excl)
+        } else {
+          data_filtered <- data
         }
 
-        stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
+        stats <- compute.stats(data = data_filtered, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
-        pre <- tmp %>% dplyr::filter(.data[[group]] == levels[1]) %>% dplyr::pull(name)
-        names(pre) <- tmp %>% dplyr::filter(.data[[group]] == levels[1]) %>% dplyr::pull(ID)
-        post <- tmp %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(name)
-        names(post) <- tmp %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(ID)
+        pre <- data_filtered %>% dplyr::filter(.data[[group]] == levels[1]) %>% dplyr::pull(name)
+        names(pre) <- data_filtered %>% dplyr::filter(.data[[group]] == levels[1]) %>% dplyr::pull(id)
+        post <- data_filtered %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(name)
+        names(post) <- data_filtered %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(id)
 
-        if (names(pre) != names(post)){
-          stop('IDs are not sorted in the appropriate order between groups. \n Please refer to function description for details')
-        }
+        stopifnot("IDs are not sorted in the appropriate order within group variable. \n Please refer to function description for details" =
+                    names(pre) != names(post))
 
         table.p[table.p$Variable == name, 2] <- stats[1]
         table.p[table.p$Variable == name, 3] <- stats[2]
-        table.p[table.p$Variable == name, 'pvalue'] <- as.numeric(stats::wilcox.test(pre, post, paired = TRUE)$p.value, 4)
-        table.p[table.p$Variable == name, 'padj'] <-
-          stats::p.adjust(table.p[table.p$Variable == name, 'pvalue'], method = p.adjust.method, n = length(variables))
+        table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(pre, post, paired = TRUE)$p.value
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
                                          bar_fill = "\u2588", bar_void = "\u2591")
       }
 
-      res <- list()
-      res[['Raw_tests']] <- table.p
-      res[['Form_tests']] <- table.p %>% dplyr::arrange(.data$padj) %>%
-        dplyr::mutate(pvalue = LandS::formatz_p(.data$pvalue), padj = LandS::formatz_p(.data$padj))
-      res[['Raw_pval']] <- table.p %>% dplyr::select(.data$Variable, .data$pvalue, .data$padj)
-
       if (verbose) message("Wilcoxon signed rank test used")
     }
 
-  }else{
+  } else {
 
-    n_lev_posthoc <- length(utils::combn(levels(data[, group]), 2))/2
-    levels_groups <- levels(data[,group])
-    n_lev_group <- nlevels(data[,group])
+    # Posthoc test to perform
+    if (!is.null(type)) {
+      type <- tolower(type)
+    }
+    levels <- data[[group]] %>% levels()
 
-    if(paired == TRUE){
+    matrix_contrasts <- levels %>% utils::combn(2) %>% t()
+    vett_contrasts <- paste(matrix_contrasts[, 1], "vs", matrix_contrasts[, 2])
 
-      # Friedman test and post hoc tests
+    # Dataframe results
+    table.p <- matrix(nrow = length(variables), ncol = 3 + nlevels(data[[group]]) + length(vett_contrasts)) %>%
+      as.data.frame %>%
+      `colnames<-`(c("Variable",
+                     paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels(data[[group]])),
+                     "Overall.raw", "Overall.padj", vett_contrasts)) %>%
+      dplyr::mutate(Variable = variables)
 
-      if(sum(is.na(data[, variables])) > 0){
-        if (verbose) message("IDs with NA have been removed")
+    # Friedman test and post hoc tests
+    if (paired == TRUE) {
+
+      if (sum(is.na(data[, variables])) > 0) {
+        warning("IDs with NA will be removed \n Summary statistics are computed on filtered data")
       }
-      # Comparisons
-      matrix_comparison <- t(utils::combn(levels_groups, 2))
-      vett_comparison <- as.vector(NA)
-      for (x in 1:nrow(matrix_comparison)){
-        vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
-      }
 
-      Friedman_test_df <- as.data.frame(matrix(nrow = length(variables),
-                                               ncol = n_lev_group + n_lev_posthoc + 2))
-      colnames(Friedman_test_df) <- c("Var",
-                                      paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels_groups),
-                                      "Friedman", vett_comparison)
-      Friedman_test_df$Var <- variables
+      stopifnot(
+        "Data matrix must be a complete block design format. Please check function details section" =
+          data %>%
+          dplyr::group_by(.data[[id]]) %>%
+          dplyr::summarise(
+            complete = dplyr::n_distinct(.data[[group]]) == length(levels),
+            .groups = "drop"
+          ) %>%
+          dplyr::pull("complete") %>%
+          all()
+      )
 
-      for (i in variables){
+      for (i in seq_along(variables)) {
+        name <- variables[i]
 
-        name <- i
-
-        matt_combn <- as.data.frame(t(utils::combn(levels_groups, 2)))
-        colnames(matt_combn) <- c("Var1", "Var2")
-        matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
-        matt_combn$pval <- NA
-
-        if (sum(is.na(data[, i])) > 0){
-
-          vett_excl <- data[is.na(data[,i]), ID]
-          tmp <- data[!data[, ID] %in% vett_excl, ]
-
-        }else{
-
-          tmp <- data
-
+        if (sum(is.na(data[[name]])) > 0) {
+          vett_excl <- data %>% dplyr::filter(is.na(name)) %>% dplyr::pull(id)
+          data_filtered <- data %>% dplyr::filter(!id %in% vett_excl)
+        } else {
+          data_filtered <- data
         }
 
-        if(nrow(tmp) > 0 ) {
+        if (nrow(data_filtered) > 0) {
+          table.p[table.p$Variable == name, 1+(1:nlevels(data[[group]]))] <-
+            compute.stats(data = data_filtered, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
-          stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
-
-          for (o in 1:n_lev_group){
-            Friedman_test_df[Friedman_test_df$Var == i, 1+o] <- stats[o]
-          }
           # Friedman test
-          Friedman_test_df[Friedman_test_df$Var == i, "Friedman"] <- as.numeric(stats::friedman.test(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID])$p.val)
+          table.p[table.p$Variable == name, "Overall.raw"] <- stats::friedman.test(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]])$p.value
 
-          # Post hoc test
-          df_posthoc <- as.data.frame(PMCMRplus::frdAllPairsExactTest(y = tmp[, i], groups = tmp[, group], blocks = tmp[, ID], p.adjust.method = p.adjust.method)$p.value)
-          df_posthoc_pairs <- as.data.frame(matrix(NA, nrow = nlevels(data[, group]), ncol = nlevels(data[, group])+1))
-          colnames(df_posthoc_pairs) <- c("Var", levels(data[, group]))
-          df_posthoc_pairs$Var <- levels(data[, group])
-
-        }else{
-
-          Friedman_test_df[Friedman_test_df$Var == i, "Friedman"] <- NA
-          df_posthoc <- as.data.frame(matrix(NA, nrow = nlevels(data[, group])-1, ncol = nlevels(data[, group])-1))
-          df_posthoc_pairs <- as.data.frame(matrix(NA, nrow = nlevels(data[, group]), ncol = nlevels(data[, group])+1))
-          colnames(df_posthoc_pairs) <- c("Var", levels(data[, group]))
-          df_posthoc_pairs$Var <- levels(data[, group])
-
+        } else {
+          table.p[table.p$Variable == name, "Overall.raw"] <- NA
         }
 
+        if(stats::friedman.test(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]])$p.value > overall_threshold) {
+          # If the overall test is not significant, do not perform pairwise comparisons
+        } else {
+          # If the overall test is significant, perform pairwise comparisons
+          if (is.null(type)) {type <- "e"}
 
-        for (p in df_posthoc_pairs$Var) {
+          if (type == "c" || type == "conover") {
+            mat_posthoc <- PMCMRplus::frdAllPairsConoverTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Conover's All-Pairs Rank Comparison Test"
+          } else if(type == "e" || type == "exact") {
+            mat_posthoc <- PMCMRplus::frdAllPairsExactTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Exact All-Pairs Comparisons Test"
+          } else if(type == "n" || type == "nemenyi") {
+            mat_posthoc <- PMCMRplus::frdAllPairsNemenyiTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Nemenyi's All-Pairs Rank Comparison Test"
+          } else if(type == "m" || type == "miller") {
+            mat_posthoc <- PMCMRplus::frdAllPairsMillerTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Millers's All-Pairs Comparisons Test"
+          } else if(type == "w" || type == "wilcoxon") {
+            listIDs <- base::split(data_filtered, data_filtered[[group]]) %>% base::lapply(function(x) stats::setNames(x[[name]], x$id))
+            stopifnot("IDs are not sorted in the appropriate order within group variable. \n Please refer to function description for details" =
+                        all(vapply(listIDs[-1], function(x) identical(names(x), names(listIDs[[1]])), logical(1))))
+            mat_posthoc <- stats::pairwise.wilcox.test(data[[name]], g = data[[group]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Pairwise signed Wilcoxon Rank Sum Tests"
+          } else {
+            stop("Pairwise comparison is not defined properly \n Please refer to function description for details")
+          }
 
-          for(k in df_posthoc_pairs$Var){
-
-            if(p == k){df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <- 1}else{
-
-              vett_comp_a <- as.numeric(df_posthoc[rownames(df_posthoc) == p, colnames(df_posthoc) == k])
-              vett_comp_b <- as.numeric(df_posthoc[rownames(df_posthoc) == k, colnames(df_posthoc) == p])
-
-              if(!rlang::is_empty(vett_comp_a)){
-
-                df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <- vett_comp_a
-              }
-            }
+          for (contrast in vett_contrasts) {
+            x <- strsplit(contrast, " vs ")[[1]]
+            table.p[table.p$Variable == name, contrast] <- mat_posthoc[x[2], x[1]]
           }
         }
-
-        for (j in colnames(df_posthoc_pairs)[3:ncol(df_posthoc_pairs)]){
-
-          for(n in df_posthoc_pairs$Var){
-
-            if(!is.na(df_posthoc_pairs[df_posthoc_pairs$Var == n, j])){
-
-            }else{
-
-              df_posthoc_pairs[df_posthoc_pairs$Var== n,j] <- df_posthoc_pairs[df_posthoc_pairs$Var== j,n]
-
-            }
-
-          }
-        }
-
-        for(q in colnames(df_posthoc_pairs)[2:ncol(df_posthoc_pairs)]) {
-          df_posthoc_pairs[, q] <- as.numeric(df_posthoc_pairs[, q])
-        }
-
-        for (l in 1: nrow(matt_combn)) {
-
-          matt_combn[l, "pval"] <- df_posthoc_pairs[df_posthoc_pairs$Var == matt_combn$Var1[l], colnames(df_posthoc_pairs) == matt_combn$Var2[l]]
-        }
-
-        for(m in colnames(Friedman_test_df)[(3+n_lev_group):ncol(Friedman_test_df)]){
-
-          Friedman_test_df[Friedman_test_df$Var == i, m] <- as.numeric(matt_combn$pval[matt_combn$Versus == m])
-
-        }
-
-        if (verbose) LandS::Progress_bar(current = which(i == variables),
+        if (verbose) LandS::Progress_bar(current = i,
                                          total = length(variables), start_time = start_time,
                                          bar_fill = "\u2588", bar_void = "\u2591")
       }
 
-      res <- list()
-      Friedman_test_df_ordered <- dplyr::arrange(Friedman_test_df, .data$Friedman)
-      Friedman_test_df_form <- Friedman_test_df_ordered
-
-      for(z in colnames(Friedman_test_df_form)[(2+n_lev_group):ncol(Friedman_test_df_form)]){
-        Friedman_test_df_form[,z] <- LandS::formatz_p(Friedman_test_df_form[,z])
-      }
-
-      Friedman_ph_p <- Friedman_test_df[, c(1, (2+n_lev_group):ncol(Friedman_test_df))]
-
-      if (no.adj == FALSE){
-        res[[1]] <- Friedman_test_df
-        res[[2]] <- Friedman_test_df_form
-        res[[3]] <- Friedman_ph_p
-        names(res) <- c("Raw_tests", "Form_tests", "Friedman_ph_pval")
-      }else{
-
-        n_lev_posthoc <- length(utils::combn(levels(data[, group]), 2))/2
-        levels_groups <- levels(data[,group])
-        n_lev_group <- nlevels(data[,group])
-
-        matrix_comparison <- t(utils::combn(levels(data[, group]), 2))
-        vett_comparison <- as.vector(NA)
-
-        for (x in 1:nrow(matrix_comparison)){
-          vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
-        }
-
-        Dumb_test_df <- as.data.frame(matrix(nrow = length(variables), ncol = 1 + n_lev_posthoc))
-        colnames(Dumb_test_df) <- c("Var", vett_comparison)
-        Dumb_test_df$Var <- variables
-
-
-        for (i in variables){
-
-          matt_combn <- as.data.frame(t(utils::combn(levels(data[, group]), 2)))
-          colnames(matt_combn) <- c("Var1", "Var2")
-          matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
-          matt_combn$pval <- NA
-
-          tmp <- data
-
-
-          # Post hoc test
-          df_posthoc_pairs <- as.data.frame(matrix(NA, nrow = nlevels(tmp[, group]), ncol = nlevels(tmp[, group])+1))
-          colnames(df_posthoc_pairs) <- c("Var", levels(tmp[, group]))
-          df_posthoc_pairs$Var <- levels(tmp[, group])
-
-
-          for (p in df_posthoc_pairs$Var) {
-
-            for(k in df_posthoc_pairs$Var){
-
-              if(p == k){df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <- 1}else{
-
-                data1 <- tmp[, i][tmp[, group] %in% p ]
-                data2 <- tmp[, i][tmp[, group] %in% k ]
-
-                if (all(is.na(data1)) == TRUE | all(is.na(data2)) == TRUE){
-
-                  df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <- NA
-
-                } else {
-
-                  df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <-
-                    stats::wilcox.test(Pair(data1, data2) ~ 1, data = tmp)$p.value
-                }
-              }
-            }
-          }
-
-
-          for(q in colnames(df_posthoc_pairs)[2:ncol(df_posthoc_pairs)]) {
-            df_posthoc_pairs[, q] <- as.numeric(df_posthoc_pairs[, q])
-          }
-
-          for (l in 1: nrow(matt_combn)) {
-
-            matt_combn[l, "pval"] <- df_posthoc_pairs[df_posthoc_pairs$Var == matt_combn$Var1[l], colnames(df_posthoc_pairs) == matt_combn$Var2[l]]
-          }
-
-          for(m in colnames(Dumb_test_df)[2:ncol(Dumb_test_df)]){
-
-            Dumb_test_df[Dumb_test_df$Var == i, m] <- as.numeric(matt_combn$pval[matt_combn$Versus == m])
-
-          }
-        }
-
-        Dumb_test_df <-  dplyr::inner_join(Dumb_test_df, Friedman_test_df[, c("Var", "Friedman")], by = "Var") %>% dplyr::select("Var", "Friedman", dplyr::all_of(vett_comparison))
-
-        Dumb_test_df_form <- Dumb_test_df
-
-        for(z in colnames(Dumb_test_df_form)[2:ncol(Dumb_test_df_form)]){
-          Dumb_test_df_form[,z] <- LandS::formatz_p(Dumb_test_df_form[,z])
-        }
-
-        res[[1]] <- Friedman_test_df
-        res[[2]] <- Friedman_test_df_form
-        res[[3]] <- Friedman_ph_p
-        res[[4]] <- Dumb_test_df
-        res[[5]] <- Dumb_test_df_form
-        names(res) <- c("Raw_tests", "Form_tests", "Friedman_ph_pval", "no_corrected_ph", "Form_no_corrected_ph")
-        if (verbose) message("It is recommended to adjust for multiple testing; please ignore the results of no_corrected_ph")
-      }
-
-      if (verbose) message("Friedman rank sum test used")
+      if (verbose) message(paste("Friedman rank sum overall and", posthoc, "were used"))
     }
 
-    if(paired == FALSE){
-      # Kruskal Wallis and post hoc tests
+    # Kruskal Wallis and post hoc tests
+    if(paired == FALSE) {
 
-      # Comparazioni
-      matrix_comparison <- t(utils::combn(levels_groups, 2))
-      vett_comparison <- as.vector(NA)
-      for (x in 1:nrow(matrix_comparison)){
-        vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
-      }
+      for (i in seq_along(variables)) {
+        name <- variables[i]
 
-      # Dataframe results
-      KW_test_df <- as.data.frame(matrix(nrow = length(variables),
-                                         ncol = n_lev_group + n_lev_posthoc + 2))
-      colnames(KW_test_df) <- c("Var",
-                                paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels_groups),
-                                "Kruskal_Wallis", vett_comparison)
-      KW_test_df$Var <- variables
-
-      for (i in variables){
-
-        name <- i
-
-        stats <- compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
-
-        # Mean and SD in group variable
-        for (o in 1:n_lev_group){
-          KW_test_df[KW_test_df$Var == i, 1+o] <- stats[o]
-        }
-
-        matt_combn <- as.data.frame(t(utils::combn(levels_groups, 2)))
-        colnames(matt_combn) <- c("Var1", "Var2")
-        matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
-        matt_combn$pval <- NA
+        table.p[table.p$Variable == name, 1+(1:nlevels(data[[group]]))] <-
+          compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
         # Kruskal-Wallis test
-        KW_test_df[KW_test_df$Var == i, "Kruskal_Wallis"] <- as.numeric(stats::kruskal.test(x = data[, i], g = data[, group])$p.val)
-
-        # Post hoc test
-        df_posthoc <- as.data.frame(PMCMRplus::kwAllPairsDunnTest(x = data[, i], g = data[, group], p.adjust.method = p.adjust.method)$p.value)
-        df_posthoc_pairs <- as.data.frame(matrix(NA, nrow = nlevels(data[, group]), ncol = nlevels(data[, group])+1))
-        colnames(df_posthoc_pairs) <- c("Var", levels(data[, group]))
-        df_posthoc_pairs$Var <- levels(data[, group])
+        table.p[table.p$Variable == name, "Overall.raw"] <- stats::kruskal.test(x = data[[i]], g = data[[group]])$p.val
 
 
-        for (p in df_posthoc_pairs$Var) {
+        if(stats::kruskal.test(x = data[[name]], g = data[[group]])$p.val > overall_threshold) {
+          # If the overall test is not significant, do not perform pairwise comparisons
+        } else {
+          # If the overall test is significant, perform pairwise comparisons
+          if (is.null(type)) {type <- "d"}
 
-          for(k in df_posthoc_pairs$Var){
-
-            if(p == k){df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <- 1}else{
-
-              vett_comp_a <- as.numeric(df_posthoc[rownames(df_posthoc) == p, colnames(df_posthoc) == k])
-              vett_comp_b <- as.numeric(df_posthoc[rownames(df_posthoc) == k, colnames(df_posthoc) == p])
-
-              if(!rlang::is_empty(vett_comp_a)){
-
-                df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <- vett_comp_a
-              }
-            }
+          if (type == "c" || type == "conover") {
+            mat_posthoc <- PMCMRplus::kwAllPairsConoverTest(x = data[[name]], g = data[[group]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Conover's All-Pairs Rank Comparison Test"
+          } else if (type == "d" || type == "dunn") {
+            mat_posthoc <- PMCMRplus::kwAllPairsDunnTest(x = data[[name]], g = data[[group]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Dunn's All-Pairs Rank Comparison Test"
+          } else if (type == "n" || type == "nemenyi") {
+            mat_posthoc <- PMCMRplus::kwAllPairsNemenyiTest(x = data[[name]], g = data[[group]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Nemenyi's All-Pairs Rank Comparison Test"
+          } else if (type == "m" || type == "mann-whitney" || type == "mannwhitney" || type == "wilcoxon" || type == "w") {
+            mat_posthoc <- stats::pairwise.wilcox.test(data[[name]], g = data[[group]], p_adjust_method = p_adjust_method)$p.value
+            posthoc = "Pairwise Wilcoxon Rank Sum Tests"
+          } else {
+            stop("Pairwise comparison is not defined properly \n Please refer to function description for details")
           }
-        }
 
-
-
-        for (j in colnames(df_posthoc_pairs)[3:ncol(df_posthoc_pairs)]){
-
-          for(n in df_posthoc_pairs$Var){
-
-            if(!is.na(df_posthoc_pairs[df_posthoc_pairs$Var == n, j])){
-
-            }else{
-
-              df_posthoc_pairs[df_posthoc_pairs$Var== n,j] <- df_posthoc_pairs[df_posthoc_pairs$Var== j,n]
-
-            }
-
+          for (contrast in vett_contrasts) {
+            x <- strsplit(contrast, " vs ")[[1]]
+            table.p[table.p$Variable == name, contrast] <- mat_posthoc[x[2], x[1]]
           }
-        }
-
-        for(q in colnames(df_posthoc_pairs)[2:ncol(df_posthoc_pairs)]) {
-          df_posthoc_pairs[, q] <- as.numeric(df_posthoc_pairs[, q])
-        }
-
-        for (l in 1: nrow(matt_combn)) {
-
-          matt_combn[l, "pval"] <- df_posthoc_pairs[df_posthoc_pairs$Var == matt_combn$Var1[l], colnames(df_posthoc_pairs) == matt_combn$Var2[l]]
-        }
-
-        for(m in colnames(KW_test_df)[(3+n_lev_group):ncol(KW_test_df)]){
-
-          KW_test_df[KW_test_df$Var == i, m] <- as.numeric(matt_combn$pval[matt_combn$Versus == m])
 
         }
 
-        if (verbose) LandS::Progress_bar(current = which(i == variables),
+        if (verbose) LandS::Progress_bar(current = i,
                                          total = length(variables), start_time = start_time,
                                          bar_fill = "\u2588", bar_void = "\u2591")
       }
 
-      res <- list()
-      KW_test_df_ordered <- dplyr::arrange(KW_test_df, .data$Kruskal_Wallis)
-      KW_test_df_form <- KW_test_df_ordered
-      for(z in colnames(KW_test_df_form)[(2+n_lev_group):ncol(KW_test_df_form)]){
-        KW_test_df_form[,z] <- LandS::formatz_p(KW_test_df_form[,z])
-      }
-
-      KW_ph_pval <- KW_test_df[, c(1, (2+n_lev_group):ncol(KW_test_df))]
-
-      if (no.adj == F){
-        res[[1]] <- KW_test_df
-        res[[2]] <- KW_test_df_form
-        res[[3]] <- KW_ph_pval
-        names(res) <- c("Raw_tests", "Form_tests", "KW_ph_pval")
-      }else{
-
-        n_lev_posthoc <- length(utils::combn(levels(data[, group]), 2))/2
-        levels_groups <- levels(data[,group])
-        n_lev_group <- nlevels(data[,group])
-
-        matrix_comparison <- t(utils::combn(levels(data[, group]), 2))
-        vett_comparison <- as.vector(NA)
-        for (x in 1:nrow(matrix_comparison)){
-          vett_comparison[x] <- paste0(matrix_comparison[x,1], " vs ", matrix_comparison[x,2])
-        }
-
-        Dumb_test_df <- as.data.frame(matrix(nrow = length(variables),
-                                             ncol = 1 + n_lev_posthoc))
-        colnames(Dumb_test_df) <- c("Var", vett_comparison)
-        Dumb_test_df$Var <- variables
-
-        for (i in variables){
-
-          matt_combn <- as.data.frame(t(utils::combn(levels(data[, group]), 2)))
-          colnames(matt_combn) <- c("Var1", "Var2")
-          matt_combn$Versus <- paste0(matt_combn$Var1, " vs ", matt_combn$Var2)
-          matt_combn$pval <- NA
-
-          if (sum(is.na(data[, i])) >0){
-
-            vett_excl <- data[is.na(data[,i]), ID]
-            tmp <- data[!data[, ID] %in% vett_excl, ]
-          }else{
-            tmp <- data
-          }
-
-
-          # Post hoc test
-          df_posthoc_pairs <- as.data.frame(matrix(NA, nrow = nlevels(data[, group]), ncol = nlevels(data[, group])+1))
-          colnames(df_posthoc_pairs) <- c("Var", levels(data[, group]))
-          df_posthoc_pairs$Var <- levels(data[, group])
-
-
-          for (p in df_posthoc_pairs$Var) {
-
-            for(k in df_posthoc_pairs$Var){
-
-              if(p == k){df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <- 1}else{
-
-                data1 <- data[, i][data[, group] %in% p ]
-                data2 <- data[, i][data[, group] %in% k ]
-
-                df_posthoc_pairs[df_posthoc_pairs$Var == p, colnames(df_posthoc_pairs) == k] <-
-                  stats::wilcox.test(data1, data2)$p.val
-              }
-            }
-          }
-
-
-          for(q in colnames(df_posthoc_pairs)[2:ncol(df_posthoc_pairs)]) {
-            df_posthoc_pairs[, q] <- as.numeric(df_posthoc_pairs[, q])
-          }
-
-          for (l in 1: nrow(matt_combn)) {
-
-            matt_combn[l, "pval"] <- df_posthoc_pairs[df_posthoc_pairs$Var == matt_combn$Var1[l], colnames(df_posthoc_pairs) == matt_combn$Var2[l]]
-          }
-
-          for(m in colnames(Dumb_test_df)[2:ncol(Dumb_test_df)]){
-
-            Dumb_test_df[Dumb_test_df$Var == i, m] <- as.numeric(matt_combn$pval[matt_combn$Versus == m])
-
-          }
-        }
-        res[[1]] <- KW_test_df
-        res[[2]] <- KW_test_df_form
-        res[[3]] <- KW_ph_pval
-        res[[4]] <- Dumb_test_df
-        names(res) <- c("Raw_tests", "Form_tests", "KW_ph_pval", "no_corrected_ph")
-        if (verbose) message("It is recommended to adjust for multiple testing; please ignore the results of no_corrected_ph")
-      }
-
-      if (verbose) message("Kruskal-Wallis rank sum test used")
+      if (verbose) message(paste("Kruskal-Wallis rank sum overall and", posthoc, "were used"))
     }
-
   }
-  if (excel == FALSE){
-    # if(telegram != "none"){
-    #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
-    # }
+
+  res[["Raw_tests"]] <- table.p %>%
+    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
+                  dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method)))
+  res[["Form_tests"]] <- table.p %>%
+    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
+                  dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method))) %>%
+    dplyr::arrange(.data[[if ("Overall.padj" %in% names(table.p)) "Overall.padj" else "padj"]]) %>%
+    dplyr::mutate(dplyr::across((2+length(levels)):dplyr::last_col(), function(x) LandS::formatz_p(x)))
+  res[[3]] <- table.p %>%
+    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(Overall.raw, p_adjust_method)),
+                  dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(pvalue, p_adjust_method))) %>%
+    dplyr::select(.data[["Variable"]], (2+length(levels)):dplyr::last_col())
+
+  names(res)[3] <- dplyr::case_when(nlevels(data[[group]]) == 2 & paired == FALSE ~ paste('MW', p_adjust_method, sep = '_'),
+                                    nlevels(data[[group]]) == 2 & paired == TRUE ~ paste('WS', p_adjust_method, sep = '_'),
+                                    nlevels(data[[group]]) > 2 & paired == FALSE ~ paste('KW', type, p_adjust_method, sep = '_'),
+                                    nlevels(data[[group]]) > 2 & paired == TRUE ~ paste('FR', type, p_adjust_method, sep = '_'))
+
+  if (excel == FALSE) {
     return(res)
   }else{
     writexl::write_xlsx(res, path = excel_path)
-    # if(telegram != "none"){
-    #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
-    # }
     return(res)
   }
-  invisible(gc())
 }
