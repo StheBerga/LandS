@@ -92,8 +92,13 @@
 #' @author Stefano Bergamini, Luca Lalli
 #'
 #' @examples
-#' cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
-#'               group = "Species", paired = FALSE, verbose = FALSE)
+#' mtcars$vs <- factor(mtcars$vs)
+#' cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'vs',
+#' paired = FALSE, verbose = FALSE)
+#'
+#' mtcars$cyl <- factor(mtcars$cyl)
+#' cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'cyl',
+#' paired = FALSE, verbose = FALSE)
 cont_var_test <- function(data,
                           variables,
                           paired = FALSE,
@@ -167,7 +172,7 @@ cont_var_test <- function(data,
     return(stats)
   }
 
-  # Split variable dicotomica
+  # Split dichotomous variable
   if (nlevels(data[[group]]) == 2) {
 
     levels <- levels(data[[group]])
@@ -272,7 +277,7 @@ cont_var_test <- function(data,
             complete = dplyr::n_distinct(.data[[group]]) == length(levels),
             .groups = "drop"
           ) %>%
-          dplyr::pull(complete) %>%
+          dplyr::pull("complete") %>%
           all()
       )
 
@@ -387,26 +392,26 @@ cont_var_test <- function(data,
 
       if (verbose) message(paste("Kruskal-Wallis rank sum overall and", posthoc, "were used"))
     }
-
-    res[["Raw_tests"]] <- table.p %>%
-      dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
-                    dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method)))
-    res[["Form_tests"]] <- table.p %>%
-      dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
-                    dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method))) %>%
-      dplyr::arrange(.data[[if ("Overall.padj" %in% names(table.p)) "Overall.padj" else "padj"]]) %>%
-      dplyr::mutate(dplyr::across((2+length(levels)):dplyr::last_col(), function(x) LandS::formatz_p(x)))
-    res[[3]] <- table.p %>%
-      dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(Overall.raw, p_adjust_method)),
-                    dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(Overall.raw, p_adjust_method))) %>%
-      dplyr::select(.data$Variable, (2+length(levels)):dplyr::last_col())
-
-    names(res)[3] <- dplyr::case_when(nlevels(data[[group]]) == 2 & paired == FALSE ~ paste('MW', type, sep = '_'),
-                                      nlevels(data[[group]]) == 2 & paired == TRUE ~ paste('WS', type, sep = '_'),
-                                      nlevels(data[[group]]) > 2 & paired == FALSE ~ paste('KW', type, p_adjust_method, sep = '_'),
-                                      nlevels(data[[group]]) > 2 & paired == TRUE ~ paste('FR', type, p_adjust_method, sep = '_'))
-
   }
+
+  res[["Raw_tests"]] <- table.p %>%
+    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
+                  dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method)))
+  res[["Form_tests"]] <- table.p %>%
+    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
+                  dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method))) %>%
+    dplyr::arrange(.data[[if ("Overall.padj" %in% names(table.p)) "Overall.padj" else "padj"]]) %>%
+    dplyr::mutate(dplyr::across((2+length(levels)):dplyr::last_col(), function(x) LandS::formatz_p(x)))
+  res[[3]] <- table.p %>%
+    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(Overall.raw, p_adjust_method)),
+                  dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(pvalue, p_adjust_method))) %>%
+    dplyr::select(.data[["Variable"]], (2+length(levels)):dplyr::last_col())
+
+  names(res)[3] <- dplyr::case_when(nlevels(data[[group]]) == 2 & paired == FALSE ~ paste('MW', p_adjust_method, sep = '_'),
+                                    nlevels(data[[group]]) == 2 & paired == TRUE ~ paste('WS', p_adjust_method, sep = '_'),
+                                    nlevels(data[[group]]) > 2 & paired == FALSE ~ paste('KW', type, p_adjust_method, sep = '_'),
+                                    nlevels(data[[group]]) > 2 & paired == TRUE ~ paste('FR', type, p_adjust_method, sep = '_'))
+
   if (excel == FALSE) {
     return(res)
   }else{

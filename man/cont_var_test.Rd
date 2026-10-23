@@ -120,8 +120,13 @@ makes any missing observations explicit, allowing them to be identified
 and handled before running the analysis.
 }
 \examples{
-cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
-              group = "Species", paired = FALSE, verbose = FALSE)
+mtcars$vs <- factor(mtcars$vs)
+cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'vs',
+paired = FALSE, verbose = FALSE)
+
+mtcars$cyl <- factor(mtcars$cyl)
+cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'cyl',
+paired = FALSE, verbose = FALSE)
 }
 \author{
 Stefano Bergamini, Luca Lalli
