@@ -349,7 +349,7 @@ Lineplots <- function (data,
     if (Posthoc == T) {
       posthoc_df <- posthoc_df(Test_results = Test_results,
                               data = data, group = time,
-                              threshold_posthoc = threshold_posthoc, i)
+                              threshold_posthoc = threshold_posthoc, i = i)
     }
 
     Quantili <- data.frame(Tempo = unique(data[, time]),
@@ -494,7 +494,7 @@ Lineplots <- function (data,
     {
       if (Posthoc)
         if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
-          gg <- gg + ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pval}",
+          gg <- gg + ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pvalue}",
                                                 y.position = max(tapply(data[, i], data[, time], stats::median, na.rm = T)),
                                                 step.increase = 0.08, size = posthoc_test_size)
     }
