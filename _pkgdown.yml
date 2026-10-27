@@ -1,4 +1,15 @@
 url: https://stheberga.github.io/LandS/
+
+navbar:
+  structure:
+    right: [search, github, lightswitch]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/StheBerga/LandS
+      aria-label: GitHub
+
 template:
   bootstrap: 5
+  light-switch: true
 

@@ -15,7 +15,8 @@
 #' @param ID Column name of ID variable used to connect paired observations. Default = "ID".
 #' @param rm.outliers Whether to remove outliers from display. Default = FALSE.
 #' @param th.outliers Numeric multiplier of the interquartile range (IQR) used
-#' to define outlier thresholds; observations outside [Q1−th.outliers×IQR,Q3+th.outliers×IQR]
+#' to define outlier thresholds; observations outside
+#' \eqn{[Q_1 - \text{th.outliers} \times \text{IQR}, Q_3 + \text{th.outliers} \times \text{IQR}]}{[Q1 - th.outliers * IQR, Q3 + th.outliers * IQR]}
 #' are treated as outliers. Default = 1.5.
 #' @param Point Whether to display observation points. Default = FALSE.
 #' @param size_point Size for points. Default = 0.3
