@@ -10,6 +10,7 @@ navbar:
       aria-label: GitHub
 
 template:
+  math-rendering: katex
   bootstrap: 5
   light-switch: true
 
