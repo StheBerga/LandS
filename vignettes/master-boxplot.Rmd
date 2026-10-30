@@ -1,0 +1,462 @@
+---
+title: "Visualizing Continuous Variables with Boxplot()"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Visualizing Continuous Variables with Boxplot()}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(LandS)
+library(ggplot2)
+```
+
+# Introduction
+
+Visualizing continuous variables across groups is a fundamental step in exploratory data analysis, longitudinal studies, and statistical reporting.
+
+The `Boxplot()` function provides a flexible framework for generating comparative distribution plots from one or more numeric variables. In addition to traditional boxplots, the function supports notched boxplots and violin plots, while offering several features frequently required in biomedical and clinical research:
+
+- Overlay of individual observations
+- Visualization of paired observations
+- Median trend lines
+- Automatic integration with statistical testing results
+- Post-hoc comparison annotations
+- Direct export to PowerPoint presentations
+
+While `Boxplot()` can be used as a standalone visualization tool, it is designed to work seamlessly with `cont_var_test()` and `posthoc_df()`, providing a complete workflow from statistical analysis to publication-ready graphics.
+
+# A Simple Example
+
+The simplest use case consists of comparing one or more continuous variables across groups.
+
+```{r, figures-side, fig.show="hold", out.width="50%"}
+par(mar = c(4, 4, .1, .1))
+
+mtcars$vs <- factor(mtcars$vs)
+
+boxplot <- Boxplot(
+  data = mtcars,
+  variables = c("mpg", "disp"),
+  group = "vs",
+  type = "boxplot",
+  verbose = FALSE
+)
+
+box <- Boxplot(
+  data = mtcars,
+  variables = c("mpg", "disp"),
+  group = "vs",
+  type = "box",
+  verbose = FALSE
+)
+
+notch <- Boxplot(
+  data = mtcars,
+  variables = c("mpg", "disp"),
+  group = "vs",
+  type = "notch",
+  verbose = FALSE
+)
+
+violin <- Boxplot(
+  data = mtcars,
+  variables = c("mpg", "disp"),
+  group = "vs",
+  type = "violin",
+  verbose = FALSE
+)
+
+boxplot[[2]]; box[[2]]; notch[[2]]; violin[[2]]
+```
+
+When multiple variables are supplied, `Boxplot()` returns a list containing:
+
+1. A cover page summarizing the analysis
+2. One plot per variable
+
+This allows many variables to be processed simultaneously while maintaining a consistent graphical style.
+
+# Common Analysis Scenarios
+
+In this vignette we will explore three common use cases:
+
+1. Cross-sectional group comparisons
+2. Longitudinal repeated-measures studies
+3. Statistical reporting with automatic test annotations
+
+These examples illustrate the typical workflow encountered when analyzing biomedical, laboratory, and clinical datasets.
+
+# Scenario 1: Cross-Sectional Group Comparisons
+
+## Study Objective
+
+Suppose we have measured a panel of biomarkers in two independent groups:
+
+- Healthy controls
+- Patients
+
+```text
+ID     Group      CRP      IL6      TNFa
+001    Control    4.5      2.1      8.4
+002    Control    3.8      1.9      7.9
+003    Disease    8.3      4.8     14.2
+...
+```
+
+Our goal is to compare the distributions of these biomarkers between groups.
+
+## Visualizing Group Differences
+
+```{r eval = FALSE}
+Boxplot(
+  data = biomarker_data,
+  variables = c("CRP", "IL6", "TNFa"),
+  group = "Group"
+)
+```
+
+For each variable, the plot summarizes:
+
+- Median values
+- Interquartile ranges
+- Distribution spread
+- Potential outliers
+
+This provides a rapid overview of between-group differences before performing formal statistical testing.
+
+## Displaying Individual Observations
+
+In studies with limited sample sizes, summary statistics alone may conceal important information.
+
+Displaying individual observations often improves interpretation.
+
+```{r eval = FALSE}
+Boxplot(
+  data = biomarker_data,
+  variables = "CRP",
+  group = "Group",
+  Point = TRUE
+)
+```
+
+This option is particularly useful for:
+
+- Pilot studies
+- Rare disease cohorts
+- Small experimental datasets
+
+where every observation contributes meaningful information.
+
+## Exploring Distribution Shape
+
+Sometimes the shape of a distribution is as important as its median.
+
+Violin plots can reveal asymmetry, multimodality, or clustering patterns that are difficult to identify with standard boxplots.
+
+```{r eval = FALSE}
+Boxplot(
+  data = biomarker_data,
+  variables = "CRP",
+  group = "Group",
+  type = "violin"
+)
+```
+
+Violin plots are especially useful during exploratory analyses when understanding the underlying distribution is a priority.
+
+# Scenario 2: Longitudinal Repeated-Measures Studies
+
+Longitudinal studies introduce a challenge that does not exist in cross-sectional data: observations from the same subject are no longer independent.
+
+## Study Objective
+
+Consider a study evaluating a biomarker across multiple visits.
+
+```text
+ID     Visit        CRP
+01     Baseline     5.1
+01     Month 1      4.0
+01     Month 3      2.8
+02     Baseline     6.2
+02     Month 1      5.4
+...
+```
+
+We are interested in understanding:
+
+- Population-level changes over time
+- Individual patient trajectories
+
+## Standard Longitudinal Visualizations
+
+A simple boxplot summarizes the distribution at each visit.
+
+```{r eval = FALSE}
+Boxplot(
+  data = longitudinal_data,
+  variables = "CRP",
+  group = "Visit"
+)
+```
+
+This provides information on group-level changes but ignores the fact that observations originate from the same individual.
+
+## Connecting Paired Observations
+
+The `id_lines` argument can be used to connect repeated measurements belonging to the same participant.
+
+```{r eval = FALSE}
+Boxplot(
+  data = longitudinal_data,
+  variables = "CRP",
+  group = "Visit",
+  id = "ID",
+  id_lines = TRUE
+)
+```
+
+Each line now represents a single participant.
+
+This allows users to identify:
+
+- Consistent improvements
+- Divergent responses
+- Highly variable subjects
+- Potential responders and non-responders
+
+Displaying subject trajectories is often informative when analyzing treatment effects or repeated-measures experiments.
+
+## Following Population Trends
+
+While individual trajectories provide subject-level information, overall temporal patterns may still be difficult to appreciate.
+
+A median trend line can be added using:
+
+```{r eval = FALSE}
+Boxplot(
+  data = longitudinal_data,
+  variables = "CRP",
+  group = "Visit",
+  Median_line = TRUE
+)
+```
+
+This layer highlights the evolution of the population median while retaining the complete distributional information shown by the boxplots.
+
+Combining individual trajectories and median trends often yields a highly informative representation of longitudinal data.
+
+# Scenario 3: Statistical Reporting with Automatic Test Annotations
+
+One of the primary strengths of the LandS workflow is the integration between statistical testing and visualization.
+
+Rather than manually extracting p-values and editing figures, statistical results can be incorporated directly into the plots.
+
+## Workflow Overview
+
+A typical analysis follows the sequence:
+
+```text
+Data
+  │
+  ▼
+cont_var_test()
+  │
+  ▼
+posthoc_df()
+  │
+  ▼
+Boxplot()
+```
+
+The same objects used for statistical testing are passed directly to the visualization functions.
+
+## Step 1: Perform Statistical Testing
+
+The first step consists of performing the desired statistical analysis using `cont_var_test()`.
+
+```{r eval = FALSE}
+tests <- cont_var_test(
+  data = longitudinal_data,
+  variables = c("CRP", "IL6"),
+  group = "Visit"
+)
+```
+
+The resulting object contains:
+
+- Statistical test performed
+- Test statistic
+- Raw p-values
+- Adjusted p-values
+- Additional summary information
+
+Depending on the study design, `cont_var_test()` automatically applies the most appropriate statistical procedure according to the supplied settings.
+
+## Step 2: Generate Post-Hoc Comparisons
+
+When overall differences are detected, pairwise comparisons can be prepared using `posthoc_df()`.
+
+```{r eval = FALSE}
+posthoc_results <- posthoc_df(
+  Test_results = tests,
+  data = longitudinal_data,
+  group = "Visit"
+)
+```
+
+The resulting object contains all information required for graphical annotation of significant comparisons.
+
+## Step 3: Display Overall Test Results
+
+Overall test results can be added directly to the plot.
+
+```{r eval = FALSE}
+Boxplot(
+  data = longitudinal_data,
+  variables = "CRP",
+  group = "Visit",
+  Overall = TRUE,
+  Test_results = tests
+)
+```
+
+The adjusted p-value is displayed in the upper-left corner of the figure, providing immediate statistical context for the observed differences.
+
+## Step 4: Display Post-Hoc Comparisons
+
+Pairwise comparisons can also be displayed automatically.
+
+```{r eval = FALSE}
+Boxplot(
+  data = longitudinal_data,
+  variables = "CRP",
+  group = "Visit",
+  Posthoc = TRUE,
+  Test_results = tests
+)
+```
+
+Only comparisons meeting the significance threshold defined by `threshold_posthoc` are displayed.
+
+Brackets and p-values are generated automatically, eliminating the need for manual figure annotation.
+
+## Complete Statistical Workflow
+
+The most informative figures often combine multiple visualization layers together with inferential statistics.
+
+```{r eval = FALSE}
+tests <- cont_var_test(
+  data = longitudinal_data,
+  variables = c("CRP", "IL6"),
+  group = "Visit"
+)
+
+Boxplot(
+  data = longitudinal_data,
+  variables = c("CRP", "IL6"),
+  group = "Visit",
+  Point = TRUE,
+  id_lines = TRUE,
+  Median_line = TRUE,
+  Overall = TRUE,
+  Posthoc = TRUE,
+  Test_results = tests
+)
+```
+
+This workflow combines:
+
+- Individual observations
+- Subject-specific trajectories
+- Median trends
+- Overall statistical tests
+- Pairwise comparisons
+
+into a single figure.
+
+For many analyses, this represents a complete reporting pipeline from raw data to statistical interpretation.
+
+# Preparing Figures for Reports and Presentations
+
+Once figures have been generated, they can be customized for manuscripts, reports, or presentations.
+
+## Custom Titles
+
+```{r eval = FALSE}
+Boxplot(
+  data = biomarker_data,
+  variables = c("CRP", "IL6"),
+  group = "Group",
+  title_leg = TRUE,
+  title_legend = function(x){
+    c(
+      CRP = "C-Reactive Protein",
+      IL6 = "Interleukin-6"
+    )[x]
+  }
+)
+```
+
+## Customized Title Colours
+
+```{r eval = FALSE}
+Boxplot(
+  data = biomarker_data,
+  variables = c("CRP", "IL6"),
+  group = "Group",
+  col_title = TRUE,
+  fill_title = function(x){
+    c(
+      CRP = "lightblue",
+      IL6 = "tomato"
+    )[x]
+  }
+)
+```
+
+This can be useful for visually grouping variables according to:
+
+- Biological pathways
+- Laboratory panels
+- Outcome categories
+
+## PowerPoint Export
+
+For large-scale analyses, plots can be exported directly into a PowerPoint presentation.
+
+```{r eval = FALSE}
+Boxplot(
+  data = biomarker_data,
+  variables = c("CRP", "IL6", "TNFa"),
+  group = "Group",
+  pptx = TRUE,
+  target = "Biomarker_Report.pptx"
+)
+```
+
+Each plot is placed on a separate slide as an editable vector graphic, facilitating further customization in presentation software.
+
+# Summary
+
+`Boxplot()` was designed to support the complete analysis workflow of continuous variables, from exploratory visualization to statistical reporting.
+
+Its main strengths include:
+
+- Support for boxplots, notched boxplots, and violin plots
+- Visualization of individual observations
+- Representation of repeated-measures trajectories
+- Median trend visualization
+- Seamless integration with `cont_var_test()`
+- Automatic post-hoc annotations through `posthoc_df()`
+- Direct PowerPoint export
+
+A typical LandS workflow may therefore be summarized as:
+
+This workflow allows descriptive visualization and inferential statistics to be combined into a single coherent reporting framework.
