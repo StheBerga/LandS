@@ -92,7 +92,11 @@ Use \code{"Overall"} to generate a single distribution without stratification.}
 \item{th.outliers}{Numeric multiplier of the interquartile range (IQR) used
 to define outlier thresholds; observations outside
 \eqn{[Q_1 - \text{th.outliers} \times \text{IQR}, Q_3 + \text{th.outliers} \times \text{IQR}]}{[Q1 - th.outliers * IQR, Q3 + th.outliers * IQR]}
+<<<<<<< HEAD
 are treated as outliers (Default = 1.5).}
+=======
+are treated as outliers. Default = 1.5.}
+>>>>>>> origin/refactor-mixed
 
 \item{Point}{Whether to display observation points (Default = \code{FALSE}).}
 

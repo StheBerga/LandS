@@ -25,6 +25,7 @@
 #' @param th.outliers Numeric multiplier of the interquartile range (IQR) used
 #' to define outlier thresholds; observations outside
 #' \eqn{[Q_1 - \text{th.outliers} \times \text{IQR}, Q_3 + \text{th.outliers} \times \text{IQR}]}{[Q1 - th.outliers * IQR, Q3 + th.outliers * IQR]}
+<<<<<<< HEAD
 #' are treated as outliers (Default = 1.5).
 #' @param alpha Alpha parameter for the boxes transparency (Default = 0.1).
 #' @param width Width parameter for the boxes (Default = 0.2).
@@ -49,6 +50,31 @@
 #' @param threshold_posthoc Threshold for displaying post-hoc tests brackets (Default = 0.05).
 #' @param posthoc_test_size Font size for annotations of post-hoc p-values (Default = 3.88).
 #' @param bracket_shorten Width of the bracket in range [0,1] (Default = 0).
+=======
+#' are treated as outliers. Default = 1.5.
+#' @param Point Whether to display observation points. Default = FALSE.
+#' @param size_point Size for points. Default = 0.3
+#' @param alpha_point Alpha for points transparency. Default = 0.3
+#' @param alpha_box Alpha parameter for the boxes transparency. Default = 0.1.
+#' @param width_box Width parameter for the boxes. Default = 0.2.
+#' @param lwd_box Linewidth for the boxes. Default = 0.1.
+#' @param notch Whether to display notches for the boxes. Default = FALSE.
+#' @param notchwidth Width parameter of the notch. Default = 0.5.
+#' @param Median_line Whether to display the line connecting boxes median values. Default = FALSE.
+#' @param lwd_median_line Median line linewidth. Default = 0.8.
+#' @param col_median_line Colour for the median line. Default = "red".
+#' @param ID_lines Whether to display the lines connecting paired observations. Default = FALSE.
+#' @param lwd_ID_line Linewidth parameter for lines connecting paired observations. Default = 0.2.
+#' @param alpha_ID_line Alpha parameter for paired observations lines transparency. Default = 0.3.
+#' @param Overall Whether to display overall test in the upper-left corner. Default = FALSE.
+#' @param Posthoc Whether to display posthoc tests brackets. Default = FALSE.
+#' @param Test_results Dataframe containing the results of global and posthoc tests computed
+#' using LandS::cont_var_test() function, in particular objects "KW_ph_pval" or "Friedman_ph_pval"
+#' or "no_corrected_ph". Default = NULL.
+#' @param threshold_posthoc Threshold for displaying post-hoc tests brackets. Default = 0.05.
+#' @param posthoc_test_size Font size for annotations of post-hoc p-values. Default = 3.88.
+#' @param bracket_shorten Width of the bracket in range [0,1]. Default = 0.
+>>>>>>> origin/refactor-mixed
 #' @param bracket.nudge.y Vertical adjustment to nudge brackets by.
 #' Useful to move up or move down the bracket. If positive value, brackets will be moved up;
 #' if negative value, brackets are moved down (Default = 0).

@@ -2,7 +2,22 @@ Package: LandS
 Type: Package
 Title: Integrated Tools for Longitudinal Biomarker, Survival, and Clinical Data Analysis
 Version: 1.8.8
-Author: Stefano Bergamini, Luca Lalli, Jessica Gliozzo 
+Authors@R: c(
+  person(given = "Stefano", 
+  family = "Bergamini", 
+  email = "stefano_bergamini@icloud.com", 
+  role = c("aut", "cre"),
+  comment = c(ORCID = "0009-0008-8874-8537")),
+  person(given = "Luca", 
+  family = "Lalli", 
+  email = "luca.lalli@istitutotumori.mi.it", 
+  role = "aut", 
+  comment = c(ORCID = "0000-0002-4472-628X")), 
+  person(given = "Jessica", 
+  family = "Gliozzo", 
+  role = "aut", 
+  comment = c(ORCID = "0000-0001-7629-8112"))
+  )
 Maintainer: Stefano Bergamini <stefano.bergamini@istitutotumori.mi.it>
 Description: Provides tools for longitudinal, survival, and exploratory analysis 
     of clinical and biomarker data. The package includes utilities for descriptive 

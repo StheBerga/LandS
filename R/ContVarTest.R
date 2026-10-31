@@ -10,37 +10,37 @@
 #'   \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests by default.
 #' }
 #'
-#' You can also perform post-hoc tests without correcting for test multiplicity (option `type = "none"`),
+#' You can also perform post-hoc tests without correcting for test multiplicity (option \code{type = "none"}),
 #' even if it is not recommended.
 #' The following summary statistics can be computed:
-#' `median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
+#' \code{median}, \code{mean}, \code{sd}, \code{min}, \code{max}, \code{q1}, \code{q3}, \code{n}, and \code{range}.
 #' For paired analyses, the summary statistics will be computed only for
 #' complete observations.
 #'
 #' @param data dataframe containing the variables to test.
 #' @param variables Character vector with the names of continuous numeric
 #' variables to test.
-#' @param paired Logical. If `TRUE`, observations are treated as paired or
-#' repeated measures across levels of group. (Default=`FALSE`).
+#' @param paired Logical. If \code{TRUE}, observations are treated as paired or
+#' repeated measures across levels of group. (Default=\code{FALSE}).
 #' @param group Character string giving the name of the grouping variable.
 #' This column must be a factor with at least two levels.
 #' @param statistic Specifies summary statistics to display for each variable. Default = "\{mean\} (\{sd\})".
-#' Format is defined by `gtsummary` package.
+#' Format is defined by \code{gtsummary} package.
 #' @param id Character string giving the name of the subject identifier column,
-#' required when `paired = TRUE`. Default = "ID".
+#' required when \code{paired = TRUE}. Default = "ID".
 #' @param num_dec Decimal number for summary statistics (Default = 2).
 #' @param p_adjust_method Character string specifying the multiplicity
-#' adjustment method used for overall and post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
-#' Passed to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), "fdr" is used.
-#' @param excel Logical. If `TRUE`, writes the result list to an Excel workbook
-#' with one sheet per result table (Default = `FALSE`).
+#' adjustment method used for overall and post-hoc tests. Supports all adjustment methods passed to \code{stats::p.adjust.method}.
+#' Passed to the \code{PMCMRplus} post-hoc test functions. If \code{NULL} (Default), "fdr" is used.
+#' @param excel Logical. If \code{TRUE}, writes the result list to an Excel workbook
+#' with one sheet per result table (Default = \code{FALSE}).
 #' @param excel_path Path where you want to save the Excel file (Default "Results.xlsx").
-#' @param verbose  Print progress bar and messages (Default=`TRUE`).
-#' @param type Choose the posthoc test to perform when `levels(group)>2`.
-#' The function supports all the tests from the `PMCMRplus` package,
+#' @param verbose  Print progress bar and messages (Default = \code{TRUE}).
+#' @param type Choose the posthoc test to perform when \code{levels(group)>2}.
+#' The function supports all the tests from the \code{PMCMRplus} package,
 #' as well as Pairwise Wilcoxon Rank Sum tests and Pairwise Wilcoxon Signed Rank Tests.
-#' By default is set the Exact All-Pairs Comparisons Test when `paired=TRUE`,
-#' and the Dunn's All-Pairs Rank Comparison Test when `paired=FALSE`.
+#' By default is set the Exact All-Pairs Comparisons Test when \code{paired=TRUE},
+#' and the Dunn's All-Pairs Rank Comparison Test when \code{paired=FALSE}.
 #' @param overall_threshold Sets a threhold to not perform posthoc comparisons when the overall test's raw p-value is over (Default = 0.1).
 #'
 #' @return
@@ -52,7 +52,7 @@
 #'   \item{FR or KW _type_p_adjust_method}{Global test with raw and adjusted p-values,
 #'   adjusted p-values for post-hoc comparisons; returned for analyses with more than two groups.}
 #' }
-#' The name of the last data frame is given by the overall test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
+#' The name of the last data frame is given by the overall test, \code{type} of post-hoc comparisons if performed, and \code{p_adjust_method}
 #' @export
 #'
 #' @importFrom magrittr %>%
@@ -69,7 +69,7 @@
 #' exactly one observation for every level of the grouping variable.
 #'
 #' Missing subject-group combinations are not allowed, even when the
-#' miaaing observations do not contain any non-`NA` values.
+#' missing observations do not contain any non-\code{NA} values.
 #'
 #' A simple way to create a complete block design is:
 #'
@@ -92,17 +92,19 @@
 #' @author Stefano Bergamini, Luca Lalli
 #'
 #' @examples
+#' # Example using factor group with 2 levels
 #' mtcars$vs <- factor(mtcars$vs)
 #' cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'vs',
 #' paired = FALSE, verbose = FALSE)
 #'
+#' # Example using factor group with more than 2 levels
 #' mtcars$cyl <- factor(mtcars$cyl)
-#' cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'cyl',
-#' paired = FALSE, verbose = FALSE)
+#' cont_var_test(data = mtcars, variables = c("mpg", "disp", "qsec"), group = "cyl",
+#' paired = FALSE, p_adjust_method = "b", overall_threshold = 0.0001, verbose = FALSE)
 cont_var_test <- function(data,
                           variables,
-                          paired = FALSE,
                           group,
+                          paired = FALSE,
                           type = NULL,
                           statistic = "{mean} ({sd})",
                           id = "ID",

@@ -1,0 +1,626 @@
+---
+title: "Non-Parametric Testing of Continuous Variables with cont_var_test()"
+author: "Stefano Bergamini, Luca Lalli"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Non-Parametric Testing of Continuous Variables with cont_var_test()}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+`cont_var_test()` provides a unified framework for the analysis of continuous variables across categorical groups using non-parametric methods.
+
+The function automatically selects the appropriate statistical test according to:
+
+- The number of levels in the grouping variable.
+- Whether observations are independent or paired/repeated measures.
+
+Additionally, the function:
+
+- Computes customizable summary statistics;
+- Performs multiplicity-adjusted post-hoc comparisons when appropriate;
+- Handles paired and repeated-measures designs;
+- Produces publication-ready formatted outputs;
+- Optionally exports all results into an Excel workbook.
+
+This vignette focuses primarily on:
+
+- Data organization requirements;
+- Handling of paired and repeated-measures designs;
+- Management of missing values;
+- Understanding the returned outputs;
+- Common errors and troubleshooting.
+
+# Which Test Is Used?
+
+The statistical procedure is selected automatically.
+
+| Design | Number of Groups | Test |
+|----------|----------|----------|
+| Unpaired | 2 | Wilcoxon Rank-Sum Test (Mann-Whitney U) |
+| Paired | 2 | Wilcoxon Signed-Rank Test |
+| Unpaired | >2 | Kruskal-Wallis Rank-Sum Test |
+| Paired | >2 | Friedman Rank-Sum Test |
+
+For analyses involving more than two groups, post-hoc pairwise comparisons may also be performed.
+
+# Required Data Structure
+
+The most important aspect for correct use of `cont_var_test()` is organizing the dataset according to the intended study design.
+
+The grouping variable must always be a factor:
+
+```r
+data$group <- factor(data$group)
+```
+
+## Two Independent Groups
+
+### Data Structure
+
+Each row represents a single independent observation.
+
+```r
+head(data)
+
+#   group outcome
+# 1 A     12.5
+# 2 A     13.1
+# 3 A     11.8
+# 4 B     10.2
+# 5 B      8.6
+# 6 B     12.1
+```
+
+### Analysis
+
+```r
+cont_var_test(
+  data = data,
+  variables = "outcome",
+  group = "group"
+)
+```
+
+### Statistical Test
+
+The function automatically performs a Wilcoxon rank-sum test (Mann-Whitney U test).
+
+## Two Paired Groups
+
+### Data Structure
+
+Each subject must contribute one observation for each group level.
+
+```r
+head(data)
+
+#   ID time outcome
+# 1  1 Pre      20
+# 2  1 Post     18
+# 3  2 Pre      14
+# 4  2 Post     11
+# 5  3 Pre      12
+# 6  3 Post      9
+```
+
+The grouping variable should be a factor:
+
+```r
+data$time <- factor(
+  data$time,
+  levels = c("Pre", "Post")
+)
+```
+
+### Analysis
+
+```r
+cont_var_test(
+  data = data,
+  variables = "outcome",
+  group = "time",
+  paired = TRUE,
+  id = "ID"
+)
+```
+
+### Statistical Test
+
+The function automatically performs a Wilcoxon signed-rank test.
+
+### Important Requirement: Subject Ordering
+
+For paired analyses, subject matching depends on the ordering of IDs within each group.
+
+Correct ordering:
+
+```text
+Pre  : 1 2 3 4
+Post : 1 2 3 4
+```
+
+Incorrect ordering:
+
+```text
+Pre  : 1 2 3 4
+Post : 2 1 3 4
+```
+
+If subject IDs are not aligned identically across groups, the function will stop with an error.
+
+A useful preprocessing step is:
+
+```r
+data <- data |>
+  dplyr::arrange(time, ID)
+```
+
+## More Than Two Independent Groups
+
+### Data Structure
+
+```r
+head(data)
+
+#   group outcome
+# 1 A        10
+# 2 A        12
+# 3 B        21
+# 4 B        19
+# 5 C        15
+# 6 C        18
+```
+
+### Analysis
+
+```r
+cont_var_test(
+  data = data,
+  variables = "outcome",
+  group = "group"
+)
+```
+
+### Statistical Test
+
+The function automatically performs:
+
+1. A Kruskal-Wallis test;
+2. Pairwise post-hoc comparisons (Dunn's test by default).
+
+### Multiple Variables
+
+Several continuous variables can be analyzed simultaneously.
+
+```r
+cont_var_test(
+  data = data,
+  variables = c(
+    "outcome1",
+    "outcome2",
+    "outcome3"
+  ),
+  group = "group"
+)
+```
+
+Each variable is processed independently.
+
+## Repeated Measures with More Than Two Groups
+
+### Data Structure
+
+Each subject must have exactly one observation for every level of the grouping variable.
+
+```r
+head(data)
+
+#   ID Visit outcome
+# 1  1 T1         12
+# 2  1 T2         14
+# 3  1 T3         18
+# 4  2 T1         10
+# 5  2 T2         11
+# 6  2 T3         16
+```
+
+### Analysis
+
+```r
+cont_var_test(
+  data = data,
+  variables = "outcome",
+  group = "Visit",
+  paired = TRUE,
+  id = "ID"
+)
+```
+
+### Statistical Test
+
+The function automatically performs:
+
+1. A Friedman test;
+2. Exact all-pairs comparisons (default post-hoc procedure).
+
+## Complete Block Design Requirement
+
+For repeated-measures analyses involving more than two groups, the Friedman test requires a complete block design.
+
+Every subject must appear exactly once in every group.
+
+Valid design:
+
+```text
+ID   T1   T2   T3
+1     ✓    ✓    ✓
+2     ✓    ✓    ✓
+3     ✓    ✓    ✓
+```
+
+Invalid design:
+
+```text
+ID   T1   T2   T3
+1     ✓    ✓    ✓
+2     ✓    ✓    ✗
+3     ✓    ✓    ✓
+```
+
+The function verifies this requirement before running the analysis.
+
+## Creating a Complete Block Design
+
+A convenient approach is:
+
+```r
+design <- expand.grid(
+  ID = unique(data$ID),
+  Visit = unique(data$Visit)
+)
+
+data_complete <- dplyr::left_join(
+  design,
+  data,
+  by = c("ID", "Visit")
+)
+```
+
+This creates all expected subject-group combinations and makes missing measurements explicit.
+
+# Missing Values
+
+Handling of missing values differs according to the study design.
+
+## Unpaired Analyses
+
+For Mann-Whitney and Kruskal-Wallis analyses:
+
+- Summary statistics ignore missing values;
+- Tests are computed using all available observations.
+
+Example:
+
+```r
+group outcome
+
+A      10
+A      12
+A      NA
+B      15
+B      17
+```
+
+The missing observation is excluded from calculations.
+
+## Paired Analyses
+
+For paired analyses, incomplete subjects are removed from the analysis of the affected variable.
+
+Example:
+
+```r
+ID Time Outcome
+
+1  Pre      10
+1  Post     12
+
+2  Pre       8
+2  Post     NA
+```
+
+Subject 2 cannot contribute to a paired comparison and is therefore removed entirely for that variable.
+
+Consequently:
+
+- Summary statistics are calculated on the filtered dataset;
+- Statistical tests are performed only on complete pairs or complete blocks.
+
+A warning message is shown whenever this occurs.
+
+# Customizing Summary Statistics
+
+The default summary format is:
+
+```r
+"{mean} ({sd})"
+```
+
+Example output:
+
+```text
+14.3 (2.8)
+```
+
+### Median and IQR
+
+```r
+statistic = "{median} ({iqr})"
+```
+
+Example:
+
+```text
+15.0 (6.5)
+```
+
+### Quartiles
+
+```r
+statistic = "{median} [{q1}, {q3}]"
+```
+
+Example:
+
+```text
+15 [12, 20]
+```
+
+### Range
+
+```r
+statistic = "{range}"
+```
+
+Example:
+
+```text
+10-36
+```
+
+## Available Statistics
+
+The following placeholders are available:
+
+```r
+{mean}
+{sd}
+{median}
+{iqr}
+{min}
+{max}
+{q1}
+{q3}
+{n}
+{range}
+```
+
+These can be combined freely.
+
+For example:
+
+```r
+statistic = "{median} ({q1}-{q3}), n={n}"
+```
+
+# Controlling Post-Hoc Comparisons
+
+When more than two groups are present, pairwise comparisons are only performed if the overall test p-value falls below a predefined threshold.
+
+The threshold is controlled through:
+
+```r
+overall_threshold
+```
+
+Default:
+
+```r
+overall_threshold = 0.1
+```
+
+Example:
+
+```r
+cont_var_test(
+  data = data,
+  variables = "outcome",
+  group = "group",
+  overall_threshold = 0.05
+)
+```
+
+If the overall test is above the threshold, pairwise comparisons are skipped.
+
+# Understanding the Output
+
+The function returns a named list:
+
+```r
+res <- cont_var_test(...)
+```
+
+## Raw_tests
+
+```r
+res$Raw_tests
+```
+
+Contains:
+
+- Summary statistics;
+- Raw p-values;
+- Multiplicity-adjusted p-values.
+
+This table is intended for further processing and reporting.
+
+## Form_tests
+
+```r
+res$Form_tests
+```
+
+Contains the same information as `Raw_tests` with formatted p-values suitable for publication.
+
+Rows are automatically sorted according to adjusted significance.
+
+## Test-Specific Results Table
+
+The third element contains only the inferential results.
+
+Its name depends on the selected analysis.
+
+### Two Independent Groups
+
+```r
+res$MW_fdr
+```
+
+Contains:
+
+- Raw p-values;
+- Adjusted p-values.
+
+### Two Paired Groups
+
+```r
+res$WS_fdr
+```
+
+Contains:
+
+- Raw p-values;
+- Adjusted p-values.
+
+### More Than Two Independent Groups
+
+```r
+res$KW_d_fdr
+```
+
+Contains:
+
+- Overall Kruskal-Wallis p-values;
+- Pairwise comparison p-values.
+
+### More Than Two Paired Groups
+
+```r
+res$FR_e_fdr
+```
+
+Contains:
+
+- Overall Friedman p-values;
+- Pairwise comparison p-values.
+
+# Exporting Results to Excel
+
+All outputs can be written directly to an Excel workbook.
+
+```r
+cont_var_test(
+  data = data,
+  variables = c(
+    "outcome1",
+    "outcome2"
+  ),
+  group = "group",
+  excel = TRUE,
+  excel_path = "Results.xlsx"
+)
+```
+
+Each element of the returned list is exported as a separate worksheet.
+
+# Common Errors and Troubleshooting
+
+## Group Variable Is Not a Factor
+
+Error:
+
+```text
+Variable group is not factor
+```
+
+Solution:
+
+```r
+data$group <- factor(data$group)
+```
+
+## Group Variable Has Only One Level
+
+Error:
+
+```text
+Variable group has just 1 level
+```
+
+Solution:
+
+```r
+table(data$group)
+```
+
+Verify the presence of at least two levels.
+
+## Complete Block Design Error
+
+For Friedman analyses:
+
+```r
+table(data$ID, data$group)
+```
+
+Verify that every subject appears once in every level.
+
+## Subject Ordering Error
+
+For paired analyses:
+
+```r
+data <- data |>
+  dplyr::arrange(group, ID)
+```
+
+Check that IDs appear in identical order across all groups.
+
+# Recommended Workflow
+
+1. Convert the grouping variable to a factor.
+2. Confirm that the dataset structure matches the intended study design.
+3. For paired analyses, verify subject ordering.
+4. For repeated-measures analyses, verify complete block design requirements.
+5. Inspect and understand missing values before analysis.
+6. Select descriptive statistics that best represent the distribution of the data.
+7. Use `Raw_tests` for reproducible analyses and downstream processing.
+8. Use `Form_tests` for reporting and manuscript preparation.
+9. Export results to Excel when sharing outputs with collaborators.
+
+# Summary
+
+`cont_var_test()` provides a unified interface for non-parametric analyses of continuous variables across both independent and paired designs. Correct data organization is the key requirement, especially for repeated-measures analyses where complete block designs are mandatory. Once the data are appropriately structured, the function automatically selects the proper statistical procedure, computes descriptive statistics, performs post-hoc comparisons when appropriate, formats results for reporting, and optionally exports all outputs to Excel.
