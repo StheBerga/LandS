@@ -4,21 +4,12 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<<<<<<< HEAD
-# LandS
-
-LandS is an R package designed to make everyday biomarker, clinical, and survival analysis workflows easier to run, easier to interpret, and easier to reuse.
-
-The package brings together a set of focused, task-oriented functions for descriptive statistics, exploratory analyses, correlation work, survival modelling, longitudinal plotting, publication-ready reporting, and translational proteomics workflows. Rather than requiring numerous disconnected scripts, LandS provides a more usable, function-based interface for reproducible analysis.
-
-=======
 # LandS <a href="https://stheberga.github.io/LandS/"><img src="man/figures/logo.png" align="right" height="139" alt="LandS website" /></a>
 
 LandS is an R package designed to make everyday biomarker, clinical, and survival analysis workflows easier to run, easier to interpret, and easier to reuse.
 
 The package brings together a set of focused, task-oriented functions for descriptive statistics, exploratory analyses, correlation work, survival modelling, longitudinal plotting, publication-ready reporting, and translational proteomics workflows. Rather than requiring numerous disconnected scripts, LandS provides a more usable, function-based interface for reproducible analysis.
 
->>>>>>> origin/refactor-mixed
 ## Why LandS is useful
 
 LandS is built around usability and practical analysis workflows:
