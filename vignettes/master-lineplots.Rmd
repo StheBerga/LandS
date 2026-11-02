@@ -45,7 +45,7 @@ In this case the generated data is simulated, for more info on how to set a data
 You can build a single graph using the following code:
 
 ```{r single graph}
-Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Overall")
+Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Overall", verbose = FALSE)
 ```
 
 You can see that the arguments used by the function are: 
