@@ -17,34 +17,34 @@ New_Project(
 \arguments{
 \item{project_name}{Character string. Name of the project directory to create.}
 
-\item{rstudio}{Logical. If TRUE, create an RStudio project file using
-[usethis::use_rstudio()]. If FALSE, create a '.here' sentinel file.}
+\item{rstudio}{Logical. If \code{TRUE}, create an RStudio project file using
+\code{usethis::use_rstudio()}. If \code{FALSE}, create a \code{.here} sentinel file.}
 
-\item{open}{Logical. If TRUE, activate the newly created project using
-[usethis::proj_activate()].}
+\item{open}{Logical. If \code{TRUE}, activate the newly created project using
+\code{usethis::proj_activate()}.}
 
 \item{root_x86_64}{Character string. Default root directory used when
-'Sys.info()[["machine"]]' is "x86-64".}
+\code{Sys.info()[["machine"]]} is \code{x86-64}.}
 
 \item{root_arm64}{Character string. Default root directory used when
-'Sys.info()[["machine"]]' is "arm64".}
+\code{Sys.info()[["machine"]]} is \code{arm64}.}
 
-\item{root_manual}{Character string or NULL. Manually supplied root
+\item{root_manual}{Character string or \code{NULL}. Manually supplied root
 directory used when the machine architecture is not recognized.}
 
-\item{subdirs}{Character vector. Subdirectories to create inside the project.
-Nested directories can be supplied using /, for example
-"data/raw" or "results/figures".}
+\item{subdirs}{Character vector. Sub directories to create inside the project.
+Nested directories can be supplied using \code{/}, for example
+\code{data/raw} or \code{results/figures}.}
 }
 \value{
 Invisibly returns the path to the newly created project.
 }
 \description{
-New_Project() creates a new project directory inside a platform-specific
+\code{New_Project()} creates a new project directory inside a platform-specific
 root folder and optionally initializes it as an RStudio project. By default,
-it creates the subdirectories "Analysis", "Data", "Data/Original", and
-"Output", but users can provide their own folder structure through
-'subdirs'.
+it creates the subdirectories \code{Analysis}, \code{Data}, \code{Data/Original}, and
+\code{Output}, but users can provide their own folder structure through
+\code{subdirs}.
 }
 \examples{
 \dontrun{
@@ -56,5 +56,5 @@ New_Project(
 }
 }
 \author{
-Luca Lalli, Stefano Bergamini
+Stefano Bergamini, Luca Lalli
 }

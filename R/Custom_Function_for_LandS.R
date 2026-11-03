@@ -62,15 +62,15 @@ formatz_p <- function (x, digits = 4, prepend_p = FALSE, na = NA_character_, ...
 #'
 #' @param vect A vector of values to format.
 #' @param sym A character string used as separator between elements.
-#' Defaults to ", ".
+#' Defaults to \code{", "}.
 #' @param quote Logical. If TRUE, each element is wrapped in double quotes
-#' (Default = T).
+#' (Default = \code{TRUE}).
 #'
-#' @return Invisibly returns NULL. The formatted string is printed to the console.
+#' @return Invisibly returns \code{NULL}. The formatted string is printed to the console.
 #' @export
 #'
 #' @examples
-#' vect.quoted(1:3, sym = " | ", quote = FALSE)
+#' vect.quoted(1:3, sym = " + ", quote = FALSE)
 #' vect.quoted(1:3, sym = " | ", quote = TRUE)
 vect.quoted <- function(vect, sym = ", ", quote = T){
   if (quote == T){
@@ -82,31 +82,31 @@ vect.quoted <- function(vect, sym = ", ", quote = T){
 
 #' Create a new project with a standard folder structure
 #'
-#' New_Project() creates a new project directory inside a platform-specific
+#' \code{New_Project()} creates a new project directory inside a platform-specific
 #' root folder and optionally initializes it as an RStudio project. By default,
-#' it creates the subdirectories "Analysis", "Data", "Data/Original", and
-#' "Output", but users can provide their own folder structure through
-#' 'subdirs'.
+#' it creates the subdirectories \code{Analysis}, \code{Data}, \code{Data/Original}, and
+#' \code{Output}, but users can provide their own folder structure through
+#' \code{subdirs}.
 #'
 #' @param project_name Character string. Name of the project directory to create.
-#' @param rstudio Logical. If TRUE, create an RStudio project file using
-#'   [usethis::use_rstudio()]. If FALSE, create a '.here' sentinel file.
-#' @param open Logical. If TRUE, activate the newly created project using
-#'   [usethis::proj_activate()].
+#' @param rstudio Logical. If \code{TRUE}, create an RStudio project file using
+#'   \code{usethis::use_rstudio()}. If \code{FALSE}, create a \code{.here} sentinel file.
+#' @param open Logical. If \code{TRUE}, activate the newly created project using
+#'   \code{usethis::proj_activate()}.
 #' @param root_x86_64 Character string. Default root directory used when
-#'   'Sys.info()[["machine"]]' is "x86-64".
+#'   \code{Sys.info()[["machine"]]} is \code{x86-64}.
 #' @param root_arm64 Character string. Default root directory used when
-#'   'Sys.info()[["machine"]]' is "arm64".
-#' @param root_manual Character string or NULL. Manually supplied root
+#'   \code{Sys.info()[["machine"]]} is \code{arm64}.
+#' @param root_manual Character string or \code{NULL}. Manually supplied root
 #'   directory used when the machine architecture is not recognized.
-#' @param subdirs Character vector. Subdirectories to create inside the project.
-#'   Nested directories can be supplied using /, for example
-#'   "data/raw" or "results/figures".
+#' @param subdirs Character vector. Sub directories to create inside the project.
+#'   Nested directories can be supplied using \code{/}, for example
+#'   \code{data/raw} or \code{results/figures}.
 #'
 #' @return Invisibly returns the path to the newly created project.
 #' @export
 #'
-#' @author Luca Lalli, Stefano Bergamini
+#' @author Stefano Bergamini, Luca Lalli
 #'
 #' @examples
 #' \dontrun{

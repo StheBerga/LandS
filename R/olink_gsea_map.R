@@ -33,10 +33,10 @@ prot2gene <- c("TRAIL" = "TNFSF10", "Flt3L" = "FLT3LG",
 #' Map Olink protein names to gene names
 #'
 #' @description
-#' This function changes the "Assay" column of NPX Olink data and statistical
-#' tests results from OlinkAnalyze package (e.g. olink_wilcox) in order to map
+#' This function changes the \code{Assay} column of NPX Olink data and statistical
+#' tests results from OlinkAnalyze package (e.g. \code{olink_wilcox}) in order to map
 #' all the protein names to gene names. This is necessary to allow
-#' OlinkAnalyze::olink_pathway_enrichment() to map the gene names to entrez IDs
+#' \code{OlinkAnalyze::olink_pathway_enrichment()} to map the gene names to entrez IDs
 #' for pathway enrichment analysis.
 #'
 #'
@@ -45,9 +45,9 @@ prot2gene <- c("TRAIL" = "TNFSF10", "Flt3L" = "FLT3LG",
 #' @param test_results A dataframe of statistical test results including
 #' Adjusted_pval and estimate columns obtained from package OlinkAnalyze.
 #' @param gsea_mapping Character vector mapping Olink protein names to gene
-#' names. Default is "prot2gene".
+#' names (Default = \code{"prot2gene"}).
 #'
-#' @return A list with the two data frames "data" and "test_results" having "Assay"
+#' @return A list with the two data frames \code{data} and \code{test_results} having \code{Assay}
 #' column overwritten for the pathway analysis.
 #'
 #' @author Stefano Bergamini
@@ -68,14 +68,14 @@ prot2gene <- c("TRAIL" = "TNFSF10", "Flt3L" = "FLT3LG",
 #' variable = "Treatment", alternative = "two.sided")
 #'
 #' # Mapping
-#' olink_gsea_map(npx_df, wilcox_results)
+#' res <- olink_gsea_map(npx_df, wilcox_results)
 #' }
 #'
 #' @export
-olink_gsea_map <- function(data, test_results, gsea_mapping=prot2gene) {
+olink_gsea_map <- function(data, test_results, gsea_mapping = prot2gene) {
 
   # Data Checks
-  if(length(unique(data[, "OlinkID"])) != length(unique(test_results[, "OlinkID"]))) {
+  if(length(unique(data[["OlinkID"]])) != length(unique(test_results[["OlinkID"]]))) {
     warning("The number of Olink IDs in the data does not equal the number of Olink IDs in the test results.")
   }
   if(!("estimate" %in% colnames(test_results))) {
@@ -85,18 +85,18 @@ olink_gsea_map <- function(data, test_results, gsea_mapping=prot2gene) {
   test_results <- as.data.frame(test_results)
   data <- as.data.frame(data)
 
-  test_results[, "Assay"] <- gsub("-", "", test_results[, "Assay"])
-  data[, "Assay"] <- gsub("-", "", data[, "Assay"])
+  test_results[["Assay"]] <- gsub("-", "", test_results[["Assay"]])
+  data[["Assay"]] <- gsub("-", "", data[["Assay"]])
 
-  for (i in 1:length(test_results[, "Assay"])){
+  for (i in 1:length(test_results[["Assay"]])){
     if (test_results[i, "Assay"] %in% names(gsea_mapping)){
-      test_results[, "Assay"][i] <- gsea_mapping[which(names(gsea_mapping) == test_results[i, "Assay"])]
+      test_results[["Assay"]][i] <- gsea_mapping[which(names(gsea_mapping) == test_results[i, "Assay"])]
     } else { }
   }
 
-  for (i in 1:length(data[, "Assay"])){
+  for (i in 1:length(data[["Assay"]])){
     if (data[i, "Assay"] %in% names(gsea_mapping)){
-      data[, "Assay"][i] <- gsea_mapping[which(names(gsea_mapping) == data[i, "Assay"])]
+      data[["Assay"]][i] <- gsea_mapping[which(names(gsea_mapping) == data[i, "Assay"])]
     } else { }
   }
 
