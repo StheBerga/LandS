@@ -49,9 +49,11 @@
 #' @param threshold_posthoc Threshold for displaying post-hoc tests brackets (Default = 0.05).
 #' @param posthoc_test_size Font size for annotations of post-hoc p-values (Default = 3.88).
 #' @param bracket_shorten Width of the bracket in range [0,1] (Default = 0).
-#' @param bracket.nudge.y Vertical adjustment to nudge brackets by.
-#' Useful to move up or move down the bracket. If positive value, brackets will be moved up;
-#' if negative value, brackets are moved down (Default = 0).
+#' @param bracket.nudge.y Relative vertical adjustment for post-hoc brackets,
+#' expressed as a fraction of the observed range of each variable. For example,
+#' 0.10 moves brackets upwards by 10 percent of that variable's range (Default = 0).
+#' @param bracket.step Vertical spacing between consecutive post-hoc brackets,
+#' expressed as a fraction of the plot height (Default = 0.08).
 #' @param axis_x_title Title for the x-axis (Default = NULL).
 #' @param size_axis_x Font size for the x-axis title (Default = 6).
 #' @param axis_y_title Title for the y-axis (Default = NULL).
@@ -210,6 +212,7 @@ Boxplot <- function (data,
                      posthoc_test_size = 3.88,
                      bracket_shorten = 0,
                      bracket.nudge.y = 0,
+                     bracket.step = 0.08,
 
                      axis_x_title = NULL,
                      size_axis_x = 6,
@@ -325,8 +328,31 @@ Boxplot <- function (data,
       fill.title <- "transparent"
     }
     k <- which(variables == i)
-    if (Posthoc == TRUE) {
-      df_posthoc <- posthoc_df(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i = i)
+
+    if (Posthoc) {
+      # Convert the relative offset into the measurement unit of this variable.
+      y_values <- data[[i]]
+      if (!is.numeric(y_values)) {
+        stop("Variable must be numeric: ", i)
+      }
+      y_values <- y_values[is.finite(y_values)]
+      if (!length(y_values)) {
+        stop("No finite observations for variable: ", i)
+      }
+
+      y_span <- diff(range(y_values))
+      if (y_span == 0) {
+        y_span <- max(1, abs(y_values[1]))
+      }
+      bracket_nudge_absolute <- bracket.nudge.y * y_span
+
+      df_posthoc <- posthoc_df(
+        Test_results = Test_results,
+        data = data,
+        group = group,
+        threshold_posthoc = threshold_posthoc,
+        i = i
+      )
     }
 
     if (group == "Overall") {
@@ -341,6 +367,12 @@ Boxplot <- function (data,
 
     ymax <- max(A + th.outliers * C, na.rm = TRUE)
     ymin <- min(B - th.outliers * C, na.rm = TRUE)
+
+    # Set a common baseline above the upper quartile for the post-hoc brackets.
+    if (Posthoc) {
+      bracket_base_y <- max(A + C, na.rm = TRUE)
+    }
+
     data[["Y"]] <- data[[i]]
 
     if (rm.outliers == TRUE) {
@@ -393,7 +425,7 @@ Boxplot <- function (data,
           ggplot2::coord_cartesian(
             ylim = c(
               min(data[["Y"]], na.rm = TRUE),
-              min(max(data[["Y"]], ymax, na.rm = TRUE))
+              if (Posthoc && nrow(df_posthoc) > 0) NA_real_ else max(data[["Y"]], na.rm = TRUE)
             )
           )
       } + {
@@ -409,27 +441,16 @@ Boxplot <- function (data,
       ggplot2::scale_fill_manual(values = palette, guide = "none") +
       ggplot2::scale_x_discrete(breaks = breaks_axis_x, labels = labels_axis_x) +
       {
-        if (Posthoc) {
-          if (nrow(df_posthoc) > 0 && !all(is.na(df_posthoc))) {
-
-            y_position <- max(
-              tapply(data[[i]], data[[group]],
-                     stats::quantile, na.rm = TRUE, probs = 0.75) +
-                tapply(data[[i]], data[[group]],
-                       stats::IQR, na.rm = TRUE),
-              na.rm = TRUE
-            )
-
-            ggpubr::stat_pvalue_manual(
-              df_posthoc,
-              label = "p = {pvalue}",
-              bracket.shorten = bracket_shorten,
-              bracket.nudge.y = bracket.nudge.y,
-              y.position = y_position,
-              step.increase = 0.08,
-              size = posthoc_test_size
-            )
-          }
+        if (Posthoc && nrow(df_posthoc) > 0 && !all(is.na(df_posthoc))) {
+          ggpubr::stat_pvalue_manual(
+            df_posthoc,
+            label = "p = {pvalue}",
+            bracket.shorten = bracket_shorten,
+            bracket.nudge.y = bracket_nudge_absolute,
+            y.position = bracket_base_y,
+            step.increase = bracket.step,
+            size = posthoc_test_size
+          )
         }
       } + {
         if (Overall)
@@ -479,7 +500,7 @@ Boxplot <- function (data,
     for (i in 1:length(boxplot)) {
       boxplot[[i]] <- rvg::dml(ggobj = boxplot[[i]])
       ppt = officer::add_slide(ppt, layout = "Title and Content")
-      officer::ph_with(ppt, boxplot[[i]], officer::ph_location(width = pptx_width, height = pptx_height))
+      ppt <- officer::ph_with(ppt, boxplot[[i]], officer::ph_location(width = pptx_width, height = pptx_height))
 
     }
     print(ppt, target = target)
