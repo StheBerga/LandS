@@ -6,8 +6,9 @@
 #' range ribbons, observed data points, and individual subject trajectories.
 #'
 #' Plots can be generated overall or stratified by a grouping variable. The
-#' output is either a list of 'ggplot' objects or, if 'PPTX = TRUE', a
-#' PowerPoint file.
+#' output is either a "ggplot" object if only one variable is provided,
+#' a list of "ggplot" objects if is provided more than one variable or, if
+#' \code{PPTX = TRUE}, a PowerPoint file.
 #'
 #' @param data A data frame containing the variables to plot.
 #' @param variables Character vector containing all numeric variables of interest.
@@ -22,7 +23,7 @@
 #' must match the number of group levels when \code{group != "Overall"} (Default = \code{"black"}).
 #'
 #' @param stat_line Character string indicating the summary statistic to plot.
-#' Allowed values are \code{"median"} and \code{"mean"} (Default = \code{"median"}.
+#' Allowed values are \code{"median"} and \code{"mean"} (Default = \code{"median"}).
 #' @param smooth_line Logical. If \code{TRUE}, applies a LOESS-smoothed line to the
 #' summary trajectory (Default = \code{FALSE}).
 #' @param span_loess Controls the amount of smoothing for the default loess smoother.
@@ -54,13 +55,13 @@
 #' @param alpha_fill_title Numeric. Transparency of the title fill colour (Default = 0.2).
 #' @param label_legend_title A title for your list.
 #' Default sets "Lineplots by grouping variable" and the current date.
-#' @param size_label_title Numeric. Text size of `label_title` (Default = 2.5).
+#' @param size_label_title Numeric. Text size of \code{label_title} (Default = 2.5).
 #'
 #' @param size_axis_x Numeric. Size of x-axis tick labels (Default = 5).
 #' @param size_axis_y Numeric. Size of y-axis tick labels (Default = 6).
 #'
 #' @param Overall Logical. If \code{TRUE}, annotates each plot with an overall
-#' p-value from \code{Test_results} (Default = \code{FALSE}.
+#' p-value from \code{Test_results} (Default = \code{FALSE}).
 #' @param Test_results Data frame containing statistical test results used for
 #' annotations. Required when \code{Overall = TRUE} or \code{Posthoc = TRUE} (Default = \code{NULL}).
 #' @param Posthoc Logical. If \code{TRUE}, adds post-hoc comparison annotations (Default = \code{FALSE}).
@@ -158,7 +159,7 @@ Lineplots <- function (data,
                        lwd_line = 1,
                        alpha_line = 1,
 
-                       ylim = c(0.2, 0.8),
+                       ylim = c(0, 1),
 
                        ribbon = TRUE,
                        alpha_ribbon = 0.05,
@@ -367,7 +368,7 @@ Lineplots <- function (data,
           ggplot2::stat_smooth(data = smooth_data,
                                ggplot2::aes(x = .data[[time]], y = .data[["smooth_y"]]),
                                geom = "line", alpha = alpha_line,
-                               size = lwd_line, span = span_loess,
+                               linewidth = lwd_line, span = span_loess,
                                method = "loess", formula = 'y ~ x',
                                show.legend = FALSE)
       } + {
@@ -406,11 +407,17 @@ Lineplots <- function (data,
           ggplot2::geom_ribbon(data = ribbon_data, ggplot2::aes(x = .data[["x"]], ymin = .data[["ymin"]], ymax = .data[["ymax"]], fill = .data[[group]]),
                                alpha = alpha_ribbon, show.legend = FALSE, colour = NA, inherit.aes = FALSE)
       } + {
-        if (ribbon & !smooth_line)
-          ggplot2::stat_summary(ggplot2::aes(x = .data[[time]], y = .data[[i]]),
-                                geom = "ribbon", alpha = alpha_ribbon, linewidth = NA,
-                                fun.min = function(z) stats::quantile(z, 0.25),
-                                fun.max = function(z) stats::quantile(z, 0.75), inherit.aes = FALSE)
+        if (ribbon && !smooth_line && group == "Overall")
+        ggplot2::stat_summary(ggplot2::aes(x = .data[[time]], y = .data[[i]]),
+                              geom = "ribbon", alpha = alpha_ribbon, linewidth = NA,
+                              fun.min = function(z) stats::quantile(z, 0.25),
+                              fun.max = function(z) stats::quantile(z, 0.75), inherit.aes = FALSE)
+      } + {
+        if (ribbon && !smooth_line && !group == "Overall")
+        ggplot2::stat_summary(ggplot2::aes(x = .data[[time]], y = .data[[i]], fill = .data[[group]]),
+                              geom = "ribbon", alpha = alpha_ribbon, linewidth = NA,
+                              fun.min = function(z) stats::quantile(z, 0.25),
+                              fun.max = function(z) stats::quantile(z, 0.75), inherit.aes = FALSE)
 
       } +
       ggplot2::scale_color_manual(values = palette, drop = FALSE) +

@@ -17,7 +17,7 @@ Lineplots(
   span_loess = 1,
   lwd_line = 1,
   alpha_line = 1,
-  ylim = c(0.2, 0.8),
+  ylim = c(0, 1),
   ribbon = TRUE,
   alpha_ribbon = 0.05,
   id_lines = FALSE,
@@ -73,7 +73,7 @@ Use \code{"Overall"} to generate a single distribution without stratification.}
 must match the number of group levels when \code{group != "Overall"} (Default = \code{"black"}).}
 
 \item{stat_line}{Character string indicating the summary statistic to plot.
-Allowed values are \code{"median"} and \code{"mean"} (Default = \code{"median"}.}
+Allowed values are \code{"median"} and \code{"mean"} (Default = \code{"median"}).}
 
 \item{smooth_line}{Logical. If \code{TRUE}, applies a LOESS-smoothed line to the
 summary trajectory (Default = \code{FALSE}).}
@@ -120,14 +120,14 @@ Required when \code{col_title = TRUE} (Default = \code{NULL}).}
 \item{label_legend_title}{A title for your list.
 Default sets "Lineplots by grouping variable" and the current date.}
 
-\item{size_label_title}{Numeric. Text size of `label_title` (Default = 2.5).}
+\item{size_label_title}{Numeric. Text size of \code{label_title} (Default = 2.5).}
 
 \item{size_axis_x}{Numeric. Size of x-axis tick labels (Default = 5).}
 
 \item{size_axis_y}{Numeric. Size of y-axis tick labels (Default = 6).}
 
 \item{Overall}{Logical. If \code{TRUE}, annotates each plot with an overall
-p-value from \code{Test_results} (Default = \code{FALSE}.}
+p-value from \code{Test_results} (Default = \code{FALSE}).}
 
 \item{Test_results}{Data frame containing statistical test results used for
 annotations. Required when \code{Overall = TRUE} or \code{Posthoc = TRUE} (Default = \code{NULL}).}
@@ -177,8 +177,9 @@ The function can display mean or median trajectories, optional interquartile
 range ribbons, observed data points, and individual subject trajectories.
 
 Plots can be generated overall or stratified by a grouping variable. The
-output is either a list of 'ggplot' objects or, if 'PPTX = TRUE', a
-PowerPoint file.
+output is either a "ggplot" object if only one variable is provided,
+a list of "ggplot" objects if is provided more than one variable or, if
+\code{PPTX = TRUE}, a PowerPoint file.
 }
 \examples{
 data_example <- data.frame(
