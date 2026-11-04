@@ -390,8 +390,12 @@ Boxplot <- function (data,
                                 colour = col_median_line, linetype = "solid", show.legend = FALSE)
       } + {
         if (rm.outliers)
-          ggplot2::coord_cartesian(ylim = c(min(.data[["Y"]], na.rm = TRUE),
-                                            min(max(.data[["Y"]], ymax, na.rm = TRUE))))
+          ggplot2::coord_cartesian(
+            ylim = c(
+              min(data[["Y"]], na.rm = TRUE),
+              min(max(data[["Y"]], ymax, na.rm = TRUE))
+            )
+          )
       } + {
 
         if (title_leg){
@@ -405,13 +409,28 @@ Boxplot <- function (data,
       ggplot2::scale_fill_manual(values = palette, guide = "none") +
       ggplot2::scale_x_discrete(breaks = breaks_axis_x, labels = labels_axis_x) +
       {
-        if (Posthoc)
-          if (nrow(df_posthoc) > 0 & !all(is.na(df_posthoc)))
-            ggpubr::stat_pvalue_manual(df_posthoc, label = "p = {pvalue}", bracket.shorten = bracket_shorten, bracket.nudge.y = bracket.nudge.y,
-                                       y.position =
-                                         max(tapply(.data[[i]], .data[[group]], stats::quantile, na.rm = TRUE, probs = 0.75) +
-                                               tapply(.data[[i]], .data[[group]], stats::IQR, na.rm = TRUE)),
-                                       step.increase = 0.08, size = posthoc_test_size)
+        if (Posthoc) {
+          if (nrow(df_posthoc) > 0 && !all(is.na(df_posthoc))) {
+
+            y_position <- max(
+              tapply(data[[i]], data[[group]],
+                     stats::quantile, na.rm = TRUE, probs = 0.75) +
+                tapply(data[[i]], data[[group]],
+                       stats::IQR, na.rm = TRUE),
+              na.rm = TRUE
+            )
+
+            ggpubr::stat_pvalue_manual(
+              df_posthoc,
+              label = "p = {pvalue}",
+              bracket.shorten = bracket_shorten,
+              bracket.nudge.y = bracket.nudge.y,
+              y.position = y_position,
+              step.increase = 0.08,
+              size = posthoc_test_size
+            )
+          }
+        }
       } + {
         if (Overall)
           ggplot2::annotate(geom = "text", x = -Inf, y = Inf,
