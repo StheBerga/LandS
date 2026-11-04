@@ -330,7 +330,6 @@ Boxplot <- function (data,
     k <- which(variables == i)
 
     if (Posthoc) {
-      # Convert the relative offset into the measurement unit of this variable.
       y_values <- data[[i]]
       if (!is.numeric(y_values)) {
         stop("Variable must be numeric: ", i)
@@ -368,7 +367,6 @@ Boxplot <- function (data,
     ymax <- max(A + th.outliers * C, na.rm = TRUE)
     ymin <- min(B - th.outliers * C, na.rm = TRUE)
 
-    # Set a common baseline above the upper quartile for the post-hoc brackets.
     if (Posthoc) {
       bracket_base_y <- max(A + C, na.rm = TRUE)
     }
