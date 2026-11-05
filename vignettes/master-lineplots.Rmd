@@ -102,7 +102,7 @@ LandS::print_plot_grid(plot_list = List_reg, path_print = "your/directory", ext 
 
 ```{r save a list as pptx, eval=FALSE}
 Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
-          group = "Gender", palette = c("red", "blue"))
+          group = "Gender", palette = c("red", "blue"),
           PPTX = TRUE, grid = FALSE, pptx_width = 6, pptx_height = 4, 
           target = "your/directory/new_presentation.pptx")
 ```
