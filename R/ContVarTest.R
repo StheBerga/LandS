@@ -215,8 +215,8 @@ cont_var_test <- function(data,
         name <- variables[i]
 
         if (sum(is.na(data[[name]])) > 0) {
-          vett_excl <- data %>% dplyr::filter(is.na(name)) %>% dplyr::pull(id)
-          data_filtered <- data %>% dplyr::filter(!id %in% vett_excl)
+          vett_excl <- data %>% dplyr::filter(is.na(.data[[name]])) %>% dplyr::pull(.data[[id]])
+          data_filtered <- data %>% dplyr::filter(!.data[[id]] %in% vett_excl)
         } else {
           data_filtered <- data
         }
@@ -285,8 +285,8 @@ cont_var_test <- function(data,
         name <- variables[i]
 
         if (sum(is.na(data[[name]])) > 0) {
-          vett_excl <- data %>% dplyr::filter(is.na(name)) %>% dplyr::pull(id)
-          data_filtered <- data %>% dplyr::filter(!id %in% vett_excl)
+          vett_excl <- data %>% dplyr::filter(is.na(.data[[name]])) %>% dplyr::pull(.data[[id]])
+          data_filtered <- data %>% dplyr::filter(!.data[[id]] %in% vett_excl)
         } else {
           data_filtered <- data
         }
@@ -309,22 +309,22 @@ cont_var_test <- function(data,
           if (is.null(type)) {type <- "e"}
 
           if (type == "c" || type == "conover") {
-            mat_posthoc <- PMCMRplus::frdAllPairsConoverTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p_adjust_method = p_adjust_method)$p.value
+            mat_posthoc <- PMCMRplus::frdAllPairsConoverTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Conover's All-Pairs Rank Comparison Test"
           } else if(type == "e" || type == "exact") {
-            mat_posthoc <- PMCMRplus::frdAllPairsExactTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p_adjust_method = p_adjust_method)$p.value
+            mat_posthoc <- PMCMRplus::frdAllPairsExactTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Exact All-Pairs Comparisons Test"
           } else if(type == "n" || type == "nemenyi") {
-            mat_posthoc <- PMCMRplus::frdAllPairsNemenyiTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p_adjust_method = p_adjust_method)$p.value
+            mat_posthoc <- PMCMRplus::frdAllPairsNemenyiTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Nemenyi's All-Pairs Rank Comparison Test"
           } else if(type == "m" || type == "miller") {
-            mat_posthoc <- PMCMRplus::frdAllPairsMillerTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p_adjust_method = p_adjust_method)$p.value
+            mat_posthoc <- PMCMRplus::frdAllPairsMillerTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Millers's All-Pairs Comparisons Test"
           } else if(type == "w" || type == "wilcoxon") {
             listIDs <- base::split(data_filtered, data_filtered[[group]]) %>% base::lapply(function(x) stats::setNames(x[[name]], x$id))
             stopifnot("IDs are not sorted in the appropriate order within group variable. \n Please refer to function description for details" =
                         all(vapply(listIDs[-1], function(x) identical(names(x), names(listIDs[[1]])), logical(1))))
-            mat_posthoc <- stats::pairwise.wilcox.test(data[[name]], g = data[[group]], p_adjust_method = p_adjust_method)$p.value
+            mat_posthoc <- stats::pairwise.wilcox.test(data[[name]], g = data[[group]], p.adjust.method = p_adjust_method, paired = TRUE)$p.value
             posthoc = "Pairwise signed Wilcoxon Rank Sum Tests"
           } else {
             stop("Pairwise comparison is not defined properly \n Please refer to function description for details")
