@@ -6,12 +6,12 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
+  
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  warning = FALSE
+  knitr::opts_chunk$set(
+collapse = TRUE,
+comment = "#>",
+warning = FALSE
 )
 ```
 
@@ -45,9 +45,7 @@ In this case the generated data is simulated, for more info on how to set a data
 You can build a single graph using the following code:
 
 ```{r single graph}
-Lineplots(data = data01, 
-          variables = "Marker_1", 
-          time = "Time")
+Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Overall")
 ```
 
 You can see that the arguments used by the function are: 
@@ -65,7 +63,7 @@ We can change the lineplot graphics as follows:
 
 ```{r customized single graph}
 
-Lineplots(data = data01, variables = "Marker_1", time = "Time")
+Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Overall")
 
 ```
 
@@ -74,13 +72,15 @@ Lineplots(data = data01, variables = "Marker_1", time = "Time")
 We can also get separated curves for a specific grouping variable: 
 
 ```{r split a single graph}
-Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Gender")
+Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Gender",
+          palette = c("red", "blue"))
 ```
 
 ## Build a list of lineplots
 
 ```{r graphs list}
-Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender")
+Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
+          group = "Gender", palette = c("red", "blue"))
 ```
 
 ## Save a list of lineplots
@@ -91,16 +91,20 @@ You can save a list of lineplots in two different ways: you can build a grid and
 
 ```{r save a list as pdf, eval=FALSE}
 
-List_reg <- Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender")
+List_reg <- Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
+                      group = "Gender", palette = c("red", "blue"))
 
 LandS::print_plot_grid(plot_list = List_reg, path_print = "your/directory", ext = "pdf")
 
 ```
+
 ### Save a list of lineplots as a PPTX file
 
 ```{r save a list as pptx, eval=FALSE}
-Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender", 
-             PPTX = TRUE, grid = FALSE, pptx_width = 6, pptx_height = 4, target = "your/directory/new_presentation.pptx")
+Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
+          group = "Gender", palette = c("red", "blue"))
+          PPTX = TRUE, grid = FALSE, pptx_width = 6, pptx_height = 4, 
+          target = "your/directory/new_presentation.pptx")
 ```
 
 ## Customize the colour of the title
@@ -113,8 +117,9 @@ df_legend$Colour <- c("red", "orange")
 
 colour_title <- function(i) df_legend$Colour[df_legend$Var == i]
 
-Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", group = "Gender", 
-             col_title = TRUE, fill_title = colour_title)
+Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
+          group = "Gender", palette = c("red", "blue"),
+          col_title = TRUE, fill_title = colour_title)
 ```
 
 
@@ -129,10 +134,10 @@ Tests <- LandS::cont_var_test(data = data01,
                               variables = c("Marker_1", "Marker_2"), 
                               group = "Time_fac", 
                               paired = TRUE, 
-                              p_adjust_method = "fdr" 
-                              )
+                              p_adjust_method = "fdr")
 
-Lineplots(data = data01, time = "Time", variables = "Marker_1", Overall = TRUE, Test_results = Tests[[3]], 
-             Posthoc = TRUE, posthoc_test_size = 2, threshold_posthoc = 1)
+Lineplots(data = data01, time = "Time", variables = "Marker_1", group = "Overall",
+          Overall = TRUE, Test_results = Tests[[3]], 
+          Posthoc = TRUE, posthoc_test_size = 2, threshold_posthoc = 1)
 
 ```
