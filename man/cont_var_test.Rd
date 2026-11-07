@@ -9,12 +9,13 @@ cont_var_test(
   variables,
   paired = FALSE,
   group,
-  no.adj = FALSE,
+  type = NULL,
   statistic = "{mean} ({sd})",
-  ID = "ID",
+  id = "ID",
   num_dec = 2,
-  p.adjust.method = NULL,
-  excel = F,
+  overall_threshold = 0.1,
+  p_adjust_method = NULL,
+  excel = FALSE,
   excel_path = "Results.xlsx",
   verbose = TRUE
 )
@@ -25,50 +26,49 @@ cont_var_test(
 \item{variables}{Character vector with the names of continuous numeric
 variables to test.}
 
-\item{paired}{Logical. If TRUE, observations are treated as paired or
-repeated measures across levels of group. Default=FALSE.}
+\item{paired}{Logical. If `TRUE`, observations are treated as paired or
+repeated measures across levels of group. (Default=`FALSE`).}
 
 \item{group}{Character string giving the name of the grouping variable.
 This column must be a factor with at least two levels.}
 
-\item{no.adj}{Logical. If TRUE, also returns unadjusted pairwise post-hoc
-p-values. This is intended for sensitivity checks and is generally not
-recommended for confirmatory inference. Default=FALSE.}
+\item{type}{Choose the posthoc test to perform when `levels(group)>2`.
+The function supports all the tests from the `PMCMRplus` package,
+as well as Pairwise Wilcoxon Rank Sum tests and Pairwise Wilcoxon Signed Rank Tests.
+By default is set the Exact All-Pairs Comparisons Test when `paired=TRUE`,
+and the Dunn's All-Pairs Rank Comparison Test when `paired=FALSE`.}
 
 \item{statistic}{Specifies summary statistics to display for each variable. Default = "\{mean\} (\{sd\})".
-Format is defined by gtsummary package.}
+Format is defined by `gtsummary` package.}
 
-\item{ID}{Character string giving the name of the subject identifier column,
-required when 'paired = TRUE'. Default = "ID".}
+\item{id}{Character string giving the name of the subject identifier column,
+required when `paired = TRUE`. Default = "ID".}
 
 \item{num_dec}{Decimal number for summary statistics (Default = 2).}
 
-\item{p.adjust.method}{Character string specifying the multiplicity
-adjustment method used for post-hoc tests. Passed to the PMCMRplus post-hoc
-test functions. If NULL (Default), "bonferroni" is used.}
+\item{overall_threshold}{Sets a threhold to not perform posthoc comparisons when the overall test's raw p-value is over (Default = 0.1).}
 
-\item{excel}{Logical. If TRUE, writes the result list to an Excel workbook
-with one sheet per result table (Default = FALSE).}
+\item{p_adjust_method}{Character string specifying the multiplicity
+adjustment method used for overall and post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
+Passed to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), "fdr" is used.}
 
-\item{excel_path}{Path where you want to save the Excel file (Default
-"Results.xlsx").}
+\item{excel}{Logical. If `TRUE`, writes the result list to an Excel workbook
+with one sheet per result table (Default = `FALSE`).}
 
-\item{verbose}{Print progress bar and messages (Default=TRUE).}
+\item{excel_path}{Path where you want to save the Excel file (Default "Results.xlsx").}
+
+\item{verbose}{Print progress bar and messages (Default=`TRUE`).}
 }
 \value{
 A named list of data frames. The exact elements depend on the selected test:
 \describe{
   \item{Raw_tests}{Summary statistics and unformatted p-values.}
   \item{Form_tests}{Summary statistics and formatted p-values.}
-  \item{Raw_pval}{P-values only; returned for two-group analyses.}
-  \item{Friedman_ph_pval}{Friedman global and post-hoc p-values; returned
-  for paired analyses with more than two groups.}
-  \item{KW_ph_pval}{Kruskal-Wallis global and post-hoc p-values; returned for
-  unpaired analyses with more than two groups.}
-  \item{no_corrected_ph}{Unadjusted post-hoc p-values; returned only when no.adj = TRUE.}
-  \item{Form_no_corrected_ph}{Formatted unadjusted post-hoc p-values; returned only
-  for Friedman analyses when no.adj = TRUE.}
+  \item{MW or WS _type}{Raw and adjusted p-values; returned for two-group analyses.}
+  \item{FR or KW _type_p_adjust_method}{Global test with raw and adjusted p-values,
+  adjusted p-values for post-hoc comparisons; returned for analyses with more than two groups.}
 }
+The name of the last data frame is given by the overall test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
 }
 \description{
 The test is selected automatically according to the number of groups and
@@ -76,23 +76,57 @@ whether observations are paired:
 \itemize{
   \item 2 groups, unpaired: Wilcoxon rank-sum test / Mann-Whitney U test.
   \item 2 groups, paired: Wilcoxon signed-rank test.
-  \item >2 groups, unpaired: Kruskal-Wallis rank-sum test, with Dunn post-hoc tests.
-  \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests.
+  \item >2 groups, unpaired: Kruskal-Wallis rank-sum test, with Dunn post-hoc tests by default.
+  \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests by default.
 }
 
-You can also perform post-hoc tests without correcting for test multiplicity (option no.adj = T),
+You can also perform post-hoc tests without correcting for test multiplicity (option `type = "none"`),
 even if it is not recommended.
 The following summary statistics can be computed:
-median, mean, sd, min, max, q1, q3, n, and range.
+`median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
+For paired analyses, the summary statistics will be computed only for
+complete observations.
 }
 \details{
 For paired analyses, subjects with missing values for a tested variable are
 removed from that variable-specific analysis to preserve complete pairs or
-repeated-measure blocks.
+repeated-measure blocks; when performing Wilcoxon's signed rank test, subjects
+ids must be in the same order across group variable to perform paired analyses
+correctly.
+For paired analyses involving more than two groups, the Friedman test
+requires a complete block design, where each subject must have
+exactly one observation for every level of the grouping variable.
+
+Missing subject-group combinations are not allowed, even when the
+miaaing observations do not contain any non-`NA` values.
+
+A simple way to create a complete block design is:
+
+\preformatted{
+design <- expand.grid(
+  ID = unique(data$ID),
+  group = unique(data$group)
+)
+
+data_complete <- dplyr::left_join(
+  design,
+  data,
+  by = c("ID", "group")
+)
+}
+
+This operation creates all expected subject-group combinations and
+makes any missing observations explicit, allowing them to be identified
+and handled before running the analysis.
 }
 \examples{
-cont_var_test(data = iris, variables = c("Sepal.Length", "Sepal.Width"),
-              group = "Species", paired = FALSE)
+mtcars$vs <- factor(mtcars$vs)
+cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'vs',
+paired = FALSE, verbose = FALSE)
+
+mtcars$cyl <- factor(mtcars$cyl)
+cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'cyl',
+paired = FALSE, verbose = FALSE)
 }
 \author{
 Stefano Bergamini, Luca Lalli
