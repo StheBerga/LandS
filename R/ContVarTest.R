@@ -267,7 +267,10 @@ cont_var_test <- function(data,
 
     # Friedman test and post hoc tests
     if (paired == TRUE) {
-      if (is.null(type)) {type <- "e"}
+      if (is.null(type)) {
+        type <- "e"
+        posthoc = "Exact All-Pairs Comparisons Test"
+      }
 
       if (sum(is.na(data[, variables])) > 0) {
         warning("IDs with NA will be removed \n Summary statistics are computed on filtered data")
@@ -285,6 +288,10 @@ cont_var_test <- function(data,
           all()
       )
 
+      table.p[["Overall.raw"]] <- sapply(variables, FUN = function(x) stats::friedman.test(y = data[[x]], groups = data[[group]], blocks = data[[id]])$p.value)
+      table.p[["Overall.padj"]] <- stats::p.adjust(table.p[["Overall.raw"]], method = p_adjust_method)
+
+
       for (i in seq_along(variables)) {
         name <- variables[i]
 
@@ -299,12 +306,12 @@ cont_var_test <- function(data,
           table.p[table.p$Variable == name, 1+(1:nlevels(data[[group]]))] <-
             compute.stats(data = data_filtered, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
           # Compute Friedman test
-          table.p[table.p$Variable == name, "Overall.raw"] <- stats::friedman.test(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]])$p.value
+          # table.p[table.p$Variable == name, "Overall.raw"] <- stats::friedman.test(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]])$p.value
         } else {
-          table.p[table.p$Variable == name, "Overall.raw"] <- NA
+          # table.p[table.p$Variable == name, "Overall.raw"] <- NA
         }
 
-        if(!is.na(table.p[table.p$Variable == name, "Overall.raw"]) && table.p[table.p$Variable == name, "Overall.raw"] <= overall_threshold) {
+        if(!is.na(table.p[table.p$Variable == name, "Overall.padj"]) && table.p[table.p$Variable == name, "Overall.padj"] <= overall_threshold) {
           # If the overall test is significant, perform pairwise comparisons
           if (type == "c" || type == "conover") {
             mat_posthoc <- PMCMRplus::frdAllPairsConoverTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p.adjust.method = p_adjust_method)$p.value
@@ -345,7 +352,13 @@ cont_var_test <- function(data,
 
     # Kruskal Wallis and post hoc tests
     if(paired == FALSE) {
-      if (is.null(type)) {type <- "d"}
+      if (is.null(type)) {
+        type <- "d"
+        posthoc = "Dunn's All-Pairs Rank Comparison Test"
+      }
+
+      table.p[["Overall.raw"]] <- sapply(variables, FUN = function(x) stats::kruskal.test(data[[x]], data[[group]])$p.value)
+      table.p[["Overall.padj"]] <- stats::p.adjust(table.p[["Overall.raw"]], method = p_adjust_method)
 
       for (i in seq_along(variables)) {
         name <- variables[i]
@@ -354,13 +367,9 @@ cont_var_test <- function(data,
           compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
         # Kruskal-Wallis test
-        table.p[table.p$Variable == name, "Overall.raw"] <- stats::kruskal.test(x = data[[name]], g = data[[group]])$p.value
+        # table.p[table.p$Variable == name, "Overall.raw"] <- stats::kruskal.test(x = data[[name]], g = data[[group]])$p.value
 
-
-        if(stats::kruskal.test(x = data[[name]], g = data[[group]])$p.val > overall_threshold) {
-          # If the overall test is not significant, do not perform pairwise comparisons
-        } else {
-          # If the overall test is significant, perform pairwise comparisons
+        if(!is.na(table.p[table.p$Variable == name, "Overall.padj"]) && table.p[table.p$Variable == name, "Overall.padj"] <= overall_threshold) {          # If the overall test is significant, perform pairwise comparisons
           if (type == "c" || type == "conover") {
             mat_posthoc <- PMCMRplus::kwAllPairsConoverTest(x = data[[name]], g = data[[group]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Conover's All-Pairs Rank Comparison Test"
@@ -371,7 +380,7 @@ cont_var_test <- function(data,
             mat_posthoc <- PMCMRplus::kwAllPairsNemenyiTest(x = data[[name]], g = data[[group]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Nemenyi's All-Pairs Rank Comparison Test"
           } else if (type == "m" || type == "mann-whitney" || type == "mannwhitney" || type == "wilcoxon" || type == "w") {
-            mat_posthoc <- stats::pairwise.wilcox.test(data[[name]], g = data[[group]], p.adjust.method = p_adjust_method)$p.value
+            mat_posthoc <- stats::pairwise.wilcox.test(data[[name]], g = data[[group]], p.adjust.method = p_adjust_method, paired = FALSE)$p.value
             posthoc = "Pairwise Wilcoxon Rank Sum Tests"
           } else {
             stop("Pairwise comparison is not defined properly \n Please refer to function description for details")
@@ -382,6 +391,8 @@ cont_var_test <- function(data,
             table.p[table.p$Variable == name, contrast] <- mat_posthoc[x[2], x[1]]
           }
 
+        } else {
+          # If the overall test is not significant, do not perform pairwise comparisons
         }
 
         if (verbose) LandS::Progress_bar(current = i,
