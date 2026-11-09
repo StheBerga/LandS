@@ -181,7 +181,7 @@ New_Project <- function(project_name,
 #'
 #' @param plot_list A list of ggplot objects.
 #' @param path_print Character string. Output file path without extension.
-#' Default is \code{""}.
+#' Default is \code{"Plots"}.
 #' @param nrow Integer. Number of rows in the plot grid. Default is 8.
 #' @param ncol Integer. Number of columns in the plot grid. Default is 6.
 #' @param ext Character string. Output file extension. One of \code{"pdf"},
@@ -189,7 +189,7 @@ New_Project <- function(project_name,
 #' @param width_pg Numeric. Output width in centimeters. Default is 21.
 #' @param height_pg Numeric. Output height in centimeters. Default is 29.7.
 #' @param return_plot Logical. If \code{TRUE}, returns the list of grid plots created
-#' by cowplot::plot_grid(). If \code{FALSE}, returns \code{NULL}.
+#' by \code{cowplot::plot_grid()}. If \code{FALSE}, returns \code{NULL}.
 #' @param suppress_warning if you want to suppress warnings (Default = \code{FALSE})
 #'
 #' @return
@@ -247,7 +247,7 @@ New_Project <- function(project_name,
 #' )
 #' }
 print_plot_grid <- function (plot_list,
-                             path_print = ".",
+                             path_print = "Plots",
                              nrow = 8,
                              ncol = 6,
                              ext = NULL,

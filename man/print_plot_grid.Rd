@@ -6,7 +6,7 @@
 \usage{
 print_plot_grid(
   plot_list,
-  path_print = ".",
+  path_print = "Plots",
   nrow = 8,
   ncol = 6,
   ext = NULL,
@@ -20,7 +20,7 @@ print_plot_grid(
 \item{plot_list}{A list of ggplot objects.}
 
 \item{path_print}{Character string. Output file path without extension.
-Default is \code{""}.}
+Default is \code{"Plots"}.}
 
 \item{nrow}{Integer. Number of rows in the plot grid. Default is 8.}
 
@@ -34,7 +34,7 @@ Default is \code{""}.}
 \item{height_pg}{Numeric. Output height in centimeters. Default is 29.7.}
 
 \item{return_plot}{Logical. If \code{TRUE}, returns the list of grid plots created
-by cowplot::plot_grid(). If \code{FALSE}, returns \code{NULL}.}
+by \code{cowplot::plot_grid()}. If \code{FALSE}, returns \code{NULL}.}
 
 \item{suppress_warning}{if you want to suppress warnings (Default = \code{FALSE})}
 }
