@@ -156,8 +156,8 @@ New_Project <- function(project_name,
   }
   else {
     usethis:::ui_bullets(c(v = "Writing a sentinel file {.path {pth('.here')}}.",
-                 `_` = "Build robust paths within your project via {.fun here::here}.",
-                 i = "Learn more at {.url https://here.r-lib.org}."))
+                           `_` = "Build robust paths within your project via {.fun here::here}.",
+                           i = "Learn more at {.url https://here.r-lib.org}."))
     fs::file_create(usethis::proj_path(".here"))
   }
   if (open) {
@@ -340,9 +340,9 @@ print_plot_grid <- function (plot_list,
 #' build_filename(filename = "example", extension = ".png", output = ".",
 #' datetime = TRUE)
 build_filename <- function(filename = "example",
-                     extension = ".png",
-                     output = ".",
-                     datetime = FALSE){
+                           extension = ".png",
+                           output = ".",
+                           datetime = FALSE){
   if (datetime == FALSE){
     return(paste0(output, "/", filename, extension))
   }else {
@@ -455,63 +455,73 @@ posthoc_df <- function(Test_results, data, group, threshold_posthoc, i){
 
 }
 
-#' Plot variable distribution
+#' Plot the distribution of a variable
 #'
 #' @description
-#' This function outputs a ggplot showing the distribution of a single variable,
-#' where points are optionally divided by a cut-off value (cutoff).
+#' Creates a one-dimensional point plot of a numeric variable, with one point
+#' for each observation. When \code{split = TRUE}, points are colored according to
+#' whether their value is at or below the cutoff or above it, and a vertical
+#' line marks the cutoff. Values at or below the cutoff are salmon; values
+#' above it are cornflower blue.
 #'
+#' @param data A data frame containing the variable to plot.
+#' @param variable A character string giving the name of a numeric column in \code{data}.
+#' @param split Logical. If \code{TRUE}, color observations by their relationship to
+#'   `cutoff`. If \code{FALSE} (the default), plot all observations in one color.
+#' @param cutoff A numeric cutoff value. Required when \code{split = TRUE}; it is
+#'   ignored when \code{split = FALSE}.
+#' @param palette A character string giving the name of the color palette to use for the plot.
+#' If \code{split = TRUE}, the first color is used for values at or below the cutoff,
+#' and the second color is used for values above it. Default is \code{"black"}.
 #'
-#' @param data A dataframe containing the variable to plot.
-#' @param var string. Name of the variable to plot.
-#' @param split logical. If TRUE, the variable is split by a cut-off value.
-#' Default=FALSE.
-#' @param cutoff numeric. Cut-off value to split the variable. Default=NULL.
-#'
-#' @return A ggplot object.
+#' @return A ggplot object. The variable is mapped to the x-axis; the y-axis is
+#'   suppressed because it has no data meaning.
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
 #' library(ggplot2)
-#' Distribution(data = mtcars, var = "mpg", split = TRUE, cutoff = 23)
-Distribution <- function(data, var, split = FALSE, cutoff = NULL){
+#' # Plot all values in one color
+#' Distribution(data = mtcars, variable = "mpg", palette = "forestgreen")
+#'
+#' # Compare values with a cutoff
+#' Distribution(data = mtcars, variable = "mpg", split = TRUE, cutoff = 23, palette = c("salmon", "cornflowerblue"))
+Distribution <- function(data, variable, split = FALSE, cutoff = NULL, palette = "black") {
 
-  if(split==TRUE && is.null(cutoff)){
-    stop("Please provide a cutoff value if you use split=TRUE")
+  if(split && is.null(cutoff)) {
+    stop("Please provide a cutoff value if you use split = TRUE")
   }
 
-
-  ggplot2::ggplot(data = data, ggplot2::aes_string(x = data[, var], y = 1))+
-    {if (split == FALSE)
-      ggplot2::geom_point(size = 1.5)}+
-
-    {if (split == TRUE)
-      ggplot2::geom_point(ggplot2::aes(colour = data[, var] > cutoff), size = 1.5)}+
-
-    {if (split == TRUE)
-      ggplot2::geom_vline(xintercept = cutoff, linetype = 2)}+
-
-    ggplot2::scale_colour_manual(values=c("salmon", "cornflowerblue"))+
-
-    {if (split == FALSE)
-      ggplot2::labs(x = NULL, y = NULL)}+
-
-    {if (split == TRUE)
-      ggplot2::labs(x = paste0("Cut-off: ", cutoff), y = NULL)}+
-
-    # coord_fixed(ratio = 50/2)+
+  ggplot2::ggplot(data = data, ggplot2::aes(x = .data[[variable]], y = 1)) +
+    {
+      if (split) {
+        ggplot2::geom_point(ggplot2::aes(colour = .data[[variable]] > cutoff), size = 1.5, show.legend = FALSE)
+      } else {
+        ggplot2::geom_point(size = 1.5, colour = palette[1])
+      }
+    } + {
+      if (split)
+        ggplot2::geom_vline(xintercept = cutoff, linetype = 2)
+    } + {
+      if (split)
+        ggplot2::scale_colour_manual(values = palette)
+    } + {
+      if (split) {
+        ggplot2::labs(x = paste("Cut-off:", cutoff))
+      } else {
+        ggplot2::labs(x = NULL)
+      }
+    } +
+    ggplot2::labs(y = NULL) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 6, face = "bold"),
-          axis.text.x = ggplot2::element_text(size = 12, colour = "black"),
-          axis.text.y.left = ggplot2::element_blank(),
-          axis.ticks.y.left = ggplot2::element_blank(),
-          panel.background = ggplot2::element_blank(),
-          panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank(),
-          legend.position = "bottom",
-          legend.title = ggplot2::element_blank(),
-          panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", size=0.2, fill=NA))
+                   axis.text.x = ggplot2::element_text(size = 12, colour = "black"),
+                   axis.text.y.left = ggplot2::element_blank(),
+                   axis.ticks.y.left = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", linewidth = 0.2, fill = NA))
 }
 
 
