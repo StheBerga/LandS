@@ -56,6 +56,8 @@
 #' @param label_legend_title A title for your list.
 #' Default sets "Lineplots by grouping variable" and the current date.
 #' @param size_label_title Numeric. Text size of \code{label_title} (Default = 2.5).
+#' @param size_legend_text Font size for the list's text (Default = 3).
+#' @param size_legend_circle Font size for the list's circles defining groups legend (Default = 4).
 #'
 #' @param size_axis_x Numeric. Size of x-axis tick labels (Default = 5).
 #' @param size_axis_y Numeric. Size of y-axis tick labels (Default = 6).
@@ -179,6 +181,8 @@ Lineplots <- function (data,
                        alpha_fill_title = 0.2,
                        label_legend_title = paste0("Lineplots by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
                        size_label_title = 2.5,
+                       size_legend_text = 3,
+                       size_legend_circle = 4,
 
                        size_axis_x = 5,
                        size_axis_y = 6,
@@ -256,18 +260,18 @@ Lineplots <- function (data,
                               panel.grid.minor = ggplot2::element_blank(),
                               legend.key.width = grid::unit(2, "cm"),
                               panel.spacing.x = grid::unit(1.5, "mm"))
-  list_reg <- list()
+  lineplots <- list()
 
   # Creating a legend as the first graph ----
   if (length(variables) > 1) {
-    list_reg[[1]] <- ggplot2::ggplot(data, ggplot2::aes_string(x = 1, y = 1)) +
+    lineplots[[1]] <- ggplot2::ggplot(data, ggplot2::aes(x = 1, y = 1)) +
       {
         if (!group == "Overall")
-          ggplot2::geom_point(ggplot2::aes_string(colour = group), shape = NA,
-                              show.legend = TRUE)
+          ggplot2::geom_point(ggplot2::aes(colour = .data[[group]]),
+                              alpha = 0, na.rm = TRUE, show.legend = TRUE)
       } + {
         if (group == "Overall")
-          ggplot2::geom_point(shape = NA, show.legend = TRUE)
+          ggplot2::geom_point(alpha = 0, na.rm = TRUE, show.legend = TRUE)
       } + {
         if (!group == "Overall")
           ggplot2::scale_color_manual(values = palette)
@@ -280,13 +284,15 @@ Lineplots <- function (data,
       } + {
         if (group == "Overall")
           ggplot2::scale_fill_manual(values = palette[1])
-      } + ggpubr::theme_transparent() +
-
+      } +
+      ggpubr::theme_transparent() +
+      ggplot2::theme(legend.text = ggplot2::element_text(size = size_legend_text, face = "bold")) +
       ggplot2::annotate(geom = "text", x = 1, y = 1.001,
                         size = size_label_title, label = label_legend_title,
                         vjust = 1.25, fontface = "bold") +
-      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 7.5, shape = 20))) +
+      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = size_legend_circle, shape = 20, alpha = 1))) +
       ggplot2::theme(legend.position = "inside", legend.justification = c(0.5, 0.3), legend.title = ggplot2::element_blank())
+
   } else { }
 
   for (i in variables) {
@@ -408,16 +414,16 @@ Lineplots <- function (data,
                                alpha = alpha_ribbon, show.legend = FALSE, colour = NA, inherit.aes = FALSE)
       } + {
         if (ribbon && !smooth_line && group == "Overall")
-        ggplot2::stat_summary(ggplot2::aes(x = .data[[time]], y = .data[[i]]),
-                              geom = "ribbon", alpha = alpha_ribbon, linewidth = NA,
-                              fun.min = function(z) stats::quantile(z, 0.25),
-                              fun.max = function(z) stats::quantile(z, 0.75), inherit.aes = FALSE)
+          ggplot2::stat_summary(ggplot2::aes(x = .data[[time]], y = .data[[i]]),
+                                geom = "ribbon", alpha = alpha_ribbon, linewidth = NA,
+                                fun.min = function(z) stats::quantile(z, 0.25),
+                                fun.max = function(z) stats::quantile(z, 0.75), inherit.aes = FALSE)
       } + {
         if (ribbon && !smooth_line && !group == "Overall")
-        ggplot2::stat_summary(ggplot2::aes(x = .data[[time]], y = .data[[i]], fill = .data[[group]]),
-                              geom = "ribbon", alpha = alpha_ribbon, linewidth = NA,
-                              fun.min = function(z) stats::quantile(z, 0.25),
-                              fun.max = function(z) stats::quantile(z, 0.75), inherit.aes = FALSE)
+          ggplot2::stat_summary(ggplot2::aes(x = .data[[time]], y = .data[[i]], fill = .data[[group]]),
+                                geom = "ribbon", alpha = alpha_ribbon, linewidth = NA,
+                                fun.min = function(z) stats::quantile(z, 0.25),
+                                fun.max = function(z) stats::quantile(z, 0.75), inherit.aes = FALSE)
 
       } +
       ggplot2::scale_color_manual(values = palette, drop = FALSE) +
@@ -451,9 +457,9 @@ Lineplots <- function (data,
       }
 
     if (length(variables) > 1) {
-      list_reg[[k + 1]] <- gg
+      lineplots[[k + 1]] <- gg
     } else {
-      list_reg[[k]] <- gg
+      lineplots[[k]] <- gg
     }
     if (verbose) LandS::Progress_bar(current = which(i == variables),
                                      total = length(variables),
@@ -464,20 +470,20 @@ Lineplots <- function (data,
   if (pptx) {
     ppt <- officer::read_pptx()
     if (verbose) message("Printing PowerPoint")
-    for (i in 1:length(list_reg)) {
-      list_reg[[i]] <- rvg::dml(ggobj = list_reg[[i]])
+    for (i in 1:length(lineplots)) {
+      lineplots[[i]] <- rvg::dml(ggobj = lineplots[[i]])
       ppt = officer::add_slide(ppt, layout = "Title and Content")
-      officer::ph_with(ppt, list_reg[[i]], officer::ph_location(width = pptx_width,
-                                                                height = pptx_height))
+      officer::ph_with(ppt, lineplots[[i]], officer::ph_location(width = pptx_width,
+                                                                 height = pptx_height))
     }
     print(ppt, target = target)
     if (verbose) message("Done printing :)")
 
-  } else if (length(list_reg) == 1 && !pptx) {
+  } else if (length(lineplots) == 1 && !pptx) {
 
-    return(list_reg[[1]])
+    return(lineplots[[1]])
 
   } else {
-    return(list_reg)
+    return(lineplots)
   }
 }

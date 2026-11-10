@@ -34,6 +34,8 @@ Lineplots(
   label_legend_title = paste0("Lineplots by ", group, "\\n", format(Sys.Date(),
     "\%d/\%m/\%Y")),
   size_label_title = 2.5,
+  size_legend_text = 3,
+  size_legend_circle = 4,
   size_axis_x = 5,
   size_axis_y = 6,
   Overall = FALSE,
@@ -121,6 +123,10 @@ Required when \code{col_title = TRUE} (Default = \code{NULL}).}
 Default sets "Lineplots by grouping variable" and the current date.}
 
 \item{size_label_title}{Numeric. Text size of \code{label_title} (Default = 2.5).}
+
+\item{size_legend_text}{Font size for the list's text (Default = 3).}
+
+\item{size_legend_circle}{Font size for the list's circles defining groups legend (Default = 4).}
 
 \item{size_axis_x}{Numeric. Size of x-axis tick labels (Default = 5).}
 
