@@ -83,7 +83,7 @@ vect.quoted <- function(vect, sym = ", ", quote = T){
 #' Create a new project with a standard folder structure
 #'
 #' \code{New_Project()} creates a new project directory inside a platform-specific
-#' root folder and optionally initializes it as an RStudio project. By default,
+#' root folder and optionally initializes it as an RStudio project and Git repository. By default,
 #' it creates the subdirectories \code{Analysis}, \code{Data}, \code{Data/Original}, and
 #' \code{Output}, but users can provide their own folder structure through
 #' \code{subdirs}.
@@ -93,6 +93,7 @@ vect.quoted <- function(vect, sym = ", ", quote = T){
 #'   \code{usethis::use_rstudio()}. If \code{FALSE}, create a \code{.here} sentinel file.
 #' @param open Logical. If \code{TRUE}, activate the newly created project using
 #'   \code{usethis::proj_activate()}.
+#' @param git Logical. If \code{TRUE}, initialize a Git repository in the project
 #' @param root_x86_64 Character string. Default root directory used when
 #'   \code{Sys.info()[["machine"]]} is \code{x86-64}.
 #' @param root_arm64 Character string. Default root directory used when
@@ -119,6 +120,7 @@ vect.quoted <- function(vect, sym = ", ", quote = T){
 New_Project <- function(project_name,
                         rstudio = rstudioapi::isAvailable(),
                         open = rlang::is_interactive(),
+                        git = FALSE,
                         root_x86_64 = "//irccs-int.local/int/Bioimmunol/Projects/",
                         root_arm64 = "/Volumes/biomimmunol/Projects/",
                         root_manual = NULL,
@@ -138,7 +140,6 @@ New_Project <- function(project_name,
     }
   }
 
-
   path <- usethis:::user_path_prep(paste0(root, project_name))
   name <- fs::path_file(fs::path_abs(path))
   usethis:::challenge_nested_project(fs::path_dir(path), name)
@@ -153,13 +154,18 @@ New_Project <- function(project_name,
 
   if (rstudio) {
     usethis::use_rstudio()
-  }
-  else {
+  } else {
     usethis:::ui_bullets(c(v = "Writing a sentinel file {.path {pth('.here')}}.",
                            `_` = "Build robust paths within your project via {.fun here::here}.",
                            i = "Learn more at {.url https://here.r-lib.org}."))
     fs::file_create(usethis::proj_path(".here"))
   }
+
+  # Initialize Git repository if requested
+  if (git) {
+    usethis::use_git()
+  }
+
   if (open) {
     if (usethis::proj_activate(usethis::proj_get())) {
       withr::deferred_clear()

@@ -8,6 +8,7 @@ New_Project(
   project_name,
   rstudio = rstudioapi::isAvailable(),
   open = rlang::is_interactive(),
+  git = FALSE,
   root_x86_64 = "//irccs-int.local/int/Bioimmunol/Projects/",
   root_arm64 = "/Volumes/biomimmunol/Projects/",
   root_manual = NULL,
@@ -22,6 +23,8 @@ New_Project(
 
 \item{open}{Logical. If \code{TRUE}, activate the newly created project using
 \code{usethis::proj_activate()}.}
+
+\item{git}{Logical. If \code{TRUE}, initialize a Git repository in the project}
 
 \item{root_x86_64}{Character string. Default root directory used when
 \code{Sys.info()[["machine"]]} is \code{x86-64}.}
@@ -41,7 +44,7 @@ Invisibly returns the path to the newly created project.
 }
 \description{
 \code{New_Project()} creates a new project directory inside a platform-specific
-root folder and optionally initializes it as an RStudio project. By default,
+root folder and optionally initializes it as an RStudio project and Git repository. By default,
 it creates the subdirectories \code{Analysis}, \code{Data}, \code{Data/Original}, and
 \code{Output}, but users can provide their own folder structure through
 \code{subdirs}.
