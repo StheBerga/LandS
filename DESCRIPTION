@@ -64,7 +64,8 @@ Imports:
     stringr, 
     writexl, 
     tidyr,
-    ggh4x
+    ggh4x,
+    tibble
 Suggests: 
     knitr,
     rmarkdown,

@@ -8,6 +8,7 @@ correlations(
   data,
   variables,
   method = "spearman",
+  p_adjust_method = NULL,
   rho_dec = 3,
   pval_dec = 4,
   excel = FALSE,
@@ -17,63 +18,60 @@ correlations(
 \arguments{
 \item{data}{A data frame containing the variables to correlate.}
 
-\item{variables}{Character vector. Names of numeric columns in 'data' to use
-for the correlation analysis.}
+\item{variables}{Character vector. Names of numeric columns in \code{data} to
+use for the correlation analysis.}
 
-\item{method}{Character string. Correlation method passed to stats::cor.test().
-Common choices are "spearman", "pearson", and "kendall" (Default = "spearman").}
+\item{method}{Character string. Correlation method passed to
+\code{stats::cor.test()} indicating which correlation coefficient is to be
+used for the test. One of \code{"pearson"}, \code{"kendall"}, or
+\code{"spearman"}, can be abbreviated. (Default = \code{"spearman"}).}
+
+\item{p_adjust_method}{Character string specifying the multiplicity
+adjustment method. Supports all adjustment methods passed to
+\code{p.adjust.methods}. If `NULL` (Default), \code{fdr} is used.}
 
 \item{rho_dec}{Integer. Number of decimal places used when formatting
 correlation coefficients (Default = 3).}
 
-\item{pval_dec}{Integer. Number of decimal places used when formatting unadjusted
-p-values (Default = 4).}
+\item{pval_dec}{Integer. Number of decimal places used when formatting
+unadjusted p-values (Default = 4).}
 
-\item{excel}{Logical. If TRUE, export the returned list to an Excel workbook
-using writexl::write_xlsx(), thus having one sheet for each table. Default=FALSE.}
+\item{excel}{Logical. If \code{TRUE}, export the returned list to an Excel
+workbook using \code{writexl::write_xlsx()}, thus having one sheet for each
+table (Default = \code{FALSE}).}
 
 \item{excel_path}{Character string. Path of the Excel file to create when
-excel = TRUE. Default to paste0(path_output, "/Results.xlsx").}
+\code{excel = TRUE} (Default = \code{"Results.xlsx"}).}
 }
 \value{
 A named list with the following elements:
 \describe{
-  \item{res_raw_corr}{Square dataframe of raw correlation coefficients.}
-  \item{res_raw_pval}{Square dataframe of raw p-values.}
-  \item{res_corr_sig}{Formatted correlation matrix. Statistically significant
-    correlations at 'p < 0.05' are marked with '*'; diagonal entries are shown
-    as '-'.}
-  \item{res_raw_pair}{Long-format table of all variable pairs with raw rho and
-    p-value, sorted by decreasing rho.}
-  \item{res_pair_form}{Formatted version of 'res_raw_pair'.}
-  \item{res_raw_abs}{Long-format table of all variable pairs with raw rho and
+  \item{rho}{Data frame of correlation coefficients.}
+  \item{pvalue}{Data frame of raw p-values}
+  \item{padj_}{Data frame of adjusted p-values. The name is given by pasting \code{p_adj}, and \code{p_adjust_method}}
+  \item{rho_star}{Formatted correlation matrix. Statistically significant correlations at \code{adj-p < 0.05} are marked with \code{*}; diagonal entries are shown as \code{-}.}
+  \item{pairwise_comparisons}{Long-format table of all variable pairs with rho, raw p-value, and adjusted p-value sorted by decreasing rho.}
+  \item{form_pairwise_comparisons}{Formatted version of \code{pairwise_comparisons}.}
+  \item{pair_sort_by_abs_rho}{Long-format table of all variable pairs with raw rho and
     p-value, sorted by decreasing absolute rho.}
-  \item{res_abs_form}{Formatted version of 'res_raw_abs'.}
-  \item{res_pair_sig}{Formatted table containing only pairs with 'p < 0.05'.}
+  \item{form_pair_sort_by_abs_rho}{Formatted version of \code{pair_sort_by_abs_rho}.}
+  \item{form_pair_significant}{Formatted table containing only pairs with \code{adj-p < 0.05}}
 }
 }
 \description{
-Computes pairwise correlation coefficients and associated p-values
-for a set of numeric variables in a data frame. The function returns correlation and
-p-value matrices, plus long-format tables of all variable pairs sorted either
-by correlation coefficient or by absolute correlation coefficient.
+Computes pairwise correlation coefficients and associated raw
+  and adjusted p-values for a set of numeric variables in a data frame. The
+  function returns correlation and p-values matrices, plus long-format tables
+  of all variable pairs sorted either by correlation coefficient or by
+  absolute correlation coefficient.
 
-Optionally, the returned tables can also be exported to an Excel workbook with
-one sheet per output table.
+  Optionally, the returned tables can also be exported to an Excel workbook
+  with one sheet per output table.
 }
 \details{
-The function checks that all selected variables are numeric before computing
-correlations. P-values are obtained from stats::cor.test(..., na.rm=T, exact = FALSE) using the selected
-method.
-
-Missing values are handled separately for each variable pair by
-stats::cor.test(..., na.rm=T, exact = FALSE), so the number of complete observations may differ across
-pairs.
-
-Note that significance is currently defined using an unadjusted p-value
-threshold of 0.05; no correction for multiple testing is applied.
-Correlations in res_corr_sig are marked with * when the corresponding
-unadjusted p-value is < 0.05.
+The function checks that all selected variables are numeric before
+computing correlations. P-values are obtained from \code{stats::cor.test(...,
+na.rm = TRUE, exact = FALSE)} using the selected method.
 }
 \examples{
 correlations(
@@ -83,5 +81,5 @@ correlations(
 )
 }
 \author{
-Luca Lalli, Stefano Bergamini
+Stefano Bergamini, Luca Lalli
 }
