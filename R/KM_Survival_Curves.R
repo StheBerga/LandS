@@ -1,158 +1,193 @@
-#' Plot a Kaplan-Meier survival curve
+#' Plot Kaplan-Meier Survival Curves
 #'
 #' @description
-#' Creates a Kaplan-Meier survival curve from time-to-event data, either overall
-#' or stratified by a categorical variable. The plot includes an optional
-#' confidence interval, a risk table, and, when stratified, a log-rank test
-#' p-value annotation.
+#' Estimates and plots Kaplan-Meier survival curves from time-to-event data,
+#' either for the overall population or stratified by a categorical variable.
+#' The plot can include confidence intervals, censoring marks, the risk table,
+#' survival quantile annotations, and log-rank test p-values.
 #'
-#' @param data A data frame containing `Event`, `tEvent`, and, if used, `strata`.
-#' @param Event Character string giving the name of the event indicator
-#' variable. The variable should be coded as 0/1, where 1 indicates that the
-#' event occurred and 0 indicates censoring. Default is "OS_EVENT".
-#' @param tEvent Character string giving the name of the survival time variable.
-#' Default is "OS".
-#' @param strata Character string giving the name of the categorical
-#' stratification variable. Use `strata = 1` for an overall Kaplan-Meier curve.
-#' Default is 1.
-#' @param title Character string giving the plot title. Default is "KM plot".
-#' @param xlab Character string giving the x-axis label.
-#' Default is "Time in months".
-#' @param ylab Character string giving the y-axis label.
-#' Default is "Probability of Survival".
-#' @param atrisklab Character string giving the legend title and risk-table
-#' label. Default is "At risk".
-#' @param xlim Numeric vector of length 2 giving the x-axis limits.
-#' Default is xlim = c(0, max(data[, tEvent], na.rm = TRUE)).
-#' @param lwd_lines Numeric. Line width of the survival curves.
-#' Default is 1.
-#' @param alpha_CI Numeric. Transparency of the confidence interval. Use `0` to
-#' hide the confidence interval. Default is 0.
-#' @param size_pval Numeric. Text size of the log-rank p-value annotation.
-#' Default is 4.
-#' @param x_pval Numeric. X-axis coordinate for the p-value annotation.
-#' Default is 5.
-#' @param y_pval Numeric between 0 and 1. Y-axis coordinate for the p-value
-#' annotation. Default is 0.5.
-#' @param size_title Numeric. Plot title size. Default is 14.
-#' @param size_title_x Numeric. X-axis title size. Default is 12.
-#' @param size_title_y Numeric. Y-axis title size. Default is 12.
-#' @param size_text_x Numeric. X-axis tick-label size. Default is 10.
-#' @param size_text_y Numeric. Y-axis tick-label size. Default is 10.
-#' @param size_legend_title Numeric. Legend-title size. Default is 5.
-#' @param size_legend_text Numeric. Legend-text size. Default is 12.
-#' @param at_risk_title_size Numeric. Risk-table title size. Default is 10.75.
-#' @param at_risk_size Numeric. Risk-table text size.Default is 3.
-#' @param breaks_by Numeric. Spacing between x-axis breaks and risk-table time
-#' points. Default is 3.
+#' An optional complementary log-log plot can also be displayed alongside
+#' the Kaplan-Meier curves to facilitate the graphical assessment of the
+#' proportional hazards (PH) assumption.
+#'
+#' @param data A data frame containing the survival time, event, and, if used, the grouping variables.
+#' @param time Character string naming the follow-up time variable.
+#' @param event Character string naming the event indicator variable.
+#' @param group Character string specifying the name of the categorical grouping variable, or \code{"Overall"} for an unstratified curve. The grouping variable must be a factor.
+#@param covariate Optional covariate variable for stratification.
+#' @param conf_int Logical; whether to display confidence intervals of the survival estimates (Default = \code{TRUE}).
+#' @param alpha Numeric transparency for the confidence interval (Default = 0.30).
+#' @param lwd Numeric line width for the survival curves (Default = 1).
+#' @param risktable Logical; whether to include the risk table (Default = \code{TRUE}).
+#' @param quantile Optional numeric value between 0 and 1 specifying the survival probability at which to draw a quantile annotation (e.g. `0.5` for the median survival probability).
+#' @param pvalue Logical; whether to display the log-rank test p-value as a plot annotation. The test is only applicable when survival curves are stratified (Default = \code{FALSE}).
+#' @param censoring Logical; whether to display censoring marks (Default = \code{TRUE}).
+#' @param shape Numeric or character value specifying the plotting symbol used for censoring marks (Defaults = 3).
+#' @param risktable_group Character string indicating the grouping variable for the risk tables. Default = \code{"auto"} and will select \code{"strata"} or \code{"risktable_stats"} based on context. \cr
+#' \itemize{
+#' \item{\code{"strata"} groups the risk tables per stratum when present.}
+#' \item{\code{"risktable_stats"} groups the risk tables per \code{risktable_stats}.}
+#' }
+#' @param risktable_symbol Optional character string specifying the symbol used to represent strata in the risk table. This option is intended for use with \code{risktable_group = "risktable_stats"}.
+#' @param theme Optional character string specifying the graphical theme (Default = \code{NULL}, applies the \code{ggsurvfit::theme_ggsurvfit_default()} theme).
+#'   Available options are `"KMunicate"` and `"grey-scale"`.
+#'   When `NULL` (default), the standard
+#'   [ggsurvfit::theme_ggsurvfit_default()] theme is applied.
+#'   `"KMunicate"` applies
+#'   [ggsurvfit::theme_ggsurvfit_KMunicate()], whereas
+#'   `"grey-scale"` uses grey colour and fill scales.
+#' @param check_ph Logical; whether to display a complementary log-log survival plot alongside the Kaplan-Meier curve to facilitate the graphical assessment of the proportional hazards assumption (Default = \code{FALSE}).
+#' @param rho A scalar parameter that controls the type of test, check function details for more.
+#' @param pvalue_position Character string indicating where to place p-value. Must be one of \code{c("caption", "annotation")} (Default = "annotation").
+#' @param conf_int_type Character string indicating the type of confidence interval to draw. Must be one of \code{c("ribbon", "lines")} (Default = "ribbon").
+#' @details
+#' Survival estimates are calculated using \code{ggsurvfit::survfit2()} and visualized using \code{ggsurvfit::ggsurvfit()}.
+#'
+#' The survival analysis is performed according to the specified grouping: when \code{group = "Overall"}`, a single Kaplan-Meier survival curve is estimated for the entire population. Otherwise, separate survival curves are estimated for each level of the specified grouping variable.
+#'
+#' When \code{pvalue = TRUE}, a log-rank test is performed to compare survival distributions between groups, and the resulting p-value is displayed as an annotation on the upper-right corner. With multiple groups, the p-value represents an overall comparison between the survival curves. \cr The \code{rho} argument controls the type of test performed and it's passed to the \code{survival::survdiff(rho=rho)} function: with \code{rho = 0} this is the log-rank or Mantel-Haenszel test, and with \code{rho = 1} it is equivalent to the Peto & Peto modification of the Gehan-Wilcoxon test.
+#'
+#' When \code{check_ph = TRUE}, a complementary log-log transformation of
+#' the survival curves is plotted against logarithmic follow-up time:
+#' \deqn{\log[-\log\{\hat{S}(t)\}]}{log(-log(S(t)))}
+#' Approximately parallel curves across groups may support the
+#' proportional hazards assumption. This graphical assessment does
+#' not constitute a formal statistical test.
 #'
 #' @return
-#' A `ggsurvfit`/`ggplot` object containing the Kaplan-Meier curve and risk
-#' table. The object can be printed directly or further modified with ggplot2
-#' layers.
+#' When \code{check_ph = FALSE}, returns a built survival plot generated
+#' by \code{ggsurvfit::ggsurvfit_build()}, optionally including a risk table.
 #'
-#' @author Luca Lalli, Stefano Bergamini
-#'
+#' When \code{check_ph = TRUE}, returns a two-column
+#' \code{patchwork::wrap_plots()} object containing the Kaplan-Meier
+#' plot on the left and the complementary log-log plot on the right.
+#' @author Stefano Bergamini, Luca Lalli
+#' @export
 #' @examples
-#' library(survival)
-#'
-#' data(cancer, package="survival")
-#' lung$status01 <- as.integer(lung$status == 2)
-#' lung$sex <- factor(lung$sex, labels = c("Male", "Female"))
-#'
-#' # Subset dataset for quick example
-#' lung <- lung[1:100,]
+#' df_colon <- ggsurvfit::df_colon
 #'
 #' # Overall Kaplan-Meier curve
 #' plot_km_curve(
-#'   data = lung,
-#'   Event = "status01",
-#'   tEvent = "time",
-#'   strata = 1,
-#'   title = "Overall survival",
-#'   breaks_by=30,
-#'   xlab="Time",
-#'   size_text_x=5
+#'   data = df_colon,
+#'   time = "time",
+#'   event = "status",
+#'   group = "Overall"
 #' )
 #'
-#' # Stratified Kaplan-Meier curve
+#' # Compare survival curves between surgical treatment groups
 #' plot_km_curve(
-#'   data = lung,
-#'   Event = "status01",
-#'   tEvent = "time",
-#'   strata = "sex",
-#'   title = "Overall survival by sex",
-#'   breaks_by=30,
-#'   xlab="Time",
-#'   size_text_x=5
+#'   data = df_colon,
+#'   time = "time",
+#'   event = "status",
+#'   group = "surg",
+#'   pvalue = TRUE
 #' )
 #'
-#'
-#' @export
+#' # Display median survival annotation and
+#' # graphical assessment of the proportional hazards assumption
+#' plot_km_curve(
+#'   data = df_colon,
+#'   time = "time",
+#'   event = "status",
+#'   group = "surg",
+#'   quantile = 0.5,
+#'   check_ph = TRUE
+#' )
+
 plot_km_curve <- function(data,
-                          Event = "OS_EVENT",
-                          tEvent = "OS",
-                          strata = 1,
-                          title = "KM plot",
-                          xlab = "Time in months",
-                          ylab = "Probability of Survival",
-                          atrisklab = "At risk",
-                          xlim = c(0, max(data[, tEvent], na.rm = TRUE)),
-                          lwd_lines = 1,
-                          alpha_CI = 0,
-                          size_pval = 4,
-                          x_pval = 5,
-                          y_pval = .5,
-                          size_title = 14,
-                          size_title_x = 12,
-                          size_title_y = 12,
-                          size_text_x = 10,
-                          size_text_y = 10,
-                          size_legend_title = 5,
-                          size_legend_text = 12,
-                          at_risk_title_size = 10.75,
-                          at_risk_size = 3,
-                          breaks_by = 3){
+                          time,
+                          event,
+                          group,
+                          # covariate = NULL,
+                          conf_int = TRUE,
+                          alpha = 0.30,
+                          lwd = 1,
+                          risktable = TRUE,
+                          quantile = NULL,
+                          pvalue = FALSE,
+                          censoring = TRUE,
+                          shape = 3,
+                          risktable_group = "auto", # risktable_stats = "n.risk",
+                          risktable_symbol = NULL,
+                          theme = NULL,
+                          check_ph = FALSE,
+                          rho = 0,
+                          pvalue_position = "annotation",
+                          conf_int_type = "ribbon") {
 
-  frm <- stats::formula(paste0("survival::Surv(", tEvent, ",", Event, ")~", strata))
-  surv_fit = ggsurvfit::survfit2(frm, data = data)
+  # Validate inputs quantile and group
+  if (!is.null(quantile) && length(quantile) > 1) {
+    stop("Quantile must be exactly one value. Please provide a single numeric value for the quantile.")
+  } else if (!is.null(quantile) && quantile < 0) {
+    stop("Quantile must be a non-negative value. Please provide a valid numeric value for the quantile.")
+  } else if (!is.null(quantile) && quantile > 1) {
+    stop("Quantile must be less than or equal to 1. Please provide a valid numeric value for the quantile.")
+  }
 
+  if (!group == "Overall" && !is.factor(data[[group]])) {
+    stop("The grouping variable must be a factor. Please convert the grouping variable to a factor before proceeding.")
+  } else if (!group == "Overall" & pvalue && length(unique(data[[group]])) < 2) {
+    stop("The grouping variable must have at least two levels. Please ensure that the grouping variable has at least two distinct levels before proceeding.")
+  }
 
-  KM.fit <-
-    ggsurvfit::ggsurvfit(surv_fit, size = lwd_lines) +
-    ggsci::scale_color_jco() +
-    ggsurvfit::add_confidence_interval(alpha = alpha_CI) +
-    ggsurvfit::add_risktable_strata_symbol(size = 5, symbol = "-") +
-    ggsurvfit::add_risktable(risktable_stats = "n.risk", risktable_height = 0.15, size = at_risk_size,
-                  theme = ggsurvfit::theme_risktable_default(plot.title.size = at_risk_title_size)) +
+  if (group == "Overall"){
+    formula <- stats::formula(paste0("survival::Surv(", time, ",", event, ") ~ 1"))
+  } else if (!group == "Overall") { # && is.null(covariate)) {
+    formula <- stats::formula(paste0("survival::Surv(", time, ",", event, ") ~ ", group))
+  } # else if (!group == "Overall" && !is.null(covariate)) {
+  # formula <- stats::formula(paste0("survival::Surv(", time, ",", event, ") ~ ",
+  #                                  paste(covariate, collapse = ' + '), " + strata(", group, ")"))
+  # }
+  if (group == "Overall" & pvalue) {
+    pvalue <- FALSE
+    warning("No groups to test. `pvalue` set to FALSE")
+  }
 
+  p <-
+    ggsurvfit::survfit2(formula, data = data) %>%
+    ggsurvfit::ggsurvfit(linewidth = lwd) +
+    ggsurvfit::scale_ggsurvfit() +
     {
-      if (strata != 1)
-        ggsurvfit::add_pvalue("annotation", size = size_pval, x = x_pval, y = y_pval, pvalue_fun = function(x) LandS::formatz_p(x))
-    } +
-    ggplot2::scale_x_continuous(breaks = seq(0, xlim[2], breaks_by), expand = ggplot2::expansion(mult = c(0.02))) +
-    ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = ggplot2::expansion(mult = c(0, 0.01))) +
-    ggplot2::coord_cartesian(xlim = xlim, ylim = c(0,1)) +
-    ggplot2::labs(
-      title = title,
-      x = xlab,
-      y = ylab,
-      legend.title = atrisklab
-    ) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(size = size_title, hjust = 0.5, face = "bold"),
-      legend.position = "top",
-      axis.title.x = ggplot2::element_text(size = size_title_x, colour = "black"),
-      axis.title.y = ggplot2::element_text(size = size_title_y, colour = "black"),
-      axis.text.x = ggplot2::element_text(size = size_text_x, colour = "black"),
-      axis.text.y = ggplot2::element_text(size = size_text_y, colour = "black"),
-      legend.text = ggplot2::element_text(size = size_legend_text, colour = "black"),
-      legend.title = ggplot2::element_text(size = size_legend_title, colour = "black"),
-      panel.background = ggplot2::element_rect(fill = "transparent"),
-      panel.grid.major = ggplot2::element_line(linewidth = .1),
-      panel.grid.minor = ggplot2::element_line(linewidth = 0)
-    )
-  return(KM.fit)
+      if (conf_int)
+        ggsurvfit::add_confidence_interval(alpha = alpha)
+    } + {
+      if (risktable)
+        ggsurvfit::add_risktable(risktable_group = risktable_group) # , risktable_stats = risktable_stats
+    } + {
+      if (risktable && !is.null(risktable_symbol))
+        ggsurvfit::add_risktable_strata_symbol(symbol = risktable_symbol)
+    } + {
+      if (!is.null(quantile))
+        ggsurvfit::add_quantile(y_value = quantile)
+    } + {
+      if (pvalue)
+        ggsurvfit::add_pvalue(pvalue_fun = function(x) formatz_p(x), location = pvalue_position, rho = rho)
+    } + {
+      if (censoring)
+        ggsurvfit::add_censor_mark(size = lwd, shape = shape)
+    }
+
+  q <- ggsurvfit::survfit2(formula, data = data) %>%
+    ggsurvfit::ggsurvfit(linewidth = lwd, type = "cloglog") +
+    ggplot2::scale_x_continuous(transform = "log")
+
+  if (is.null(theme)) {
+    p <- p + ggsurvfit::theme_ggsurvfit_default()
+    q <- q + ggsurvfit::theme_ggsurvfit_default()
+  } else if (!is.null(theme) && theme == "KMunicate") {
+    p <- p + ggsurvfit::theme_ggsurvfit_KMunicate()
+    q <- q + ggsurvfit::theme_ggsurvfit_KMunicate()
+  } else if (!is.null(theme) && theme == "grey-scale") {
+    p <- p + ggplot2::scale_color_grey() + ggplot2::scale_fill_grey()
+    q <- q + ggplot2::scale_color_grey() + ggplot2::scale_fill_grey()
+  }
+
+  p <- ggsurvfit::ggsurvfit_build(p)
+
+  if (check_ph) {
+    q <- q + ggplot2::theme(legend.position = "none")
+    q <- patchwork::wrap_plots(q, patchwork::plot_spacer(), heights = c(0.70, 0.30))
+    return(patchwork::wrap_plots(p, q, ncol = 2))
+  }
+  return(p)
 }
-
-

@@ -8,7 +8,7 @@ Progress_bar(
   current,
   total,
   start_time,
-  bar_length = 80,
+  bar_length = 50,
   bar_fill = "=",
   bar_void = " ",
   logfile = NULL
@@ -20,32 +20,36 @@ Progress_bar(
 \item{total}{Integer. Total number of iterations.}
 
 \item{start_time}{POSIXct. Start time of the process, typically obtained with
-'Sys.time()' before entering the loop.}
+\code{Sys.time()} before entering the loop.}
 
-\item{bar_length}{Integer. Width of the progress bar in characters (Default 80).}
+\item{bar_length}{Integer. Width of the progress bar in characters (Default = 50).}
 
-\item{bar_fill}{Symbol used to represent completed progress (Default "=").}
+\item{bar_fill}{Symbol used to represent completed progress (Default \code{"="}).}
 
 \item{bar_void}{Character. Symbol used to represent remaining progress
-(Default = " ").}
+(Default = \code{" "}).}
 
-\item{logfile}{Character or 'NULL'. If a file path is provided, progress
-messages are appended to this file. Default to 'NULL' (no logging).}
+\item{logfile}{Character or \code{NULL}. If a file path is provided, progress
+messages are appended to this file. Default to \code{NULL}. (no logging).}
 }
 \value{
-Invisibly returns NULL. The function is used for its side effects
+Invisibly returns \code{NULL}. The function is used for its side effects
 (console output and optional logging).
 }
 \description{
 Prints a dynamic progress bar in the console for iterative processes,
-including percentage completion, elapsed time, estimated time remaining (ETA),
+including percentage completion, elapsed time, Estimated Residual Time (ERT),
 and current memory usage.
+}
+\details{
+A \code{start_time} object must be defined in the \code{.GlobalEnv} to run the function.
 }
 \examples{
 start_time <- Sys.time()
 total <- 30
-for (i in 1:total) {
-  Sys.sleep(0.005)  # simulate work
+for (i in seq_along(1:total)) {
+  # simulate work
+  Sys.sleep(0.005)
   Progress_bar(
     current = i,
     total = total,

@@ -2,30 +2,43 @@
 % Please edit documentation in R/Custom_Function_for_LandS.R
 \name{Distribution}
 \alias{Distribution}
-\title{Plot variable distribution}
+\title{Plot the distribution of a variable}
 \usage{
-Distribution(data, var, split = FALSE, cutoff = NULL)
+Distribution(data, variable, split = FALSE, cutoff = NULL, palette = "black")
 }
 \arguments{
-\item{data}{A dataframe containing the variable to plot.}
+\item{data}{A data frame containing the variable to plot.}
 
-\item{var}{string. Name of the variable to plot.}
+\item{variable}{A character string giving the name of a numeric column in \code{data}.}
 
-\item{split}{logical. If TRUE, the variable is split by a cut-off value.
-Default=FALSE.}
+\item{split}{Logical. If \code{TRUE}, color observations by their relationship to
+`cutoff`. If \code{FALSE} (the default), plot all observations in one color.}
 
-\item{cutoff}{numeric. Cut-off value to split the variable. Default=NULL.}
+\item{cutoff}{A numeric cutoff value. Required when \code{split = TRUE}; it is
+ignored when \code{split = FALSE}.}
+
+\item{palette}{A character string giving the name of the color palette to use for the plot.
+If \code{split = TRUE}, the first color is used for values at or below the cutoff,
+and the second color is used for values above it. Default is \code{"black"}.}
 }
 \value{
-A ggplot object.
+A ggplot object. The variable is mapped to the x-axis; the y-axis is
+  suppressed because it has no data meaning.
 }
 \description{
-This function outputs a ggplot showing the distribution of a single variable,
-where points are optionally divided by a cut-off value (cutoff).
+Creates a one-dimensional point plot of a numeric variable, with one point
+for each observation. When \code{split = TRUE}, points are colored according to
+whether their value is at or below the cutoff or above it, and a vertical
+line marks the cutoff. Values at or below the cutoff are salmon; values
+above it are cornflower blue.
 }
 \examples{
 library(ggplot2)
-Distribution(data = mtcars, var = "mpg", split = TRUE, cutoff = 23)
+# Plot all values in one color
+Distribution(data = mtcars, variable = "mpg", palette = "forestgreen")
+
+# Compare values with a cutoff
+Distribution(data = mtcars, variable = "mpg", split = TRUE, cutoff = 23, palette = c("salmon", "cornflowerblue"))
 }
 \author{
 Luca Lalli, Stefano Bergamini

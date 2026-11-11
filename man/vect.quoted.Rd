@@ -10,19 +10,19 @@ vect.quoted(vect, sym = ", ", quote = T)
 \item{vect}{A vector of values to format.}
 
 \item{sym}{A character string used as separator between elements.
-Defaults to ", ".}
+Defaults to \code{", "}.}
 
 \item{quote}{Logical. If TRUE, each element is wrapped in double quotes
-(Default = T).}
+(Default = \code{TRUE}).}
 }
 \value{
-Invisibly returns NULL. The formatted string is printed to the console.
+Invisibly returns \code{NULL}. The formatted string is printed to the console.
 }
 \description{
 Format a vector as a single string with a custom separator,
 optionally quoting each element. The result is printed to the console.
 }
 \examples{
-vect.quoted(1:3, sym = " | ", quote = FALSE)
+vect.quoted(1:3, sym = " + ", quote = FALSE)
 vect.quoted(1:3, sym = " | ", quote = TRUE)
 }

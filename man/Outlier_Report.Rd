@@ -2,16 +2,15 @@
 % Please edit documentation in R/Outlier_Report.R
 \name{Outlier_Report}
 \alias{Outlier_Report}
-\title{Generate an outlier report}
+\title{Generate an outlier report using Tukey's fences rule.}
 \usage{
 Outlier_Report(
   data,
   variables,
-  ID = "ID",
-  Group = "Time",
+  group = NULL,
   k = 1.5,
   excel = FALSE,
-  excel_path = "Output/Outlier Report.xlsx"
+  excel_path = "Outlier Report.xlsx"
 )
 }
 \arguments{
@@ -20,60 +19,73 @@ Outlier_Report(
 \item{variables}{Character vector giving the names of numeric variables
 for which outliers should be identified.}
 
-\item{ID}{Character string giving the name of the subject or observation
-identifier column. Default is "ID".}
-
-\item{Group}{Character string giving the name of the grouping variable used
-to compute stratified outlier thresholds. Default is "Time".}
+\item{group}{Character string giving the name of the grouping variable used
+to compute stratified outlier thresholds (Default = \code{NULL}).}
 
 \item{k}{Numeric multiplier used to define the IQR outlier thresholds.
-Values below `Q1 - k * IQR` or above `Q3 + k * IQR` are flagged as
-outliers. Default is 1.5.}
+Values below \eqn{Q_1 - k \times IQR} or above \eqn{Q_3 + k \times IQR}
+are flagged as outliers (Default = 1.5).}
 
-\item{excel}{Logical. If TRUE, the output is written to an Excel file.
-Default is FALSE.}
+\item{excel}{Logical. If \code{TRUE}, the output is written to an Excel file.
+Default is \code{FALSE}.}
 
 \item{excel_path}{Character string giving the path where the Excel file
-should be saved when excel = TRUE. Default is "Output/Outlier Report.xlsx".}
+should be saved when \code{excel = TRUE}. Default is "Outlier Report.xlsx".}
 }
 \value{
-A named list with two data frames:
+If \code{group} is not provided, the function returns a single data frame with
+the same rows as \code{data}, where selected variables are replaced by
+\code{TRUE} for observations identified as outliers using thresholds calculated
+across the full dataset, and \code{NA} otherwise. \cr
+If \code{group} is provided, a named list with two data frames is returned:
 \describe{
-  \item{Global}{A data frame with the same rows as `data`, where selected
-  variables are replaced by `TRUE` for observations identified as outliers
-  using thresholds calculated across the full dataset, and `NA` otherwise.}
-  \item{Stratified}{A data frame with the same rows as `data`, where selected
-  variables are replaced by `TRUE` for observations identified as outliers
-  using thresholds calculated separately within each level of `Group`, and
-  `NA` otherwise.}
+  \item{Global}{A data frame with the same architecture when \code{group} is not provided.}
+  \item{Stratified}{A data frame with the same architecture as \code{Global},
+  with outliers identified using thresholds calculated separately within each
+  level of \code{group}.}
 }
-
 Non-selected columns are retained unchanged in both returned dataframes.
 }
 \description{
-Identifies potential outliers in selected numeric variables using the
-interquartile range (IQR) rule. Outliers are flagged using both global
-thresholds, calculated across the full dataset, and stratified thresholds,
-calculated separately within each level of a grouping variable.
-
+Identifies potential outliers in selected numeric variables using the Tukey's
+fences rule, based on the interquartile range (IQR). Outliers are flagged
+using both global variables thresholds, calculated across the full dataset,
+and - if provided - stratified thresholds, calculated separately within each
+level of a grouping variable. \cr
 Optionally, the report can be exported to an Excel file.
 }
 \details{
-For each variable in `variables`, the function computes lower and upper
+For each variable in \code{variables}, the function computes lower and upper
 outlier thresholds using:
+\deqn{[Q_1 - k \times IQR;\ Q_3 + k \times IQR]}
+where \code{Q1} and \code{Q3} are the first and third quartiles, respectively.
+John Tukey's fences rule sets \eqn{k = 1.5} to indicate an "outlier", while
+\eqn{k = 3} identifies data that is "far out".
 
-\deqn{Q_1 - k \times IQR}
-\deqn{Q_3 + k \times IQR}
+Users should be aware of the following limitations when applying Tukey's
+fences rule:
+\describe{
+  \item{Sensitivity to distribution shape}{The method implicitly assumes
+  a symmetric distribution. The standard multiplier \code{k} is based on
+  this assumption. For highly skewed distributions (e.g. log-normal distributions),
+  the method tends to generate a large number of false positives in the longer tail.}
 
-where `Q1` and `Q3` are the first and third quartiles, respectively.
+  \item{Sample size effect}{The multiplication factor does not adapt
+  to the sample size \eqn{n}. As \eqn{n} increases, the probability of incorrectly
+  classifying normal observations as outliers can grow substantially.}
 
-The `Global` output uses thresholds computed on the full variable.
-The `Stratified` output uses thresholds computed separately within each
-level of `Group`.
+  \item{Risk of information loss}{Observations lying outside the fences
+  are not necessarily measurement errors; they may represent rare but important
+  events within the phenomenon under study. Therefore, automatic removal of such
+  observations is generally discouraged.}
+
+  \item{Heuristic nature}{The method was developed within the framework
+  of exploratory data analysis (EDA) and is not a formal hypothesis test.
+  Consequently, it does not provide p-values or significance levels.}
+}
 }
 \examples{
 data_example <- data.frame(
-  ID = rep(1:5, each = 2),
   Time = rep(c("T0", "T1"), times = 5),
   biomarker = c(10, 11, 12, 13, 10, 50, 11, 12, 9, 10)
 )
@@ -81,10 +93,9 @@ data_example <- data.frame(
 Outlier_Report(
   data = data_example,
   variables = "biomarker",
-  ID = "ID",
-  Group = "Time"
+  group = "Time"
 )
 }
 \author{
-Luca Lalli, Stefano Bergamini
+Stefano Bergamini, Luca Lalli
 }

@@ -2,146 +2,142 @@
 % Please edit documentation in R/KM_Survival_Curves.R
 \name{plot_km_curve}
 \alias{plot_km_curve}
-\title{Plot a Kaplan-Meier survival curve}
+\title{Plot Kaplan-Meier Survival Curves}
 \usage{
 plot_km_curve(
   data,
-  Event = "OS_EVENT",
-  tEvent = "OS",
-  strata = 1,
-  title = "KM plot",
-  xlab = "Time in months",
-  ylab = "Probability of Survival",
-  atrisklab = "At risk",
-  xlim = c(0, max(data[, tEvent], na.rm = TRUE)),
-  lwd_lines = 1,
-  alpha_CI = 0,
-  size_pval = 4,
-  x_pval = 5,
-  y_pval = 0.5,
-  size_title = 14,
-  size_title_x = 12,
-  size_title_y = 12,
-  size_text_x = 10,
-  size_text_y = 10,
-  size_legend_title = 5,
-  size_legend_text = 12,
-  at_risk_title_size = 10.75,
-  at_risk_size = 3,
-  breaks_by = 3
+  time,
+  event,
+  group,
+  conf_int = TRUE,
+  alpha = 0.3,
+  lwd = 1,
+  risktable = TRUE,
+  quantile = NULL,
+  pvalue = FALSE,
+  censoring = TRUE,
+  shape = 3,
+  risktable_group = "auto",
+  risktable_symbol = NULL,
+  theme = NULL,
+  check_ph = FALSE,
+  rho = 0,
+  pvalue_position = "annotation",
+  conf_int_type = "ribbon"
 )
 }
 \arguments{
-\item{data}{A data frame containing `Event`, `tEvent`, and, if used, `strata`.}
+\item{data}{A data frame containing the survival time, event, and, if used, the grouping variables.}
 
-\item{Event}{Character string giving the name of the event indicator
-variable. The variable should be coded as 0/1, where 1 indicates that the
-event occurred and 0 indicates censoring. Default is "OS_EVENT".}
+\item{time}{Character string naming the follow-up time variable.}
 
-\item{tEvent}{Character string giving the name of the survival time variable.
-Default is "OS".}
+\item{event}{Character string naming the event indicator variable.}
 
-\item{strata}{Character string giving the name of the categorical
-stratification variable. Use `strata = 1` for an overall Kaplan-Meier curve.
-Default is 1.}
+\item{group}{Character string specifying the name of the categorical grouping variable, or \code{"Overall"} for an unstratified curve. The grouping variable must be a factor.}
 
-\item{title}{Character string giving the plot title. Default is "KM plot".}
+\item{conf_int}{Logical; whether to display confidence intervals of the survival estimates (Default = \code{TRUE}).}
 
-\item{xlab}{Character string giving the x-axis label.
-Default is "Time in months".}
+\item{alpha}{Numeric transparency for the confidence interval (Default = 0.30).}
 
-\item{ylab}{Character string giving the y-axis label.
-Default is "Probability of Survival".}
+\item{lwd}{Numeric line width for the survival curves (Default = 1).}
 
-\item{atrisklab}{Character string giving the legend title and risk-table
-label. Default is "At risk".}
+\item{risktable}{Logical; whether to include the risk table (Default = \code{TRUE}).}
 
-\item{xlim}{Numeric vector of length 2 giving the x-axis limits.
-Default is xlim = c(0, max(data[, tEvent], na.rm = TRUE)).}
+\item{quantile}{Optional numeric value between 0 and 1 specifying the survival probability at which to draw a quantile annotation (e.g. `0.5` for the median survival probability).}
 
-\item{lwd_lines}{Numeric. Line width of the survival curves.
-Default is 1.}
+\item{pvalue}{Logical; whether to display the log-rank test p-value as a plot annotation. The test is only applicable when survival curves are stratified (Default = \code{FALSE}).}
 
-\item{alpha_CI}{Numeric. Transparency of the confidence interval. Use `0` to
-hide the confidence interval. Default is 0.}
+\item{censoring}{Logical; whether to display censoring marks (Default = \code{TRUE}).}
 
-\item{size_pval}{Numeric. Text size of the log-rank p-value annotation.
-Default is 4.}
+\item{shape}{Numeric or character value specifying the plotting symbol used for censoring marks (Defaults = 3).}
 
-\item{x_pval}{Numeric. X-axis coordinate for the p-value annotation.
-Default is 5.}
+\item{risktable_group}{Character string indicating the grouping variable for the risk tables. Default = \code{"auto"} and will select \code{"strata"} or \code{"risktable_stats"} based on context. \cr
+\itemize{
+\item{\code{"strata"} groups the risk tables per stratum when present.}
+\item{\code{"risktable_stats"} groups the risk tables per \code{risktable_stats}.}
+}}
 
-\item{y_pval}{Numeric between 0 and 1. Y-axis coordinate for the p-value
-annotation. Default is 0.5.}
+\item{risktable_symbol}{Optional character string specifying the symbol used to represent strata in the risk table. This option is intended for use with \code{risktable_group = "risktable_stats"}.}
 
-\item{size_title}{Numeric. Plot title size. Default is 14.}
+\item{theme}{Optional character string specifying the graphical theme (Default = \code{NULL}, applies the \code{ggsurvfit::theme_ggsurvfit_default()} theme).
+Available options are `"KMunicate"` and `"grey-scale"`.
+When `NULL` (default), the standard
+[ggsurvfit::theme_ggsurvfit_default()] theme is applied.
+`"KMunicate"` applies
+[ggsurvfit::theme_ggsurvfit_KMunicate()], whereas
+`"grey-scale"` uses grey colour and fill scales.}
 
-\item{size_title_x}{Numeric. X-axis title size. Default is 12.}
+\item{check_ph}{Logical; whether to display a complementary log-log survival plot alongside the Kaplan-Meier curve to facilitate the graphical assessment of the proportional hazards assumption (Default = \code{FALSE}).}
 
-\item{size_title_y}{Numeric. Y-axis title size. Default is 12.}
+\item{rho}{A scalar parameter that controls the type of test, check function details for more.}
 
-\item{size_text_x}{Numeric. X-axis tick-label size. Default is 10.}
+\item{pvalue_position}{Character string indicating where to place p-value. Must be one of \code{c("caption", "annotation")} (Default = "annotation").}
 
-\item{size_text_y}{Numeric. Y-axis tick-label size. Default is 10.}
-
-\item{size_legend_title}{Numeric. Legend-title size. Default is 5.}
-
-\item{size_legend_text}{Numeric. Legend-text size. Default is 12.}
-
-\item{at_risk_title_size}{Numeric. Risk-table title size. Default is 10.75.}
-
-\item{at_risk_size}{Numeric. Risk-table text size.Default is 3.}
-
-\item{breaks_by}{Numeric. Spacing between x-axis breaks and risk-table time
-points. Default is 3.}
+\item{conf_int_type}{Character string indicating the type of confidence interval to draw. Must be one of \code{c("ribbon", "lines")} (Default = "ribbon").}
 }
 \value{
-A `ggsurvfit`/`ggplot` object containing the Kaplan-Meier curve and risk
-table. The object can be printed directly or further modified with ggplot2
-layers.
+When \code{check_ph = FALSE}, returns a built survival plot generated
+by \code{ggsurvfit::ggsurvfit_build()}, optionally including a risk table.
+
+When \code{check_ph = TRUE}, returns a two-column
+\code{patchwork::wrap_plots()} object containing the Kaplan-Meier
+plot on the left and the complementary log-log plot on the right.
 }
 \description{
-Creates a Kaplan-Meier survival curve from time-to-event data, either overall
-or stratified by a categorical variable. The plot includes an optional
-confidence interval, a risk table, and, when stratified, a log-rank test
-p-value annotation.
+Estimates and plots Kaplan-Meier survival curves from time-to-event data,
+either for the overall population or stratified by a categorical variable.
+The plot can include confidence intervals, censoring marks, the risk table,
+survival quantile annotations, and log-rank test p-values.
+
+An optional complementary log-log plot can also be displayed alongside
+the Kaplan-Meier curves to facilitate the graphical assessment of the
+proportional hazards (PH) assumption.
+}
+\details{
+Survival estimates are calculated using \code{ggsurvfit::survfit2()} and visualized using \code{ggsurvfit::ggsurvfit()}.
+
+The survival analysis is performed according to the specified grouping: when \code{group = "Overall"}`, a single Kaplan-Meier survival curve is estimated for the entire population. Otherwise, separate survival curves are estimated for each level of the specified grouping variable.
+
+When \code{pvalue = TRUE}, a log-rank test is performed to compare survival distributions between groups, and the resulting p-value is displayed as an annotation on the upper-right corner. With multiple groups, the p-value represents an overall comparison between the survival curves. \cr The \code{rho} argument controls the type of test performed and it's passed to the \code{survival::survdiff(rho=rho)} function: with \code{rho = 0} this is the log-rank or Mantel-Haenszel test, and with \code{rho = 1} it is equivalent to the Peto & Peto modification of the Gehan-Wilcoxon test.
+
+When \code{check_ph = TRUE}, a complementary log-log transformation of
+the survival curves is plotted against logarithmic follow-up time:
+\deqn{\log[-\log\{\hat{S}(t)\}]}{log(-log(S(t)))}
+Approximately parallel curves across groups may support the
+proportional hazards assumption. This graphical assessment does
+not constitute a formal statistical test.
 }
 \examples{
-library(survival)
-
-data(cancer, package="survival")
-lung$status01 <- as.integer(lung$status == 2)
-lung$sex <- factor(lung$sex, labels = c("Male", "Female"))
-
-# Subset dataset for quick example
-lung <- lung[1:100,]
+df_colon <- ggsurvfit::df_colon
 
 # Overall Kaplan-Meier curve
 plot_km_curve(
-  data = lung,
-  Event = "status01",
-  tEvent = "time",
-  strata = 1,
-  title = "Overall survival",
-  breaks_by=30,
-  xlab="Time",
-  size_text_x=5
+  data = df_colon,
+  time = "time",
+  event = "status",
+  group = "Overall"
 )
 
-# Stratified Kaplan-Meier curve
+# Compare survival curves between surgical treatment groups
 plot_km_curve(
-  data = lung,
-  Event = "status01",
-  tEvent = "time",
-  strata = "sex",
-  title = "Overall survival by sex",
-  breaks_by=30,
-  xlab="Time",
-  size_text_x=5
+  data = df_colon,
+  time = "time",
+  event = "status",
+  group = "surg",
+  pvalue = TRUE
 )
 
-
+# Display median survival annotation and
+# graphical assessment of the proportional hazards assumption
+plot_km_curve(
+  data = df_colon,
+  time = "time",
+  event = "status",
+  group = "surg",
+  quantile = 0.5,
+  check_ph = TRUE
+)
 }
 \author{
-Luca Lalli, Stefano Bergamini
+Stefano Bergamini, Luca Lalli
 }
