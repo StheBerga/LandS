@@ -6,99 +6,63 @@
 \usage{
 plot_km_curve(
   data,
-  Event = "OS_EVENT",
-  tEvent = "OS",
-  strata = 1,
-  title = "KM plot",
-  xlab = "Time in months",
-  ylab = "Probability of Survival",
-  atrisklab = "At risk",
-  xlim = c(0, max(data[, tEvent], na.rm = TRUE)),
-  lwd_lines = 1,
-  alpha_CI = 0,
-  size_pval = 4,
-  x_pval = 5,
-  y_pval = 0.5,
-  size_title = 14,
-  size_title_x = 12,
-  size_title_y = 12,
-  size_text_x = 10,
-  size_text_y = 10,
-  size_legend_title = 5,
-  size_legend_text = 12,
-  at_risk_title_size = 10.75,
-  at_risk_size = 3,
-  breaks_by = 3
+  time,
+  event,
+  group,
+  covariate = NULL,
+  conf_int = TRUE,
+  alpha = 0.3,
+  lwd = 1,
+  risktable = TRUE,
+  quantile = NULL,
+  pvalue = FALSE,
+  censoring = TRUE,
+  shape = 3,
+  risktable_group = "auto",
+  risktable_symbol = NULL,
+  theme = NULL,
+  check_ph = FALSE
 )
 }
 \arguments{
-\item{data}{A data frame containing `Event`, `tEvent`, and, if used, `strata`.}
+\item{data}{A data frame containing the survival time, event, and, if used, the grouping variables.}
 
-\item{Event}{Character string giving the name of the event indicator
-variable. The variable should be coded as 0/1, where 1 indicates that the
-event occurred and 0 indicates censoring. Default is "OS_EVENT".}
+\item{time}{Character string naming the survival time variable.}
 
-\item{tEvent}{Character string giving the name of the survival time variable.
-Default is "OS".}
+\item{event}{Character string naming the event indicator variable.}
 
-\item{strata}{Character string giving the name of the categorical
-stratification variable. Use `strata = 1` for an overall Kaplan-Meier curve.
-Default is 1.}
+\item{group}{Character string naming the grouping variable, or "Overall" for
+an unstratified curve. Grouping variables must be factors.}
 
-\item{title}{Character string giving the plot title. Default is "KM plot".}
+\item{covariate}{Optional covariate variable for stratification.}
 
-\item{xlab}{Character string giving the x-axis label.
-Default is "Time in months".}
+\item{conf_int}{Logical; show confidence intervals (Default = \code{TRUE}).}
 
-\item{ylab}{Character string giving the y-axis label.
-Default is "Probability of Survival".}
+\item{alpha}{Numeric transparency for the confidence interval (Default = 0.30).}
 
-\item{atrisklab}{Character string giving the legend title and risk-table
-label. Default is "At risk".}
+\item{lwd}{Numeric line width for the survival curve (Default = 1).}
 
-\item{xlim}{Numeric vector of length 2 giving the x-axis limits.
-Default is xlim = c(0, max(data[, tEvent], na.rm = TRUE)).}
+\item{risktable}{Logical; include a risk table (Default = \code{TRUE}).}
 
-\item{lwd_lines}{Numeric. Line width of the survival curves.
-Default is 1.}
+\item{quantile}{Optional quantile between 0 and 1 to mark on the curve.}
 
-\item{alpha_CI}{Numeric. Transparency of the confidence interval. Use `0` to
-hide the confidence interval. Default is 0.}
+\item{pvalue}{Logical; show the log-rank p-value (Default = \code{FALSE}).}
 
-\item{size_pval}{Numeric. Text size of the log-rank p-value annotation.
-Default is 4.}
+\item{censoring}{Logical; show censoring marks (Default = \code{TRUE}).}
 
-\item{x_pval}{Numeric. X-axis coordinate for the p-value annotation.
-Default is 5.}
+\item{shape}{Shape used for censoring marks (Default = 3).}
 
-\item{y_pval}{Numeric between 0 and 1. Y-axis coordinate for the p-value
-annotation. Default is 0.5.}
+\item{risktable_group}{Grouping mode passed to
+[ggsurvfit::add_risktable()].}
 
-\item{size_title}{Numeric. Plot title size. Default is 14.}
+\item{risktable_symbol}{Optional symbol for stratified risk-table rows.}
 
-\item{size_title_x}{Numeric. X-axis title size. Default is 12.}
+\item{theme}{Optional theme name: "KMunicate" or "grey-scale".}
 
-\item{size_title_y}{Numeric. Y-axis title size. Default is 12.}
-
-\item{size_text_x}{Numeric. X-axis tick-label size. Default is 10.}
-
-\item{size_text_y}{Numeric. Y-axis tick-label size. Default is 10.}
-
-\item{size_legend_title}{Numeric. Legend-title size. Default is 5.}
-
-\item{size_legend_text}{Numeric. Legend-text size. Default is 12.}
-
-\item{at_risk_title_size}{Numeric. Risk-table title size. Default is 10.75.}
-
-\item{at_risk_size}{Numeric. Risk-table text size.Default is 3.}
-
-\item{breaks_by}{Numeric. Spacing between x-axis breaks and risk-table time
-points. Default is 3.}
+\item{check_ph}{Logical; return the survival curve beside a log-log plot to check the proportional hazards assumption (Default = \code{FALSE}).}
 }
 \value{
-A `ggsurvfit`/`ggplot` object containing the Kaplan-Meier curve and risk
-table. The object can be printed directly or further modified with ggplot2
-layers.
+A built survival plot, or a two-panel plot when \code{check_ph = TRUE}.
 }
 \description{
 Creates a Kaplan-Meier survival curve from time-to-event data, either overall
@@ -107,41 +71,13 @@ confidence interval, a risk table, and, when stratified, a log-rank test
 p-value annotation.
 }
 \examples{
-library(survival)
+df_colon <- ggsurvfit::df_colon
+# Overall curve
+plot_km_curve(df_colon, "time", "status", group = "Overall")
 
-data(cancer, package="survival")
-lung$status01 <- as.integer(lung$status == 2)
-lung$sex <- factor(lung$sex, labels = c("Male", "Female"))
-
-# Subset dataset for quick example
-lung <- lung[1:100,]
-
-# Overall Kaplan-Meier curve
-plot_km_curve(
-  data = lung,
-  Event = "status01",
-  tEvent = "time",
-  strata = 1,
-  title = "Overall survival",
-  breaks_by=30,
-  xlab="Time",
-  size_text_x=5
-)
-
-# Stratified Kaplan-Meier curve
-plot_km_curve(
-  data = lung,
-  Event = "status01",
-  tEvent = "time",
-  strata = "sex",
-  title = "Overall survival by sex",
-  breaks_by=30,
-  xlab="Time",
-  size_text_x=5
-)
-
-
+# Compare two groups
+plot_km_curve(df_colon, "time", "status", group = "surg", pvalue = TRUE)
 }
 \author{
-Luca Lalli, Stefano Bergamini
+Stefano Bergamini, Luca Lalli
 }
