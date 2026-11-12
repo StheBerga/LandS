@@ -6,7 +6,7 @@
 \usage{
 print_plot_grid(
   plot_list,
-  path_print = ".",
+  path_print = "Plots",
   nrow = 8,
   ncol = 6,
   ext = NULL,
@@ -20,37 +20,37 @@ print_plot_grid(
 \item{plot_list}{A list of ggplot objects.}
 
 \item{path_print}{Character string. Output file path without extension.
-Default is ".".}
+Default is \code{"Plots"}.}
 
 \item{nrow}{Integer. Number of rows in the plot grid. Default is 8.}
 
 \item{ncol}{Integer. Number of columns in the plot grid. Default is 6.}
 
-\item{ext}{Character string. Output file extension. One of "pdf",
-"tiff", "jpeg", "svg", "png", or "emf". If NULL, "pdf" is used.}
+\item{ext}{Character string. Output file extension. One of \code{"pdf"},
+\code{"tiff"}, \code{"jpeg"}, \code{"svg"}, \code{"png"}, or \code{"emf"}. If \code{NULL}, \code{"pdf"} is used.}
 
 \item{width_pg}{Numeric. Output width in centimeters. Default is 21.}
 
 \item{height_pg}{Numeric. Output height in centimeters. Default is 29.7.}
 
-\item{return_plot}{Logical. If TRUE, returns the list of grid plots created
-by cowplot::plot_grid(). If FALSE, returns NULL.}
+\item{return_plot}{Logical. If \code{TRUE}, returns the list of grid plots created
+by \code{cowplot::plot_grid()}. If \code{FALSE}, returns \code{NULL}.}
 
-\item{suppress_warning}{if you want to suppress warnings (Default = FALSE)}
+\item{suppress_warning}{if you want to suppress warnings (Default = \code{FALSE})}
 }
 \value{
-Invisibly returns NULL if return_plot = FALSE. If return_plot = TRUE,
+Invisibly returns \code{NULL} if \code{return_plot = FALSE}. If \code{return_plot = TRUE},
 returns a list of grid plot objects. In both cases, a file is written to disk.
 }
 \description{
 Combines a list of ggplot objects into one or more grids using
-cowplot::plot_grid() and saves the result to disk. Supported output formats
-are "pdf", "tiff", "jpeg", "svg", "png", and "emf".
+\code{cowplot::plot_grid()} and saves the result to disk. Supported output formats
+are \code{"pdf"}, \code{"tiff"}, \code{"jpeg"}, \code{"svg"}, \code{"png"}, and \code{"emf"}.
 }
 \details{
-For PDF output, plots are split across multiple pages when the number of
-plots exceeds nrow * ncol. For other formats, all plots are arranged in a
-single grid.
+For PDF output, plots may be arranged across multiple pages when the number of
+plots exceeds \code{nrow x ncol}. For other formats, all plots must be arranged in a
+single grid of plots.
 }
 \examples{
 \dontrun{
@@ -73,13 +73,30 @@ plots <- list(
     geom_bar() +
     labs(title = "Number of cars by gears", x = "Gears")
 )
-
+# pdf on a single page
 print_plot_grid(
   plot_list = plots,
   path_print = file.path(".", "mtcars_grid"),
   nrow = 2,
   ncol = 2,
   ext = "pdf"
+)
+# pdf on multiple pages
+print_plot_grid(
+ plot_list = plots,
+ path_print = file.path(".", "mtcars_grid"),
+ nrow = 1,
+ ncol = 2,
+ ext = "pdf"
+)
+
+# other extension on a single page
+print_plot_grid(
+ plot_list = plots,
+ path_print = file.path(".", "mtcars_grid"),
+ nrow = 2,
+ ncol = 2,
+ ext = "png"
 )
 }
 }

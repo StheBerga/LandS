@@ -62,15 +62,15 @@ formatz_p <- function (x, digits = 4, prepend_p = FALSE, na = NA_character_, ...
 #'
 #' @param vect A vector of values to format.
 #' @param sym A character string used as separator between elements.
-#' Defaults to ", ".
+#' Defaults to \code{", "}.
 #' @param quote Logical. If TRUE, each element is wrapped in double quotes
-#' (Default = T).
+#' (Default = \code{TRUE}).
 #'
-#' @return Invisibly returns NULL. The formatted string is printed to the console.
+#' @return Invisibly returns \code{NULL}. The formatted string is printed to the console.
 #' @export
 #'
 #' @examples
-#' vect.quoted(1:3, sym = " | ", quote = FALSE)
+#' vect.quoted(1:3, sym = " + ", quote = FALSE)
 #' vect.quoted(1:3, sym = " | ", quote = TRUE)
 vect.quoted <- function(vect, sym = ", ", quote = T){
   if (quote == T){
@@ -82,31 +82,32 @@ vect.quoted <- function(vect, sym = ", ", quote = T){
 
 #' Create a new project with a standard folder structure
 #'
-#' New_Project() creates a new project directory inside a platform-specific
-#' root folder and optionally initializes it as an RStudio project. By default,
-#' it creates the subdirectories "Analysis", "Data", "Data/Original", and
-#' "Output", but users can provide their own folder structure through
-#' 'subdirs'.
+#' \code{New_Project()} creates a new project directory inside a platform-specific
+#' root folder and optionally initializes it as an RStudio project and Git repository. By default,
+#' it creates the subdirectories \code{Analysis}, \code{Data}, \code{Data/Original}, and
+#' \code{Output}, but users can provide their own folder structure through
+#' \code{subdirs}.
 #'
 #' @param project_name Character string. Name of the project directory to create.
-#' @param rstudio Logical. If TRUE, create an RStudio project file using
-#'   [usethis::use_rstudio()]. If FALSE, create a '.here' sentinel file.
-#' @param open Logical. If TRUE, activate the newly created project using
-#'   [usethis::proj_activate()].
+#' @param rstudio Logical. If \code{TRUE}, create an RStudio project file using
+#'   \code{usethis::use_rstudio()}. If \code{FALSE}, create a \code{.here} sentinel file.
+#' @param open Logical. If \code{TRUE}, activate the newly created project using
+#'   \code{usethis::proj_activate()}.
+#' @param git Logical. If \code{TRUE}, initialize a Git repository in the project
 #' @param root_x86_64 Character string. Default root directory used when
-#'   'Sys.info()[["machine"]]' is "x86-64".
+#'   \code{Sys.info()[["machine"]]} is \code{x86-64}.
 #' @param root_arm64 Character string. Default root directory used when
-#'   'Sys.info()[["machine"]]' is "arm64".
-#' @param root_manual Character string or NULL. Manually supplied root
+#'   \code{Sys.info()[["machine"]]} is \code{arm64}.
+#' @param root_manual Character string or \code{NULL}. Manually supplied root
 #'   directory used when the machine architecture is not recognized.
-#' @param subdirs Character vector. Subdirectories to create inside the project.
-#'   Nested directories can be supplied using /, for example
-#'   "data/raw" or "results/figures".
+#' @param subdirs Character vector. Sub directories to create inside the project.
+#'   Nested directories can be supplied using \code{/}, for example
+#'   \code{data/raw} or \code{results/figures}.
 #'
 #' @return Invisibly returns the path to the newly created project.
 #' @export
 #'
-#' @author Luca Lalli, Stefano Bergamini
+#' @author Stefano Bergamini, Luca Lalli
 #'
 #' @examples
 #' \dontrun{
@@ -119,6 +120,7 @@ vect.quoted <- function(vect, sym = ", ", quote = T){
 New_Project <- function(project_name,
                         rstudio = rstudioapi::isAvailable(),
                         open = rlang::is_interactive(),
+                        git = FALSE,
                         root_x86_64 = "//irccs-int.local/int/Bioimmunol/Projects/",
                         root_arm64 = "/Volumes/biomimmunol/Projects/",
                         root_manual = NULL,
@@ -138,7 +140,6 @@ New_Project <- function(project_name,
     }
   }
 
-
   path <- usethis:::user_path_prep(paste0(root, project_name))
   name <- fs::path_file(fs::path_abs(path))
   usethis:::challenge_nested_project(fs::path_dir(path), name)
@@ -153,13 +154,18 @@ New_Project <- function(project_name,
 
   if (rstudio) {
     usethis::use_rstudio()
-  }
-  else {
+  } else {
     usethis:::ui_bullets(c(v = "Writing a sentinel file {.path {pth('.here')}}.",
-                 `_` = "Build robust paths within your project via {.fun here::here}.",
-                 i = "Learn more at {.url https://here.r-lib.org}."))
+                           `_` = "Build robust paths within your project via {.fun here::here}.",
+                           i = "Learn more at {.url https://here.r-lib.org}."))
     fs::file_create(usethis::proj_path(".here"))
   }
+
+  # Initialize Git repository if requested
+  if (git) {
+    usethis::use_git()
+  }
+
   if (open) {
     if (usethis::proj_activate(usethis::proj_get())) {
       withr::deferred_clear()
@@ -172,28 +178,28 @@ New_Project <- function(project_name,
 #' Save a grid of plots
 #'
 #' Combines a list of ggplot objects into one or more grids using
-#' cowplot::plot_grid() and saves the result to disk. Supported output formats
-#' are "pdf", "tiff", "jpeg", "svg", "png", and "emf".
+#' \code{cowplot::plot_grid()} and saves the result to disk. Supported output formats
+#' are \code{"pdf"}, \code{"tiff"}, \code{"jpeg"}, \code{"svg"}, \code{"png"}, and \code{"emf"}.
 #'
-#' For PDF output, plots are split across multiple pages when the number of
-#' plots exceeds nrow * ncol. For other formats, all plots are arranged in a
-#' single grid.
+#' For PDF output, plots may be arranged across multiple pages when the number of
+#' plots exceeds \code{nrow x ncol}. For other formats, all plots must be arranged in a
+#' single grid of plots.
 #'
 #' @param plot_list A list of ggplot objects.
 #' @param path_print Character string. Output file path without extension.
-#' Default is ".".
+#' Default is \code{"Plots"}.
 #' @param nrow Integer. Number of rows in the plot grid. Default is 8.
 #' @param ncol Integer. Number of columns in the plot grid. Default is 6.
-#' @param ext Character string. Output file extension. One of "pdf",
-#' "tiff", "jpeg", "svg", "png", or "emf". If NULL, "pdf" is used.
+#' @param ext Character string. Output file extension. One of \code{"pdf"},
+#' \code{"tiff"}, \code{"jpeg"}, \code{"svg"}, \code{"png"}, or \code{"emf"}. If \code{NULL}, \code{"pdf"} is used.
 #' @param width_pg Numeric. Output width in centimeters. Default is 21.
 #' @param height_pg Numeric. Output height in centimeters. Default is 29.7.
-#' @param return_plot Logical. If TRUE, returns the list of grid plots created
-#' by cowplot::plot_grid(). If FALSE, returns NULL.
-#' @param suppress_warning if you want to suppress warnings (Default = FALSE)
+#' @param return_plot Logical. If \code{TRUE}, returns the list of grid plots created
+#' by \code{cowplot::plot_grid()}. If \code{FALSE}, returns \code{NULL}.
+#' @param suppress_warning if you want to suppress warnings (Default = \code{FALSE})
 #'
 #' @return
-#' Invisibly returns NULL if return_plot = FALSE. If return_plot = TRUE,
+#' Invisibly returns \code{NULL} if \code{return_plot = FALSE}. If \code{return_plot = TRUE},
 #' returns a list of grid plot objects. In both cases, a file is written to disk.
 #'
 #' @author Luca Lalli, Stefano Bergamini
@@ -220,7 +226,7 @@ New_Project <- function(project_name,
 #'     geom_bar() +
 #'     labs(title = "Number of cars by gears", x = "Gears")
 #' )
-#'
+#' # pdf on a single page
 #' print_plot_grid(
 #'   plot_list = plots,
 #'   path_print = file.path(".", "mtcars_grid"),
@@ -228,9 +234,26 @@ New_Project <- function(project_name,
 #'   ncol = 2,
 #'   ext = "pdf"
 #' )
+#' # pdf on multiple pages
+#' print_plot_grid(
+#'  plot_list = plots,
+#'  path_print = file.path(".", "mtcars_grid"),
+#'  nrow = 1,
+#'  ncol = 2,
+#'  ext = "pdf"
+#' )
+#'
+#' # other extension on a single page
+#' print_plot_grid(
+#'  plot_list = plots,
+#'  path_print = file.path(".", "mtcars_grid"),
+#'  nrow = 2,
+#'  ncol = 2,
+#'  ext = "png"
+#' )
 #' }
 print_plot_grid <- function (plot_list,
-                             path_print = ".",
+                             path_print = "Plots",
                              nrow = 8,
                              ncol = 6,
                              ext = NULL,
@@ -323,9 +346,9 @@ print_plot_grid <- function (plot_list,
 #' build_filename(filename = "example", extension = ".png", output = ".",
 #' datetime = TRUE)
 build_filename <- function(filename = "example",
-                     extension = ".png",
-                     output = ".",
-                     datetime = FALSE){
+                           extension = ".png",
+                           output = ".",
+                           datetime = FALSE){
   if (datetime == FALSE){
     return(paste0(output, "/", filename, extension))
   }else {
@@ -438,63 +461,73 @@ posthoc_df <- function(Test_results, data, group, threshold_posthoc, i){
 
 }
 
-#' Plot variable distribution
+#' Plot the distribution of a variable
 #'
 #' @description
-#' This function outputs a ggplot showing the distribution of a single variable,
-#' where points are optionally divided by a cut-off value (cutoff).
+#' Creates a one-dimensional point plot of a numeric variable, with one point
+#' for each observation. When \code{split = TRUE}, points are colored according to
+#' whether their value is at or below the cutoff or above it, and a vertical
+#' line marks the cutoff. Values at or below the cutoff are salmon; values
+#' above it are cornflower blue.
 #'
+#' @param data A data frame containing the variable to plot.
+#' @param variable A character string giving the name of a numeric column in \code{data}.
+#' @param split Logical. If \code{TRUE}, color observations by their relationship to
+#'   `cutoff`. If \code{FALSE} (the default), plot all observations in one color.
+#' @param cutoff A numeric cutoff value. Required when \code{split = TRUE}; it is
+#'   ignored when \code{split = FALSE}.
+#' @param palette A character string giving the name of the color palette to use for the plot.
+#' If \code{split = TRUE}, the first color is used for values at or below the cutoff,
+#' and the second color is used for values above it. Default is \code{"black"}.
 #'
-#' @param data A dataframe containing the variable to plot.
-#' @param var string. Name of the variable to plot.
-#' @param split logical. If TRUE, the variable is split by a cut-off value.
-#' Default=FALSE.
-#' @param cutoff numeric. Cut-off value to split the variable. Default=NULL.
-#'
-#' @return A ggplot object.
+#' @return A ggplot object. The variable is mapped to the x-axis; the y-axis is
+#'   suppressed because it has no data meaning.
 #' @export
 #'
 #' @author Luca Lalli, Stefano Bergamini
 #'
 #' @examples
 #' library(ggplot2)
-#' Distribution(data = mtcars, var = "mpg", split = TRUE, cutoff = 23)
-Distribution <- function(data, var, split = FALSE, cutoff = NULL){
+#' # Plot all values in one color
+#' Distribution(data = mtcars, variable = "mpg", palette = "forestgreen")
+#'
+#' # Compare values with a cutoff
+#' Distribution(data = mtcars, variable = "mpg", split = TRUE, cutoff = 23, palette = c("salmon", "cornflowerblue"))
+Distribution <- function(data, variable, split = FALSE, cutoff = NULL, palette = "black") {
 
-  if(split==TRUE && is.null(cutoff)){
-    stop("Please provide a cutoff value if you use split=TRUE")
+  if(split && is.null(cutoff)) {
+    stop("Please provide a cutoff value if you use split = TRUE")
   }
 
-
-  ggplot2::ggplot(data = data, ggplot2::aes_string(x = data[, var], y = 1))+
-    {if (split == FALSE)
-      ggplot2::geom_point(size = 1.5)}+
-
-    {if (split == TRUE)
-      ggplot2::geom_point(ggplot2::aes(colour = data[, var] > cutoff), size = 1.5)}+
-
-    {if (split == TRUE)
-      ggplot2::geom_vline(xintercept = cutoff, linetype = 2)}+
-
-    ggplot2::scale_colour_manual(values=c("salmon", "cornflowerblue"))+
-
-    {if (split == FALSE)
-      ggplot2::labs(x = NULL, y = NULL)}+
-
-    {if (split == TRUE)
-      ggplot2::labs(x = paste0("Cut-off: ", cutoff), y = NULL)}+
-
-    # coord_fixed(ratio = 50/2)+
+  ggplot2::ggplot(data = data, ggplot2::aes(x = .data[[variable]], y = 1)) +
+    {
+      if (split) {
+        ggplot2::geom_point(ggplot2::aes(colour = .data[[variable]] > cutoff), size = 1.5, show.legend = FALSE)
+      } else {
+        ggplot2::geom_point(size = 1.5, colour = palette[1])
+      }
+    } + {
+      if (split)
+        ggplot2::geom_vline(xintercept = cutoff, linetype = 2)
+    } + {
+      if (split)
+        ggplot2::scale_colour_manual(values = palette)
+    } + {
+      if (split) {
+        ggplot2::labs(x = paste("Cut-off:", cutoff))
+      } else {
+        ggplot2::labs(x = NULL)
+      }
+    } +
+    ggplot2::labs(y = NULL) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, size = 6, face = "bold"),
-          axis.text.x = ggplot2::element_text(size = 12, colour = "black"),
-          axis.text.y.left = ggplot2::element_blank(),
-          axis.ticks.y.left = ggplot2::element_blank(),
-          panel.background = ggplot2::element_blank(),
-          panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank(),
-          legend.position = "bottom",
-          legend.title = ggplot2::element_blank(),
-          panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", size=0.2, fill=NA))
+                   axis.text.x = ggplot2::element_text(size = 12, colour = "black"),
+                   axis.text.y.left = ggplot2::element_blank(),
+                   axis.ticks.y.left = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", linewidth = 0.2, fill = NA))
 }
 
 

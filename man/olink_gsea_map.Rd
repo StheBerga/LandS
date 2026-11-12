@@ -14,17 +14,17 @@ OlinkID, UniProt, SampleID, QC_Warning, NPX, and LOD.}
 Adjusted_pval and estimate columns obtained from package OlinkAnalyze.}
 
 \item{gsea_mapping}{Character vector mapping Olink protein names to gene
-names. Default is "prot2gene".}
+names (Default = \code{"prot2gene"}).}
 }
 \value{
-A list with the two data frames "data" and "test_results" having "Assay"
+A list with the two data frames \code{data} and \code{test_results} having \code{Assay}
 column overwritten for the pathway analysis.
 }
 \description{
-This function changes the "Assay" column of NPX Olink data and statistical
-tests results from OlinkAnalyze package (e.g. olink_wilcox) in order to map
+This function changes the \code{Assay} column of NPX Olink data and statistical
+tests results from OlinkAnalyze package (e.g. \code{olink_wilcox}) in order to map
 all the protein names to gene names. This is necessary to allow
-OlinkAnalyze::olink_pathway_enrichment() to map the gene names to entrez IDs
+\code{OlinkAnalyze::olink_pathway_enrichment()} to map the gene names to entrez IDs
 for pathway enrichment analysis.
 }
 \examples{
@@ -43,7 +43,7 @@ wilcox_results <- OlinkAnalyze::olink_wilcox(df = npx_df,
 variable = "Treatment", alternative = "two.sided")
 
 # Mapping
-olink_gsea_map(npx_df, wilcox_results)
+res <- olink_gsea_map(npx_df, wilcox_results)
 }
 
 }

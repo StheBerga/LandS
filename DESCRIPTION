@@ -43,14 +43,18 @@ Imports:
     cowplot, 
     devEMF, 
     glue, 
-    progress, 
     rstudioapi, 
     scales, 
     stringr, 
     writexl, 
     tidyr,
     ggh4x,
-    tibble
+    tibble,
+    hms, 
+    lubridate, 
+    tibble, 
+    ggsci, 
+    patchwork
 Suggests: 
     knitr,
     rmarkdown,
