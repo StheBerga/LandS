@@ -1,371 +1,502 @@
-#' Create boxplots for multiple continuous variables
+#' Create comparative distribution plots for multiple continuous variables
 #'
 #' @description
-#' Creates one boxplot per numeric variable in 'variables', optionally stratified
-#' by a grouping variable. Observation-level points, paired-observation lines,
-#' median trends, global test annotations, and post-hoc comparison brackets can
-#' be added. Multiple plots are returned as a list and can optionally be exported
-#' to a PowerPoint file.
+#' Creates a plot for each continuous variable supplied in \code{variables}.
+#' Variables can be displayed as standard boxplots, notched boxplots,
+#' or violin plots and can be stratified by a grouping factor.
 #'
+#' Additional layers can be added including:
+#' \itemize{
+#'  \item{Individual observations}
+#'  \item{Paired-observation trajectories}
+#'  \item{Median trend lines}
+#'  \item{Test annotations}
+#' }
 #'
-#' @param data Dataframe containing numeric variables to plot.
+#' Multiple plots are returned as a list of ggplots and can optionally be exported
+#' to a PowerPoint presentation.
+#'
+#' @param data A data frame containing numeric variables to plot.
 #' @param variables Character vector containing all numeric variables of interest.
-#' @param group Column name identifying factor grouping variable for split
-#' boxplots, or 1 for no grouping.
-#' @param ID Column name of ID variable used to connect paired observations. Default = "ID".
-#' @param rm.outliers Whether to remove outliers from display. Default = FALSE.
+#' @param group Factor identifying the grouping variable. Use \code{"Overall"}
+#'   to generate a single distribution without stratification. \cr By default
+#'   the labels are set as the unique values of \code{group}, however they are
+#'   customisable by setting the \code{labels} argument as a character vector
+#'   with length equal to the number of categories in \code{group}. The size
+#'   text of \code{labels} is customisable by setting the \code{size_axis_x}
+#'   argument (Default = 6).
+#' @param type Character string defining the plot geometry. One of:
+#' \itemize{
+#'   \item \code{"boxplot"} or \code{"box"}: Standard boxplot
+#'   \item \code{"notch"}: Notched boxplot, enables the \code{notchwidth} parameter
+#'   \item \code{"violin"}: Violin plot
+#' }
+#' @param rm.outliers Logical. If \code{TRUE} removes outliers from display
+#'   (Default = \code{FALSE}).
 #' @param th.outliers Numeric multiplier of the interquartile range (IQR) used
-#' to define outlier thresholds; observations outside
-#' \eqn{[Q_1 - \text{th.outliers} \times \text{IQR}, Q_3 + \text{th.outliers} \times \text{IQR}]}{[Q1 - th.outliers * IQR, Q3 + th.outliers * IQR]}
-#' are treated as outliers. Default = 1.5.
-#' @param Point Whether to display observation points. Default = FALSE.
-#' @param size_point Size for points. Default = 0.3
-#' @param alpha_point Alpha for points transparency. Default = 0.3
-#' @param alpha_box Alpha parameter for the boxes transparency. Default = 0.1.
-#' @param width_box Width parameter for the boxes. Default = 0.2.
-#' @param lwd_box Linewidth for the boxes. Default = 0.1.
-#' @param notch Whether to display notches for the boxes. Default = FALSE.
-#' @param notchwidth Width parameter of the notch. Default = 0.5.
-#' @param Median_line Whether to display the line connecting boxes median values. Default = FALSE.
-#' @param lwd_median_line Median line linewidth. Default = 0.8.
-#' @param col_median_line Colour for the median line. Default = "red".
-#' @param ID_lines Whether to display the lines connecting paired observations. Default = FALSE.
-#' @param lwd_ID_line Linewidth parameter for lines connecting paired observations. Default = 0.2.
-#' @param alpha_ID_line Alpha parameter for paired observations lines transparency. Default = 0.3.
-#' @param Overall Whether to display overall test in the upper-left corner. Default = FALSE.
-#' @param Posthoc Whether to display posthoc tests brackets. Default = FALSE.
-#' @param Test_results Dataframe containing the results of global and posthoc tests computed
-#' using LandS::cont_var_test() function, in particular objects "KW_ph_pval" or "Friedman_ph_pval"
-#' or "no_corrected_ph". Default = NULL.
-#' @param threshold_posthoc Threshold for displaying post-hoc tests brackets. Default = 0.05.
-#' @param posthoc_test_size Font size for annotations of post-hoc p-values. Default = 3.88.
-#' @param bracket_shorten Width of the bracket in range [0,1]. Default = 0.
-#' @param bracket.nudge.y Vertical adjustment to nudge brackets by.
-#' Useful to move up or move down the bracket. If positive value, brackets will be moved up;
-#' if negative value, brackets are moved down. Default = 0.
-#' @param axis_x_title Title for the x-axis. Default = NULL.
-#' @param size_axis_x Font size for the x-axis title. Default = 6.
-#' @param axis_y_title Title for the y-axis. Default = NULL.
-#' @param size_axis_y Font size for the y-axis title. Default = 6.
-#' @param col_title Whether to personalize the colour background fill of boxplots title.
-#' Default = FALSE.
-#' @param alpha_fill_title Alpha value for title background. Default = 0.2.
-#' @param fill_title A function to personalize the fill of each boxplot title background.
-#' The argument fill_title is defined as a function mapping for each variable the
-#' background color. See examples for further information. JG: AGGIUNGERE ESEMPIO.
-#' @param title_leg Whether to personalize the title of the variables. Default = FALSE.
-#' @param title_legend A function to personalize the title of the variables.
-#' The argument title_legend is defined as a function mapping for each variable the
-#' novel name to be displayed as title. Default = NULL.
-#' See examples for further information. JG: AGGIUNGERE ESEMPIO.
-#' @param size_title Font size for the title. Default = 8.
-#' @param breaks_axis_x Character vector defining the subset and order of factor
-#' levels to display on the x-axis (passed to scale_x_discrete(breaks = ...)).
-#' Default = levels(data[, group]).
-#' @param labels_axis_x Character vector defining the subset and order labels to
-#' display on the x-axis (passed to scale_x_discrete(labels = ...)).
-#' Default = levels(data[, group]).
-#' @param grid Logical. If TRUE and 'PPTX = FALSE', returns plots as a list
-#' suitable for grid display. Default=TRUE.
-#' @param PPTX Logical. If TRUE, plots are exported to a PowerPoint file and
-#' no plots are returned. This option takes precedence over 'grid argument.
-#' Default=FALSE.
-#' @param pptx_width Plot width dimension for PPTX in inches. Default = 7.5.
-#' @param pptx_height Plot height dimension for PPTX in inches. Default = 5.5.
-#' @param extra Whether to add an extra text function. Default = FALSE.
-#' @param extra_text A function of one argument (variable) that returns one or
-#' more ggplot2 layers to be added to each plot (e.g., annotations or custom geoms).
-#' The function is evaluated inside the plotting loop.
-#' See examples for further information. JG: AGGIUNGERE ESEMPIO.
-#' @param palette Colours for the boxes. Character vector of colors with length
-#' equal to number of groups. Default = rep("transparent", nlevels(data[, group])).
-#' @param label_legend_title A title for your list.
-#' Default sets "Boxplot by grouping variable" and the current date.
-#' @param size_legend_title Font size for the list's title. Default = 3.
-#' @param size_legend_text Font size for the list's text. Default = 3.
-#' @param size_legend_circle Font size for the list's circles defining groups legend.
-#' Default = 4.
-#' @param target Path where to save the PPTX file.
-#' @param ratio Aspect ratio when grid = TRUE. Default = 1.
-#' @param verbose Print progress bar and messages (Default=TRUE).
+#'   to define outlier thresholds; observations outside
 #'
-#' @return If length(variables) > 1 returns a list of boxplot where the first one is
-#' coverpage. Otherwise returns a ggplot. When grid = TRUE returns a list of ggplots.
-#' When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path.
+#'   \eqn{[Q_1 - \text{th.outliers} \times \text{IQR}, Q_3 + \text{th.outliers} \times
+#'   \text{IQR}]}{[Q1 - th.outliers * IQR, Q3 + th.outliers * IQR]}
+#'
+#'   are treated as outliers (Default = 1.5).
+#' @param lwd Numeric. Line width for the plot (Default = 1).
+#' @param alpha Numeric. Transparency of the plot (Default = 0.5).
+#' @param width Numeric. Width parameter for the plot (Default = 0.35).
+#' @param notchwidth 	Numeric. For a notched box plot, width of the notch
+#'   relative to the body (Default = 0.5).
+#' @param statistic Character string indicating the summary statistic to plot.
+#'   Allowed values are \code{"median"} and \code{"mean"} (Default =
+#'   \code{NULL}). \cr Additional characteristic can be specified with the
+#'   \code{col_statistic} and the \code{lwd_statistic} parameters.
+#' @param points Logical. If \code{TRUE}, adds observed data points (Default =
+#'   \code{FALSE}). \cr Additional characteristic can be specified with the
+#'   \code{alpha_point} and the \code{size_point} parameters.
+#' @param id_lines Logical. If \code{TRUE}, adds individual subject trajectories
+#'   (Default = \code{FALSE}). \cr Additional characteristic can be specified
+#'   with the \code{alpha_id_lines} and the \code{lwd_id_lines} parameters.
+#' @param id Column name of id variable used to connect paired observations
+#'   (Default = \code{"ID"}).
+#' @param Overall Logical. If \code{TRUE}, annotates each plot with an overall
+#'   p-value from \code{Test_results} in the upper-left corner (Default =
+#'   \code{FALSE}). \cr Text size for p-value annotations can be customised with
+#'   the \code{posthoc_test_size} argument (Default = 3.88).
+#' @param Posthoc Logical. If \code{TRUE}, adds post-hoc comparison annotations
+#'   (Default = \code{FALSE}). \cr Text size for p-value annotations can be
+#'   customised with the \code{posthoc_test_size} argument (Default = 3.88).
+#'   Additional customisation for brackets can be set with the
+#'   \code{bracket_shorten} and the \code{bracket.nudge.y} parameters (Default =
+#'   0, for both).
+#' @param Test_results Data frame containing overall and/or post-hoc test
+#'   results generated by \code{LandS::cont_var_test()} and formatted using
+#'   \code{LandS::posthoc_df()} (Default = \code{NULL}). \cr Required when
+#'   either \code{Overall = TRUE} or \code{Posthoc = TRUE}.
+#' @param threshold_posthoc Numeric. P-value threshold used to filter post-hoc
+#'   comparisons (Default = 0.05).
+#' @param overall_p Character identifying the p-value column of
+#'   \code{Test_results} to display as overall test (Default =
+#'   \code{"Overall.padj"}).
+#' @param palette Character vector of colours used as fill for the plots. Its
+#'   length must match the number of group levels when \code{group} is not set
+#'   to \code{"Overall"} (Default = \code{rep("transparent",
+#'   nlevels(data[[group]]))}).
+#' @param grid Logical. If \code{TRUE}, uses the default grid-oriented theme
+#'   (Default = \code{TRUE}). If \code{TRUE}, aspect ratio of the plot can be
+#'   set with the \code{ratio} parameter (Default = 1).
+#' @param pptx Logical. If \code{TRUE}, saves the plots to a PowerPoint file
+#'   instead of returning them (Default = \code{FALSE}). \cr Plot dimensions in
+#'   inches can be specified with the \code{pptx_width} and the
+#'   \code{pptx_height} parameters (Numeric with default = 8.5 and 5.5,
+#'   respectively).
+#' @param target Character string giving the output path for the PowerPoint file
+#'   (Default = \code{"Distribution.pptx"}).
+#' @param label_legend_title A title for your list. Default sets "Distribution
+#'   by grouping variable" and the current date. The size of the title text can
+#'   be specified with the \code{size_legend_title} parameter.
+#' @param extra Logical. If \code{TRUE}, adds extra ggplot layers returned by
+#'   \code{extra_text} (Default = \code{FALSE}).
+#' @param extra_text Function taking a variable name and returning one or more
+#'   ggplot layers (Default = \code{NULL}).
+#' @param col_title Logical. If \code{TRUE}, fills plot-title boxes using
+#'   colours (Default = \code{FALSE}).
+#' @param fill_title Function returning a fill colour for each variable name.
+#'   \cr Required when \code{col_title = TRUE} (Default = \code{NULL}).
+#'   Additional transparency of the fill colour can be specified with the
+#'   \code{alpha_fill_title} parameter (Default = 0.2).
+#' @param title_leg Logical. If \code{TRUE}, takes a variable name and matches a
+#'   custom title for the corresponding plot (Default = \code{FALSE}).
+#' @param title_legend Function taking a variable name and returning the title
+#'   to display. \cr Required when \code{title_leg = TRUE} (Default =
+#'   \code{NULL}). Additional size of the title can be set with the
+#'   \code{size_title} parameter (Default = 7).
+#' @param verbose Print progress bar and messages (Default = \code{TRUE}).
+#' @param ... Additional arguments passed to \code{theme_lands_grid()} or
+#'   \code{theme_lands_pptx()}
+#'
+#' @return
+#' If \code{grid = TRUE}, returns a list of ggplot objects. When
+#' \code{length(variables) > 1}, the first element is a cover page
+#' containing the legend and plot metadata, followed by one plot
+#' per variable. \cr
+#' When a single variable is supplied, a single ggplot object is returned. \cr
+#' If \code{pptx = TRUE}, a PowerPoint presentation is written to \code{target}
+#' and the plots are not returned.
+#'
 #' @export
 #'
 #' @details
 #' Overall and post-hoc tests can be displayed, but they need to be computed using
-#' LandS::cont_var_test() and then formatted using LandS::posthoc_df() function.
-#' Boxplots can be saved in a panel image using pptx format or as a list of
-#' ggplots for later saving in pdf format.
+#' \code{LandS::cont_var_test()} and then formatted using \code{LandS::posthoc_df()}.
+#' Plots can be exported to PowerPoint format or returned as a list of ggplot
+#' objects for subsequent arrangement and export.
+#'
+#' \strong{Expected data structure}
+#'
+#' Data must be provided in a "long" format \code{data.frame}, where each row
+#' represent a single observation. Variables listed in \code{variables} must be
+#' numeric and stored as separate columns. When \code{id_lines = TRUE}, the
+#' variable specified in \code{id} must uniquely identify paired or repeated
+#' observations across groups.
+#'
+#' Example:
+#'
+#' \preformatted{
+#'    ID   Visit     CRP    IL6
+#'    01   Baseline  4.5    2.1
+#'    01   Post      2.8    1.3
+#'    02   Baseline  6.1    3.2
+#'    02   Post      4.9    2.5
+#' }
 #'
 #'
-#' @author Luca Lalli, Stefano Bergamini
+#'
+#' @author Stefano Bergamini, Luca Lalli
+#' @seealso
+#' \code{\link{cont_var_test}},
+#' \code{\link{posthoc_df}}
 #'
 #' @examples
+#' # Overall boxplot
+#' Boxplot(data = mtcars, variables = "mpg", group = "Overall", palette = "goldenrod", verbose = FALSE)
+#'
+#' # Boxplot split by a categorical variable
 #' mtcars$vs <- factor(mtcars$vs)
-#' Boxplot(mtcars, c('mpg', 'disp'), 'vs')
+#' Boxplot(data = mtcars, variables = c("mpg", "disp"), group = "vs", verbose = FALSE)
+#'
+#' # Violin plot
+#' Boxplot(data = mtcars, variables = c("mpg"), group = "vs", type = "violin", verbose = FALSE)
+#'
+#' # Boxplot and individual observations
+#' Boxplot(data = mtcars, variables = c("mpg"), group = "vs", points = TRUE, verbose = FALSE)
+#'
+#' # Adding custom titles
+#' par(mfrow = c(1, 3))
+#' box <-
+#'   Boxplot(data = mtcars, variables = c("mpg", "disp"), group = "vs",
+#'             title_leg = TRUE, title_legend = function(x) {
+#'             c(mpg = "Fuel Consumption", disp = "Engine Displacement")[x]
+#'          }, verbose = FALSE)
+#' box[[1]]; box[[2]]; box[[3]]
+#'
+#' # Adding custom title background colors
+#' par(mfrow = c(1, 3))
+#' box <-
+#'   Boxplot(data = mtcars, variables = c("mpg", "disp"), group = "vs",
+#'           col_title = TRUE, fill_title = function(x) {
+#'                 c(mpg = "lightblue", disp = "tomato")[x]
+#'          }, verbose = FALSE)
+#' box[[1]]; box[[2]]; box[[3]]
+#'
+#' # Export to PowerPoint
+#' Boxplot(data = mtcars, variables = c("mpg", "disp"), group = "vs",
+#'   grid = FALSE, pptx = TRUE, verbose = FALSE)
 Boxplot <- function (data,
                      variables,
                      group,
-                     ID = "ID",
+                     type = "boxplot",
 
-                     rm.outliers = F,
+                     rm.outliers = FALSE,
                      th.outliers = 1.5,
 
-                     Point = F,
-                     size_point = 0.3,
-                     alpha_point = 0.3,
-
-                     alpha_box = 0.1,
-                     width_box = 0.2,
-                     lwd_box = 0.1,
-                     notch = F,
+                     lwd = 1,
+                     alpha = 0.5,
+                     width = 0.35,
                      notchwidth = 0.5,
-                     Median_line = F,
-                     lwd_median_line = 0.8,
-                     col_median_line = "red",
 
-                     ID_lines = FALSE,
-                     lwd_ID_line = 0.2,
-                     alpha_ID_line = 0.3,
+                     statistic = NULL,
 
-                     Overall = F,
+                     points = FALSE,
+
+                     id_lines = FALSE,
+                     id = "ID",
+
+                     Overall = FALSE,
                      Posthoc = FALSE,
                      Test_results = NULL,
                      threshold_posthoc = 0.05,
-                     posthoc_test_size = 3.88,
-                     bracket_shorten = 0,
-                     bracket.nudge.y = 0,
+                     overall_p = "Overall.padj",
 
-                     axis_x_title = NULL,
-                     size_axis_x = 6,
-                     axis_y_title = NULL,
-                     size_axis_y = 6,
-
-                     col_title = FALSE,
-                     alpha_fill_title = 0.2,
-                     fill_title = NULL,
-
-                     title_leg = FALSE,
-                     title_legend = NULL,
-                     size_title = 8,
-
-                     breaks_axis_x = levels(data[, group]),
-                     labels_axis_x = levels(data[, group]),
+                     palette = rep("transparent", nlevels(data[[group]])),
 
                      grid = TRUE,
-                     PPTX = FALSE,
-                     pptx_width = 7.5,
-                     pptx_height = 5.5,
+                     pptx = FALSE,
+                     target = "Boxplot.pptx",
+
+                     label_legend_title = paste0("Distribution by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
 
                      extra = FALSE,
                      extra_text = NULL,
+                     col_title = FALSE,
+                     fill_title = NULL,
+                     title_leg = FALSE,
+                     title_legend = NULL,
 
-                     palette = rep("transparent", nlevels(data[, group])),
-                     label_legend_title = paste0("Boxplots by ", group, "\n", format(Sys.Date(), "%d/%m/%Y")),
-                     size_legend_title = 3,
-                     size_legend_text = 3,
-                     size_legend_circle = 4,
-                     target = "Output/Boxplot.pptx",
-                     ratio = 1,
-                     verbose = TRUE)
+                     verbose = TRUE,
+                     ...)
 {
 
-  # if (telegram != "none") {
-  #   start_time <<- Sys.time()
-  # }
   start_time <- Sys.time()
+
+  type <- match.arg(type, c("boxplot", "box", "notch", "violin"))
+
+  if((Overall || Posthoc) && is.null(Test_results)){
+    stop("Test_results must be supplied when Overall or Posthoc are TRUE.")
+  }
 
   if (verbose) message(paste0("Creating ", length(variables), " boxplots with: \n",
                               "-Split by ", group, "\n",
-                              "-Points: ", Point, "\n",
+                              "-Points: ", points, "\n",
                               "-Outliers: ", rm.outliers, "\n",
                               "-Posthoc: ", Posthoc, "\n",
-                              "-ID_lines: ", ID_lines
+                              "-id_lines: ", id_lines
   ))
 
-  theme_PPTX <- ggplot2::theme(axis.text.x = ggplot2::element_text(size = 14, colour = "black", vjust = -0),
-                      plot.margin = ggplot2::margin(2, 2, 2, 2, "mm"),
-                      axis.text.y = ggplot2::element_text(size = 14, colour = "black"),
-                      panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
-                      axis.ticks = ggplot2::element_line(linewidth = 0.1),
-                      axis.ticks.length = grid::unit(0.25, "mm"),
-                      panel.background = ggplot2::element_rect(fill = "transparent"),
-                      plot.background = ggplot2::element_rect(fill = "transparent"),
-                      panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(),
-                      panel.spacing.x = grid::unit(1.5, "mm"))
-  themegrid <- ggplot2::theme(axis.text.x = ggplot2::element_text(size = size_axis_x, colour = "black", vjust = -0),
-                     plot.margin = ggplot2::margin(2, 2, 2, 2, "mm"),
-                     axis.text.y = ggplot2::element_text(size = size_axis_y,colour = "black"),
-                     panel.border = ggplot2::element_rect(linetype = "solid", colour = "black", linewidth = 0.1, fill = NA),
-                     axis.ticks = ggplot2::element_line(linewidth = 0.1),
-                     axis.ticks.length = grid::unit(0.25, "mm"),
-                     panel.background = ggplot2::element_rect(fill = "transparent"),
-                     plot.background = ggplot2::element_rect(fill = "transparent"),
-                     panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank(),
-                     legend.position = c(0.87, 0.15), legend.title = ggplot2::element_blank(),
-                     panel.spacing.x = grid::unit(1.5, "mm"), aspect.ratio = ratio)
-  boxplot <- list()
+  list_boxplot <- list()
+
+  if (grid) {
+    graph_params <- set_params_grid(...)
+  } else if (pptx) {
+    graph_params <- set_params_pptx(...)
+  }
+  if(is.na(graph_params[["breaks"]])) {
+    graph_params[["breaks"]] <- levels(data[[group]])
+  }
+  if (all(is.na(graph_params[["labels"]]))) {
+    graph_params[["labels"]] <- levels(data[[group]])
+  }
 
   if (length(variables) > 1) {
-    boxplot[[1]] <- ggplot2::ggplot(data, ggplot2::aes_string(x = 1, y = 1)) +
+    list_boxplot[[1]] <- ggplot2::ggplot(data, ggplot2::aes(x = 1, y = 1)) +
       {
-        if (group != 1)
-          ggplot2::geom_point(ggplot2::aes_string(colour = group), shape = NA,
-                     show.legend = TRUE)
+        if (!group == "Overall")
+          ggplot2::geom_point(ggplot2::aes(colour = .data[[group]]),
+                              alpha = 0, na.rm = TRUE,
+                              show.legend = TRUE)
       } + {
-        if (group == 1)
-          ggplot2::geom_point(shape = NA, show.legend = TRUE)
+        if (group == "Overall")
+          ggplot2::geom_point(alpha = 0, show.legend = TRUE)
       } + {
-        if (group != 1)
+        if (!group == "Overall")
           ggplot2::scale_color_manual(values = palette)
       } + {
-        if (group == 1)
+        if (group == "Overall")
           ggplot2::scale_color_manual(values = palette[1])
       } + {
-        if (group != 1)
+        if (!group == "Overall")
           ggplot2::scale_fill_manual(values = palette)
       } + {
-        if (group == 1)
+        if (group == "Overall")
           ggplot2::scale_fill_manual(values = palette[1])
-      } + ggpubr::theme_transparent() +
-      ggplot2::theme(legend.text = ggplot2::element_text(size = size_legend_text, face = "bold")) +
-      ggplot2::annotate(geom = "text", x = 1,
-               y = 1.001, size = size_legend_title, label = label_legend_title,
-               vjust = 1.25, fontface = "bold") +
-      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = size_legend_circle, shape = 20))) +
+      } +
+      ggpubr::theme_transparent() +
+      ggplot2::annotate(geom = "text", x = 1, y = 1.001,
+                        size = graph_params[["size_legend_title"]],
+                        label = label_legend_title,
+                        vjust = 1.25, fontface = "bold") +
+      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 7.5, shape = 20, alpha = 1))) +
       ggplot2::theme(legend.position = "inside",
-            legend.justification = c(0.5, 0.3), legend.title = ggplot2::element_blank())
+                     legend.justification = c(0.5, 0.3), legend.title = ggplot2::element_blank())
   }
   else { }
 
   for (i in variables) {
     if (col_title == TRUE) {
-      fill_title <- fill_title(i)
+      fill.title <- fill_title(i)
     } else {
-      fill_title <- "transparent"
+      fill.title <- "transparent"
     }
     k <- which(variables == i)
-    if (Posthoc == T) {
-      posthoc_df <- posthoc_df(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i = i)
+
+    if (Posthoc) {
+      y_values <- data[[i]]
+      if (!is.numeric(y_values)) {
+        stop("Variable must be numeric: ", i)
+      }
+      y_values <- y_values[is.finite(y_values)]
+      if (!length(y_values)) {
+        stop("No finite observations for variable: ", i)
+      }
+
+      y_span <- diff(range(y_values))
+      if (y_span == 0) {
+        y_span <- max(1, abs(y_values[1]))
+      }
+      bracket_nudge_absolute <- graph_params[["bracket.nudge.y"]] * y_span
+
+      df_posthoc <- posthoc_df(
+        Test_results = Test_results,
+        data = data,
+        group = group,
+        threshold_posthoc = threshold_posthoc,
+        i = i
+      )
     }
-    A = tapply(data[, i], data[, group], stats::quantile, c(0.75), na.rm = T)
-    B = tapply(data[, i], data[, group], stats::quantile, c(0.25), na.rm = T)
-    C = tapply(data[, i], data[, group], stats::IQR, na.rm = T)
-    ymax <- max(A + th.outliers * C, na.rm = T)
-    ymin <- min(B - th.outliers * C, na.rm = T)
-    data[, "Y"] <- data[, i]
+
+    if (group == "Overall") {
+      A = stats::quantile(data[[i]], c(0.75), na.rm = TRUE)
+      B = stats::quantile(data[[i]], c(0.25), na.rm = TRUE)
+      C = stats::IQR(data[[i]], na.rm = TRUE)
+    } else {
+      A = tapply(data[[i]], data[[group]], stats::quantile, c(0.75), na.rm = TRUE)
+      B = tapply(data[[i]], data[[group]], stats::quantile, c(0.25), na.rm = TRUE)
+      C = tapply(data[[i]], data[[group]], stats::IQR, na.rm = TRUE)
+    }
+
+    ymax <- max(A + th.outliers * C, na.rm = TRUE)
+    ymin <- min(B - th.outliers * C, na.rm = TRUE)
+
+    if (Posthoc) {
+      bracket_base_y <- max(A + C, na.rm = TRUE)
+    }
+
+    data[["Y"]] <- data[[i]]
+
     if (rm.outliers == TRUE) {
-      data[, "Y"][data[, i] > ymax] <- NA
-      data[, "Y"][data[, i] < ymin] <- NA
-    }
-    else {
-    }
-    gg <- ggplot2::ggplot(data = data, ggplot2::aes_string(x = data[, group])) +
-      ggplot2::geom_boxplot(ggplot2::aes_string(y = data[, i], fill = data[, group]),
-                            width = width_box, alpha = alpha_box,
-                   notch = notch, notchwidth = notchwidth, outlier.shape = NA,
-                   lwd = lwd_box, show.legend = F) +
+      data[["Y"]][data[[i]] > ymax] <- NA
+      data[["Y"]][data[[i]] < ymin] <- NA
+    } else { }
+
+    gg <- ggplot2::ggplot(data = data) +
       {
-        if (Point)
-          ggplot2::geom_point(ggplot2::aes_string(y = data[, "Y"]), size = size_point,
-                     alpha = alpha_point)
+        if (group == "Overall")
+          ggplot2::aes(x = "Overall", y = .data[[i]])
       } + {
-        if (ID_lines)
-          ggplot2::geom_line(ggplot2::aes_string(y = data[, i], group = ID),
-                    alpha = alpha_ID_line, linewidth = lwd_ID_line,
-                    colour = "black")
+        if (!group == "Overall")
+          ggplot2::aes(x = .data[[group]], y = .data[[i]], fill = .data[[group]])
       } + {
-        if (Median_line)
-          ggplot2::stat_summary(ggplot2::aes_string(y = data[, i], group = 1),
-                       geom = "line", fun = stats::median, linewidth = lwd_median_line,
-                       colour = col_median_line, linetype = "solid", show.legend = F)
+        if (type == "box" || type == "boxplot")
+          ggplot2::geom_boxplot(width = width, alpha = alpha, outlier.shape = NA,
+                                lwd = lwd, fill = palette, show.legend = FALSE)
+      } + {
+        if (type == "notch")
+          ggplot2::geom_boxplot(width = width, alpha = alpha, outlier.shape = NA,
+                                notch = TRUE, notchwidth = notchwidth,
+                                lwd = lwd, fill = palette, show.legend = FALSE)
+      } + {
+        if (group == "Overall" & type == "violin")
+          ggplot2::geom_violin(alpha = alpha, lwd = lwd, quantile.color = "black",
+                               fill = palette, show.legend = FALSE,
+                               quantile.linetype = 2, quantile.linewidth = lwd)
+      } + {
+        if (!group == "Overall" & type == "violin")
+          ggplot2::geom_violin(alpha = alpha, lwd = lwd, quantile.color = "black",
+                               show.legend = FALSE,
+                               quantile.linetype = 2, quantile.linewidth = lwd)
+      } + {
+        if (points)
+          ggplot2::geom_point(ggplot2::aes(y = .data[["Y"]]),
+                              size = graph_params[["size_point"]],
+                              alpha = graph_params[["alpha_point"]],
+                              shape = 19)
+      } + {
+        if (id_lines)
+          ggplot2::geom_line(ggplot2::aes(y = .data[[i]], group = .data[[id]]),
+                             alpha = graph_params[["alpha_id_lines"]],
+                             linewidth = graph_params[["lwd_id_lines"]],
+                             colour = "black")
+      } + {
+        if (!is.null(statistic) && statistic == "median"){
+
+          ggplot2::stat_summary(ggplot2::aes(y = .data[[i]], group = 1),
+                                geom = "line", fun = stats::median,
+                                linewidth = graph_params[["lwd_statistic"]],
+                                colour = graph_params[["col_statistic"]],
+                                linetype = "solid", show.legend = FALSE)
+
+        } else if (!is.null(statistic) && statistic == "mean") {
+
+          ggplot2::stat_summary(ggplot2::aes(y = .data[[i]], group = 1),
+                                geom = "line", fun = mean,
+                                linewidth = graph_params[["lwd_statistic"]],
+                                colour = graph_params[["col_statistic"]],
+                                linetype = "solid", show.legend = FALSE)
+
+
+        } else if (!is.null(statistic) && !statistic %in% c("mean", "median")){
+
+          message('`statistic` argument accepts only "median" or "mean" values')
+
+        } else if (is.null(statistic)) { }
       } + {
         if (rm.outliers)
-          ggplot2::coord_cartesian(ylim = c(min(data[, "Y"], na.rm = T),
-                                   min(max(data[, "Y"], ymax, na.rm = T))))
+          ggplot2::coord_cartesian(
+            ylim = c(
+              min(data[["Y"]], na.rm = TRUE),
+              if (Posthoc && nrow(df_posthoc) > 0) NA_real_ else max(data[["Y"]], na.rm = TRUE)
+            )
+          )
       } + {
 
         if (title_leg){
-          ggplot2::labs(title = title_legend(i), x = axis_x_title, y = axis_y_title)
+          ggplot2::labs(title = title_legend(i), x = NULL, y = NULL)
         } else {
-          ggplot2::labs(title = i, x = axis_x_title, y = axis_y_title)
+          ggplot2::labs(title = i, x = NULL, y = NULL)
         }
 
       } +
-      ggplot2::scale_color_manual(values = palette) +
-      ggplot2::scale_fill_manual(values = palette, guide = FALSE) +
-      ggplot2::scale_x_discrete(breaks = breaks_axis_x, labels = labels_axis_x) +
+
+      ggplot2::scale_fill_manual(values = palette, guide = "none") +
+      ggplot2::scale_x_discrete(breaks = graph_params[["breaks"]],
+                                labels = graph_params[["labels"]]) +
       {
-        if (Posthoc)
-          if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
-            ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pvalue}", bracket.shorten = bracket_shorten, bracket.nudge.y = bracket.nudge.y,
-                                       y.position =
-                                         max(tapply(data[, i], data[, group], stats::quantile, na.rm = T, probs = 0.75) +
-                                               tapply(data[, i], data[, group], stats::IQR, na.rm = T)),
-                                       step.increase = 0.08, size = posthoc_test_size)
+        if (Posthoc && nrow(df_posthoc) > 0 && !all(is.na(df_posthoc))) {
+          ggpubr::stat_pvalue_manual(
+            df_posthoc,
+            label = "p = {pvalue}",
+            bracket.shorten = graph_params[["bracket_shorten"]],
+            bracket.nudge.y = bracket_nudge_absolute,
+            y.position = bracket_base_y,
+            step.increase = graph_params[["bracket_step_increase"]],
+            size = graph_params[["posthoc_test_size"]]
+          )
+        }
       } + {
         if (Overall)
-          ggplot2::annotate(geom = "text", x = -Inf, y = Inf, hjust = -0.1,
-                   vjust = 1.5, size = posthoc_test_size, label = LandS::formatz_p(Test_results[, 2][Test_results[, 1] == i]), colour = "black")
+          ggplot2::annotate(geom = "text", x = -Inf, y = Inf,
+                            hjust = -0.1, vjust = 1.5,
+                            size = graph_params[["posthoc_test_size"]],
+                            label = formatz_p(Test_results[Test_results[["Variable"]] == i, overall_p]),
+                            colour = "black")
       } + {
         if (extra)
           extra_text(i)
       } + {
         if (grid)
-          themegrid + ggplot2::theme(plot.title = ggtext::element_textbox_simple(
-            size = size_title, box.colour = "black", face = "bold",
-            linewidth = .1, linetype = 1,
-            hjust = 0, halign = .5,
-            padding = ggplot2::margin(6, 5, 4, 5),
-            margin = ggplot2::margin(0, 0, 0, 0),
-            fill = scales::alpha(fill_title, alpha_fill_title)))
+          theme_lands_grid(... = ...)
       } + {
-        if (PPTX)
-          theme_PPTX + ggplot2::theme(plot.title = ggtext::element_textbox_simple(
-            size = size_title, box.colour = "black", face = "bold",
-            linewidth = .1, linetype = 1,
-            hjust = 0, halign = .5,
-            padding = ggplot2::margin(6, 5, 4, 5),
-            margin = ggplot2::margin(0, 0, 0, 0),
-            fill = scales::alpha(fill_title, alpha_fill_title)))
+        if (pptx)
+          theme_lands_pptx(... = ...)
       }
 
     if (length(variables) > 1) {
-      boxplot[[k + 1]] <- gg
-    }
-    else {
-      boxplot[[k]] <- gg
+      list_boxplot[[k + 1]] <- gg
+    } else {
+      list_boxplot[[k]] <- gg
     }
 
-    if (verbose) LandS::Progress_bar(current = which(i == variables),
-                                     total = length(variables),
-                                     start_time = start_time,
-                                     bar_fill = "\U2588",
-                                     bar_void = "\U2591")
+    if (verbose) Progress_bar(current = which(i == variables),
+                              total = length(variables),
+                              start_time = start_time,
+                              bar_fill = "\U2588",
+                              bar_void = "\U2591")
   }
-  if (PPTX == T) {
+  if (pptx == TRUE) {
     ppt <- officer::read_pptx()
     if (verbose) message("Printing PowerPoint")
-    for (i in 1:length(boxplot)) {
-      boxplot[[i]] <- rvg::dml(ggobj = boxplot[[i]])
+    for (i in 1:length(list_boxplot)) {
+      list_boxplot[[i]] <- rvg::dml(ggobj = list_boxplot[[i]])
       ppt = officer::add_slide(ppt, layout = "Title and Content")
-      officer::ph_with(ppt, boxplot[[i]], officer::ph_location(width = pptx_width, height = pptx_height))
+      officer::ph_with(ppt, list_boxplot[[i]], officer::ph_location(width = graph_params[["pptx_width"]], height = graph_params[["pptx_height"]]))
 
     }
     print(ppt, target = target)
     if (verbose) message("Done printing :)")
-    # if (telegram != "none") {
-    #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
-    # }
-  }
-  else {
-    # if (telegram != "none") {
-    #   LandS::telegram_mess(dest = telegram, script = "Boxplot")
-    # }
-    return(boxplot)
+
+  } else if (length(list_boxplot) == 1 && !pptx) {
+
+    return(list_boxplot[[1]])
+
+  } else {
+    return(list_boxplot)
   }
 }
-
