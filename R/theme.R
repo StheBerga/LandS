@@ -172,6 +172,7 @@ theme_lands_pptx <- function(...) {
 #'   annotations(Default = 3.88).}
 #'   \item{bracket_shorten}{Numeric. Amount by which statistical brackets are
 #'   shortened(Default = 0).}
+#'   \item{bracket_step_increase}{Numeric. Step increase adjustment (Deafult = 0.08)}
 #'   \item{bracket.nudge.y}{Numeric. Vertical adjustment applied to
 #'   statistical brackets(Default = 0).}
 #'   \item{lwd_statistic}{Numeric. Line width of statistical annotation
@@ -200,6 +201,7 @@ set_params_grid <- function(...){
   labels_axis <- list(...)$labels
   posthoc_test_size <- list(...)$posthoc_test_size
   bracket_shorten <- list(...)$bracket_shorten
+  bracket_step_increase <- list(...)$bracket_step_increase
   bracket.nudge.y <- list(...)$bracket.nudge.y
   lwd_statistic <- list(...)$lwd_statistic
   col_statistic <- list(...)$col_statistic
@@ -215,6 +217,7 @@ set_params_grid <- function(...){
     labels = NA,
     posthoc_test_size = ifelse(!is.null(posthoc_test_size), posthoc_test_size, 3.88),
     bracket_shorten = ifelse(!is.null(bracket_shorten), bracket_shorten, 0),
+    bracket_step_increase = ifelse(!is.null(bracket_step_increase), bracket_step_increase, 0.08),
     bracket.nudge.y = ifelse(!is.null(bracket.nudge.y), bracket.nudge.y, 0),
     lwd_statistic = ifelse(!is.null(lwd_statistic), lwd_statistic, 1),
     col_statistic = ifelse(!is.null(col_statistic), col_statistic, "red")
@@ -254,6 +257,7 @@ set_params_grid <- function(...){
 #'   annotations(Default = 3.88).}
 #'   \item{bracket_shorten}{Numeric. Amount by which statistical brackets are
 #'   shortened(Default = 0).}
+#'   \item{bracket_step_increase}{Numeric. Step increase adjustment (Deafult = 0.08)}
 #'   \item{bracket.nudge.y}{Numeric. Vertical adjustment applied to
 #'   statistical brackets(Default = 0).}
 #'   \item{lwd_statistic}{Numeric. Line width of statistical annotation
@@ -284,6 +288,7 @@ set_params_pptx <- function(...){
   labels_axis <- list(...)$labels
   posthoc_test_size <- list(...)$posthoc_test_size
   bracket_shorten <- list(...)$bracket_shorten
+  bracket_step_increase <- list(...)$bracket_step_increase
   bracket.nudge.y <- list(...)$bracket.nudge.y
   lwd_statistic <- list(...)$lwd_statistic
   col_statistic <- list(...)$col_statistic
@@ -301,6 +306,7 @@ set_params_pptx <- function(...){
     labels = NA,
     posthoc_test_size = ifelse(!is.null(posthoc_test_size), posthoc_test_size, 3.88),
     bracket_shorten = ifelse(!is.null(bracket_shorten), bracket_shorten, 0),
+    bracket_step_increase = ifelse(!is.null(bracket_step_increase), bracket_step_increase, 0.08),
     bracket.nudge.y = ifelse(!is.null(bracket.nudge.y), bracket.nudge.y, 0),
     lwd_statistic = ifelse(!is.null(lwd_statistic), lwd_statistic, 1),
     col_statistic = ifelse(!is.null(col_statistic), col_statistic, "red"),

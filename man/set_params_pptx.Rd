@@ -24,6 +24,7 @@ set_params_pptx(...)
   annotations(Default = 3.88).}
   \item{bracket_shorten}{Numeric. Amount by which statistical brackets are
   shortened(Default = 0).}
+  \item{bracket_step_increase}{Numeric. Step increase adjustment (Deafult = 0.08)}
   \item{bracket.nudge.y}{Numeric. Vertical adjustment applied to
   statistical brackets(Default = 0).}
   \item{lwd_statistic}{Numeric. Line width of statistical annotation
