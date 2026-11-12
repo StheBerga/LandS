@@ -8,51 +8,37 @@ Lineplots(
   data,
   variables,
   time,
-  breaks = unique(data[[time]]),
-  label = unique(data[[time]]),
   group,
-  palette = "black",
-  stat_line = "median",
-  smooth_line = FALSE,
-  span_loess = 1,
-  lwd_line = 1,
-  alpha_line = 1,
+  statistic = "median",
   ylim = c(0, 1),
+  loess = FALSE,
+  loess_span = 1,
+  lwd = 1,
+  alpha = 1,
   ribbon = TRUE,
-  alpha_ribbon = 0.05,
+  alpha_ribbon = 0.5,
+  points = FALSE,
   id_lines = FALSE,
   id = "ID",
-  alpha_id_lines = 0.3,
-  lwd_id_lines = 0.2,
-  Point = FALSE,
-  alpha_point = 0.3,
-  size_point = 0.3,
-  col_title = FALSE,
-  fill_title = NULL,
-  size_title = 7,
-  alpha_fill_title = 0.2,
+  Overall = FALSE,
+  Posthoc = FALSE,
+  Test_results = NULL,
+  threshold_posthoc = 0.05,
+  overall_p = "Overall.padj",
+  palette = "black",
+  grid = TRUE,
+  pptx = FALSE,
+  target = "Lineplots.pptx",
   label_legend_title = paste0("Lineplots by ", group, "\\n", format(Sys.Date(),
     "\%d/\%m/\%Y")),
-  size_label_title = 2.5,
-  size_legend_text = 3,
-  size_legend_circle = 4,
-  size_axis_x = 5,
-  size_axis_y = 6,
-  Overall = FALSE,
-  Test_results = NULL,
-  Posthoc = FALSE,
-  threshold_posthoc = 0.1,
-  posthoc_test_size = 2,
-  overall_p = "Overall.padj",
-  grid = TRUE,
-  ratio = 1,
-  pptx = FALSE,
-  pptx_width = 8.5,
-  pptx_height = 5.5,
-  target = "Lineplots.pptx",
   extra = FALSE,
   extra_text = NULL,
-  verbose = TRUE
+  col_title = FALSE,
+  fill_title = NULL,
+  title_leg = FALSE,
+  title_legend = NULL,
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -61,105 +47,92 @@ Lineplots(
 \item{variables}{Character vector containing all numeric variables of interest.}
 
 \item{time}{Character string giving the name of the time variable. This
-variable should be numeric if \code{scale_x_continuous()} is used.}
+variable has to be numeric because the function uses
+\code{scale_x_continuous()}. By default breaks and labels are set as the
+unique values of \code{time}, however it's possible to customize them with
+the \code{breaks} and the \code{labels} optional parameters: \code{breaks} must be a
+numeric vector and have the same length as \code{labels}, which can be either a
+numeric or a character vector.}
 
-\item{breaks}{Numeric vector of x-axis break positions (Default = levels(data[[time]]))}
+\item{group}{Factor identifying the grouping variable. Use \code{"Overall"}
+to generate a single trajectory without stratification.}
 
-\item{label}{Character or numeric vector of x-axis labels. Must have the same
-length as \code{breaks} (Default = \code{levels(data[[time]])})}
-
-\item{group}{Character scalar identifying the grouping variable.
-Use \code{"Overall"} to generate a single distribution without stratification.}
-
-\item{palette}{Character vector of colours used for groups. Its length
-must match the number of group levels when \code{group != "Overall"} (Default = \code{"black"}).}
-
-\item{stat_line}{Character string indicating the summary statistic to plot.
-Allowed values are \code{"median"} and \code{"mean"} (Default = \code{"median"}).}
-
-\item{smooth_line}{Logical. If \code{TRUE}, applies a LOESS-smoothed line to the
-summary trajectory (Default = \code{FALSE}).}
-
-\item{span_loess}{Controls the amount of smoothing for the default loess smoother.
-Smaller numbers produce wigglier lines, larger numbers produce smoother lines (Default = 1).}
-
-\item{lwd_line}{Numeric. Line width of the summary trajectory (Default = 1).}
-
-\item{alpha_line}{Numeric. Transparency of the summary line (Default = 1).}
+\item{statistic}{Character string indicating the summary statistic to plot.
+Allowed values are \code{"median"} and \code{"mean"} (Default =
+\code{"median"}).}
 
 \item{ylim}{Numeric vector of length 2 giving the lower and upper quantiles
 used to determine the y-axis limits (Default = \code{c(0, 1)}).}
 
-\item{ribbon}{Logical. If \code{TRUE}, adds a ribbon representing the interquartile
-range, from Q1 to Q3 (Default = \code{TRUE}).}
+\item{loess}{Logical. If \code{TRUE}, applies a LOESS-smoothed line to the
+summary trajectory (Default = \code{FALSE}).}
 
-\item{alpha_ribbon}{Numeric. Transparency of the ribbon (Default = 0.05).}
+\item{loess_span}{Controls the amount of smoothing for the default loess
+smoother. Smaller numbers produce wigglier lines, larger numbers produce
+smoother lines (Default = 1).}
 
-\item{id_lines}{Logical. If \code{TRUE}, adds individual subject trajectories (Default = \code{FALSE}).}
+\item{lwd}{Numeric. Line width of the summary trajectory (Default = 1).}
 
-\item{id}{Column name of id variable used to connect paired observations (Default = \code{"ID"}).}
+\item{alpha}{Numeric. Transparency of the summary trajectory (Default = 1).}
 
-\item{alpha_id_lines}{Numeric. Transparency of individual subject lines (Default = 0.3).}
+\item{ribbon}{Logical. If \code{TRUE}, adds a ribbon representing the
+interquartile range, from Q1 to Q3 (Default = \code{TRUE}).}
 
-\item{lwd_id_lines}{Numeric. Linewidth of individual subject lines (Default = 0.2).}
+\item{alpha_ribbon}{Numeric. Transparency of the ribbon (Default = 0.5).}
 
-\item{Point}{Logical. If \code{TRUE}, adds observed data points (Default = \code{FALSE}).}
+\item{points}{Logical. If \code{TRUE}, adds observed data points (Default =
+\code{FALSE}). Additional characteristic can be specified with the
+\code{alpha_point} and the \code{size_point} parameters.}
 
-\item{alpha_point}{Numeric. Transparency of observed data points (Default = 0.3).}
+\item{id_lines}{Logical. If \code{TRUE}, adds individual subject trajectories
+(Default = \code{FALSE}). Additional characteristic can be specified with
+the \code{alpha_id_lines} and the \code{lwd_id_lines} parameters.}
 
-\item{size_point}{Numeric. Size of observed data points (Default = 0.3).}
-
-\item{col_title}{Logical. If \code{TRUE}, fills plot-title boxes using colours
-returned by \code{fill_title} (Default = \code{FALSE}).}
-
-\item{fill_title}{Function returning a fill colour for each variable name.
-Required when \code{col_title = TRUE} (Default = \code{NULL}).}
-
-\item{size_title}{Numeric. Size of the plot title (Default = 7).}
-
-\item{alpha_fill_title}{Numeric. Transparency of the title fill colour (Default = 0.2).}
-
-\item{label_legend_title}{A title for your list.
-Default sets "Lineplots by grouping variable" and the current date.}
-
-\item{size_label_title}{Numeric. Text size of \code{label_title} (Default = 2.5).}
-
-\item{size_legend_text}{Font size for the list's text (Default = 3).}
-
-\item{size_legend_circle}{Font size for the list's circles defining groups legend (Default = 4).}
-
-\item{size_axis_x}{Numeric. Size of x-axis tick labels (Default = 5).}
-
-\item{size_axis_y}{Numeric. Size of y-axis tick labels (Default = 6).}
+\item{id}{Column name of id variable used to connect paired observations
+(Default = \code{"ID"}).}
 
 \item{Overall}{Logical. If \code{TRUE}, annotates each plot with an overall
-p-value from \code{Test_results} (Default = \code{FALSE}).}
+p-value from the \code{Test_results} argument in the upper-left corner (Default =
+\code{FALSE}. Text size for p-value annotation can be customised with the
+\code{posthoc_test_size} argument (Default = 3.88).}
 
-\item{Test_results}{Data frame containing statistical test results used for
-annotations. Required when \code{Overall = TRUE} or \code{Posthoc = TRUE} (Default = \code{NULL}).}
+\item{Posthoc}{Logical. If \code{TRUE}, adds post-hoc comparison annotations
+(Default = \code{FALSE}). Text size for p-value annotations can be
+customised with the \code{posthoc_test_size} argument (Default = 3.88).}
 
-\item{Posthoc}{Logical. If \code{TRUE}, adds post-hoc comparison annotations (Default = \code{FALSE}).}
+\item{Test_results}{Data frame containing overall and/or post-hoc test
+  results generated by \code{LandS::cont_var_test()} and formatted using
+  \code{LandS::posthoc_df()} (Default = \code{NULL}).
+
+  Required when either \code{Overall = TRUE} or \code{Posthoc = TRUE}.}
 
 \item{threshold_posthoc}{Numeric. P-value threshold used to filter post-hoc
-comparisons (Default = 0.1).}
-
-\item{posthoc_test_size}{Numeric. Text size for p-value annotations (Default = 2).}
+comparisons (Default = 0.05).}
 
 \item{overall_p}{Character identifying the p-value column of
-\code{Test_results} to display as overall test (Default = \code{"Overall.padj"}).}
+\code{Test_results} to display as overall test (Default =
+\code{"Overall.padj"}).}
 
-\item{grid}{Logical. If \code{TRUE}, uses the default grid-oriented theme (Default = \code{TRUE}).}
+\item{palette}{Character vector of colours used for groups. Its length must
+match the number of group levels when \code{group} is not set to
+\code{"Overall"} (Default = \code{"black"}).}
 
-\item{ratio}{Numeric. Aspect ratio of each plot panel (Default = 1).}
+\item{grid}{Logical. If \code{TRUE}, uses the default grid-oriented theme
+(Default = \code{TRUE}). If \code{TRUE}, aspect ratio of the plot can be
+set with the \code{ratio} parameter (Default = 1).}
 
-\item{pptx}{Logical. If \code{TRUE}, saves the plots to a PowerPoint file instead
-of returning them (Default = \code{FALSE}).}
+\item{pptx}{Logical. If \code{TRUE}, saves the plots to a PowerPoint file
+instead of returning them (Default = \code{FALSE}). Plot dimensions in
+inches can be specified with the \code{pptx_width} and the
+\code{pptx_height} parameters (Numeric with default = 8.5 and 5.5,
+respectively).}
 
-\item{pptx_width}{Numeric. Width of the PowerPoint plot area (Default = 8.5).}
+\item{target}{Character string giving the output path for the PowerPoint file
+(Default = \code{"Lineplots.pptx"}).}
 
-\item{pptx_height}{Numeric. Height of the PowerPoint plot area (Default = 5.5).}
-
-\item{target}{Character string giving the output path for the PowerPoint file (Default = \code{"Lineplots.pptx"}).}
+\item{label_legend_title}{A title for your list. Default sets "Lineplots by
+grouping variable" and the current date. The size of the title text can be
+specified with the \code{size_legend_title} parameter.}
 
 \item{extra}{Logical. If \code{TRUE}, adds extra ggplot layers returned by
 \code{extra_text} (Default = \code{FALSE}).}
@@ -167,15 +140,37 @@ of returning them (Default = \code{FALSE}).}
 \item{extra_text}{Function taking a variable name and returning one or more
 ggplot layers (Default = \code{NULL}).}
 
-\item{verbose}{Logical. If \code{TRUE}, prints progress messages (Default = \code{TRUE}).}
+\item{col_title}{Logical. If \code{TRUE}, fills plot-title boxes using
+colours (Default = \code{FALSE}).}
+
+\item{fill_title}{Function returning a fill colour for each variable name.
+Required when \code{col_title = TRUE} (Default = \code{NULL}). Additional
+transparency of the fill colour can be specified with the
+\code{alpha_fill_title} parameter (Default = 0.2). Additional title size
+can be set with the \code{size_title} parameter (Default = 7).}
+
+\item{title_leg}{Logical. If \code{TRUE}, takes a variable name and matches a
+custom title for the corresponding plot (Default = \code{FALSE}).}
+
+\item{title_legend}{Function taking a variable name and returning the title
+to display. Required when \code{title_leg = TRUE} (Default = \code{NULL}).
+Additional size of the title can be set with the \code{size_title}
+parameter (Default = 7).}
+
+\item{verbose}{Logical. If \code{TRUE}, prints progress bar and messages
+(Default = \code{TRUE}).}
+
+\item{...}{Additional arguments passed to \code{theme_lands_grid()} or
+\code{theme_lands_pptx()}}
 }
 \value{
-If \code{PPTX = FALSE}, a list of \code{ggplot} objects. When more than one variable is
-supplied, the first element = a legend/title panel and subsequent elements
-are the plots for each variable.
+If \code{pptx = FALSE}, returns a single \code{ggplot} object when only one variable is
+provided, otherwise a list of \code{ggplot} objects. When more
+than one variable is supplied, the first element = a legend/title panel and
+subsequent elements are the plots for each variable.
 
-If \code{PPTX = TRUE}, the function writes a PowerPoint file to \code{target} and
-returns \code{NULL} invisibly.
+If \code{pptx = TRUE}, the function writes a PowerPoint file to \code{target}
+and returns \code{NULL} invisibly.
 }
 \description{
 Creates one line plot for each selected numeric variable measured over time.
@@ -185,7 +180,7 @@ range ribbons, observed data points, and individual subject trajectories.
 Plots can be generated overall or stratified by a grouping variable. The
 output is either a "ggplot" object if only one variable is provided,
 a list of "ggplot" objects if is provided more than one variable or, if
-\code{PPTX = TRUE}, a PowerPoint file.
+\code{pptx = TRUE}, a PowerPoint file.
 }
 \examples{
 data_example <- data.frame(
@@ -213,7 +208,7 @@ plots_grouped <- Lineplots(
   group = "Group",
   palette = c("salmon", "royalblue"),
   id_lines = TRUE,
-  Point = TRUE,
+  points = TRUE,
   verbose = FALSE
 )
 
@@ -228,7 +223,7 @@ Lineplots(
   time = "Time",
   group = "Group",
   verbose = FALSE,
-  PPTX = TRUE,
+  pptx = TRUE,
   target = "Output/Lineplots.pptx"
 )
 }

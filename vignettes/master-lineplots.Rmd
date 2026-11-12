@@ -45,7 +45,7 @@ In this case the generated data is simulated, for more info on how to set a data
 You can build a single graph using the following code:
 
 ```{r single graph}
-Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Overall")
+Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Overall", verbose = FALSE)
 ```
 
 You can see that the arguments used by the function are: 
@@ -63,7 +63,7 @@ We can change the lineplot graphics as follows:
 
 ```{r customized single graph}
 
-Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Overall")
+Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Overall", verbose = FALSE)
 
 ```
 
@@ -73,14 +73,14 @@ We can also get separated curves for a specific grouping variable:
 
 ```{r split a single graph}
 Lineplots(data = data01, variables = "Marker_1", time = "Time", group = "Gender",
-          palette = c("red", "blue"))
+          palette = c("red", "blue"), verbose = FALSE)
 ```
 
 ## Build a list of lineplots
 
 ```{r graphs list}
 Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
-          group = "Gender", palette = c("red", "blue"))
+          group = "Gender", palette = c("red", "blue"), verbose = FALSE)
 ```
 
 ## Save a list of lineplots
@@ -92,9 +92,9 @@ You can save a list of lineplots in two different ways: you can build a grid and
 ```{r save a list as pdf, eval=FALSE}
 
 List_reg <- Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
-                      group = "Gender", palette = c("red", "blue"))
+                      group = "Gender", palette = c("red", "blue"), verbose = FALSE)
 
-LandS::print_plot_grid(plot_list = List_reg, path_print = "your/directory", ext = "pdf")
+print_plot_grid(plot_list = List_reg, path_print = "your/directory", ext = "pdf")
 
 ```
 
@@ -102,9 +102,9 @@ LandS::print_plot_grid(plot_list = List_reg, path_print = "your/directory", ext 
 
 ```{r save a list as pptx, eval=FALSE}
 Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
-          group = "Gender", palette = c("red", "blue"))
-          PPTX = TRUE, grid = FALSE, pptx_width = 6, pptx_height = 4, 
-          target = "your/directory/new_presentation.pptx")
+          group = "Gender", palette = c("red", "blue"),
+          pptx = TRUE, grid = FALSE, pptx_width = 6, pptx_height = 4, 
+          target = "your/directory/new_presentation.pptx", verbose = FALSE)
 ```
 
 ## Customize the colour of the title
@@ -119,7 +119,7 @@ colour_title <- function(i) df_legend$Colour[df_legend$Var == i]
 
 Lineplots(data = data01, variables = c("Marker_1", "Marker_2"), time = "Time", 
           group = "Gender", palette = c("red", "blue"),
-          col_title = TRUE, fill_title = colour_title)
+          col_title = TRUE, fill_title = colour_title, verbose = FALSE)
 ```
 
 
@@ -138,6 +138,6 @@ Tests <- LandS::cont_var_test(data = data01,
 
 Lineplots(data = data01, time = "Time", variables = "Marker_1", group = "Overall",
           Overall = TRUE, Test_results = Tests[[3]], 
-          Posthoc = TRUE, posthoc_test_size = 2, threshold_posthoc = 1)
+          Posthoc = TRUE, posthoc_test_size = 2, threshold_posthoc = 1, verbose = FALSE)
 
 ```
