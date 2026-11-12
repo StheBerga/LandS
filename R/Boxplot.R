@@ -15,7 +15,8 @@
 #' @param ID Column name of ID variable used to connect paired observations. Default = "ID".
 #' @param rm.outliers Whether to remove outliers from display. Default = FALSE.
 #' @param th.outliers Numeric multiplier of the interquartile range (IQR) used
-#' to define outlier thresholds; observations outside [Q1−th.outliers×IQR,Q3+th.outliers×IQR]
+#' to define outlier thresholds; observations outside
+#' \eqn{[Q_1 - \text{th.outliers} \times \text{IQR}, Q_3 + \text{th.outliers} \times \text{IQR}]}{[Q1 - th.outliers * IQR, Q3 + th.outliers * IQR]}
 #' are treated as outliers. Default = 1.5.
 #' @param Point Whether to display observation points. Default = FALSE.
 #' @param size_point Size for points. Default = 0.3
@@ -248,7 +249,7 @@ Boxplot <- function (data,
     }
     k <- which(variables == i)
     if (Posthoc == T) {
-      posthoc_df <- posthoc_df(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i)
+      posthoc_df <- posthoc_df(Test_results = Test_results, data = data, group = group, threshold_posthoc = threshold_posthoc, i = i)
     }
     A = tapply(data[, i], data[, group], stats::quantile, c(0.75), na.rm = T)
     B = tapply(data[, i], data[, group], stats::quantile, c(0.25), na.rm = T)
@@ -300,7 +301,7 @@ Boxplot <- function (data,
       {
         if (Posthoc)
           if (nrow(posthoc_df) > 0 & !all(is.na(posthoc_df)))
-            ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pval}", bracket.shorten = bracket_shorten, bracket.nudge.y = bracket.nudge.y,
+            ggpubr::stat_pvalue_manual(posthoc_df, label = "p = {pvalue}", bracket.shorten = bracket_shorten, bracket.nudge.y = bracket.nudge.y,
                                        y.position =
                                          max(tapply(data[, i], data[, group], stats::quantile, na.rm = T, probs = 0.75) +
                                                tapply(data[, i], data[, group], stats::IQR, na.rm = T)),

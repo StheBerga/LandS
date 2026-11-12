@@ -1,219 +1,240 @@
 #' Run univariate Cox proportional hazards models
 #'
-#' Fits separate univariate Cox proportional hazards models for a set of
-#' candidate predictors and returns formatted hazard ratios, 95% confidence
-#' intervals, and p-values.
+#' Fits separate Cox models for numeric and categorical predictors and returns
+#' formatted hazard ratios, 95% confidence intervals and p-values.
 #'
-#' Numeric variables are modeled as continuous predictors. Character, logical,
-#' and factor variables are converted to unordered factors and modeled as
-#' categorical predictors using treatment contrasts, with the first factor level
-#' used as the reference category.
+#' @param data Data frame containing survival outcomes and predictors.
+#' @param vars Character vector of predictor names.
+#' @param ptime Name of the survival time column.
+#' @param pevent Name of the event indicator column (typically 0/1).
+#' @param continuous_contrast Contrast for numeric predictors: "IQR" (75th vs
+#'   25th percentile; default) or "unit" (one-unit increase).
 #'
-#' @param data A dataframe containing the survival outcome and predictor variables.
-#' @param vars Character vector of predictor variable names to test.
-#' @param ptime Character string giving the survival time variable name.
-#' @param pevent Character string giving the event indicator variable name.
-#' Typically coded as 0/1, where 1 indicates the event occurred.
-#'
-#' @return A dataframe with one or more rows per variable:
-#' \describe{
-#'   \item{Var}{Variable name or factor level.}
-#'   \item{HR}{Hazard ratio, or "ref" for the reference level.}
-#'   \item{95\%CI}{Formatted 95\% confidence interval.}
-#'   \item{pvalue}{Formatted p-value.}
-#'   \item{pval_raw}{Raw numeric p-value where available.}
-#' }
-#'
-#' @details
-#' For categorical variables, the first row contains the global variable-level
-#' p-value, followed by a reference row and one row per non-reference level.
-#' For binary categorical variables, the variable-level p-value is currently the
-#' Wald p-value for the single coefficient. For variables with more than two
-#' levels, the likelihood-ratio test p-value is used.
-#'
+#' @return Data frame with columns `Var`, `HR`, `95%CI`, `pvalue` and numeric
+#'   `pval_raw`. Numeric predictors have one row. For categorical predictors,
+#'   a global test row is followed by the reference level and other levels.
+#' @details The IQR is computed using complete cases for each univariate model.
+#'   All global p-values use likelihood-ratio tests; p-values of individual
+#'   non-reference categorical levels use Wald tests. Changing the contrast
+#'   for numeric predictors changes HRs and CIs, not p-values.
+#'   Categorical factors use their first observed level as reference.
+#'   Unordered factors are used even when the original factor is ordered.
 #' @author Luca Lalli
-#'
 #' @examples
-#' data(cancer, package = "survival")
-#'
-#' bladder_first <- subset(bladder, enum == 1)
-#' bladder_first$rx <- factor(
-#'   bladder_first$rx,
-#'   levels = c(1, 2),
-#'   labels = c("placebo", "thiotepa")
-#' )
-#'
-#' # Continuous variable example
-#' univariate_cox(
-#'   data = bladder_first,
-#'   vars = c("number", "size"),
-#'   ptime = "stop",
-#'   pevent = "event"
-#' )
-#'
-#' # Categorical variable example
-#' univariate_cox(
-#'   data = bladder_first,
-#'   vars = c("rx"),
-#'   ptime = "stop",
-#'   pevent = "event"
-#' )
-#'
+#' data(cancer, package="survival")
+#' d <- subset(bladder, enum == 1)
+#' d$rx <- factor(d$rx, levels = c(1, 2), labels = c("placebo", "thiotepa"))
+#' univariate_cox(d, c("number", "size", "rx"), "stop", "event", "IQR")
+#' univariate_cox(d, c("number", "size", "rx"), "stop", "event", "unit")
 #' @export
-univariate_cox <- function(data, vars, ptime, pevent){
-  workdata <- data
+univariate_cox <- function(data, vars, ptime, pevent,
+                           continuous_contrast = c("IQR", "unit")) {
 
-  # assign("dist",
-  #        rms::datadist(data[, vars], adjto.cat = "first"),
-  #        envir = .GlobalEnv)
-  # options(datadist = "dist")
-  # options(contrasts=c("contr.treatment", "contr.treatment"))
+  continuous_contrast <- match.arg(continuous_contrast)
 
-  dd <- rms::datadist(
-    data[, vars],
-    adjto.cat = "first"
-  )
-
-  withr::local_options(
-    datadist = dd,
-    contrasts = c("contr.treatment", "contr.treatment")
-  )
-
-  # Inizio funzione
-  var_uni <- vars
-
-  pos <- c()
-  for (i in 1:length(var_uni)) {
-    pos[i] <- which(colnames(workdata)==var_uni[i] )
+  if (!is.data.frame(data)) stop("'data' must be a data frame.")
+  if (!is.character(vars) || length(vars) == 0L || anyNA(vars)) {
+    stop("'vars' must be a non-empty character vector without NA values.")
+  }
+  if (anyDuplicated(vars)) stop("'vars' contains duplicated names.")
+  if (!is.character(ptime) || length(ptime) != 1L || is.na(ptime) ||
+      !is.character(pevent) || length(pevent) != 1L || is.na(pevent)) {
+    stop("'ptime' and 'pevent' must each be one column name.")
+  }
+  missing_columns <- setdiff(c(ptime, pevent, vars), names(data))
+  if (length(missing_columns)) {
+    stop("Missing columns in 'data': ", paste(missing_columns, collapse = ", "))
   }
 
-  var_cat     <- vector()
-  var_quan    <- vector()
-  var_diverse <- vector()
-
-  for(i in pos){
-    if(is.factor(workdata[[i]])==TRUE|
-       is.character(workdata[[i]])==TRUE|
-       is.logical(workdata[[i]])==TRUE){
-      workdata[,i] <- factor(workdata[[i]])
-      var_cat[i] <- i}
-    else if(is.numeric(workdata[[i]])==TRUE){
-      var_quan[i]<-i}
-    else{
-      var_diverse[i]<-i}
+  fmt_value <- function(x) {
+    if (length(x) != 1L || is.na(x)) return(NA_character_)
+    if (is.infinite(x)) return(if (x > 0) "Inf" else "-Inf")
+    sprintf("%.3f", x)
+  }
+  fmt_p <- function(x) {
+    if (length(x) != 1L || !is.finite(x)) return(NA_character_)
+    if (x < 0.001) "<0.001" else sprintf("%.3f", x)
+  }
+  make_row <- function(variable, hr = NA_character_, ci = NA_character_,
+                       p = NA_real_, p_label = NULL) {
+    if (is.null(p_label)) p_label <- fmt_p(p)
+    data.frame(
+      Var = as.character(variable),
+      HR = as.character(hr),
+      "95%CI" = as.character(ci),
+      pvalue = as.character(p_label),
+      pval_raw = as.numeric(p),
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+  }
+  empty_row <- function(variable, reason) {
+    warning(sprintf("Skipping '%s': %s", variable, reason), call. = FALSE)
+    make_row(variable)
   }
 
-  if(length(var_cat)==0){
-  }else{
-    var_cat <- var_cat[is.na(var_cat)==FALSE]}
+  quantitative_rows <- list()
+  categorical_rows <- list()
 
-  if(length(var_quan)==0){
-  }else{
-    var_quan <- var_quan[is.na(var_quan)==FALSE]}
+  for (variable in vars) {
+    x_original <- data[[variable]]
+    is_categorical <- is.factor(x_original) ||
+      is.character(x_original) || is.logical(x_original)
+    is_quantitative <- is.numeric(x_original) && !is.factor(x_original)
 
-  if(length(var_diverse)==0){
-  }else{
-    var_diverse <- var_diverse[is.na(var_diverse)==FALSE]}
-
-  # Calcolo dei livelli globali (serve per sapere le righe dell'output)
-  nlev <- c()
-
-  k <- 1
-  for(i in var_cat){
-    if(is.ordered(workdata[, i])){
-      workdata[, i] <- factor(workdata[, i], levels = levels(workdata[, i]), ordered = F)
-
-      message("Variable ", colnames(workdata)[i], " was an ordinal factor. Ordering was removed.", "\n")
-      # stop(paste0("La variabile ", colnames(workdata)[i], " è factor ordinata. Stop funzione"))
+    if (!is_categorical && !is_quantitative) {
+      categorical_rows[[variable]] <- empty_row(
+        variable, "unsupported type (expected numeric, factor, character or logical)"
+      )
+      next
     }
 
-    nlev[k] <- nlevels(workdata[,i])
-    k <- k+1
-  }
-  nlev <- sum(nlev) + length(var_quan)
+    analysis_data <- data.frame(
+      .time = data[[ptime]],
+      .event = data[[pevent]],
+      .predictor = x_original
+    )
+    analysis_data <- analysis_data[stats::complete.cases(analysis_data), , drop = FALSE]
+    if (is.numeric(analysis_data$.time)) {
+      analysis_data <- analysis_data[is.finite(analysis_data$.time), , drop = FALSE]
+    }
+    if (is_quantitative) {
+      analysis_data <- analysis_data[is.finite(analysis_data$.predictor), , drop = FALSE]
+    }
 
-  # Variabili quantitative in univariata
-  cox_model_q <- data.frame(Var = as.character(NA),
-                            HR = as.character(NA),
-                            "95%CI"= as.character(NA),
-                            pvalue= as.character(NA),
-                            pval_raw = as.numeric(NA),
-                            check.names = F)
-  k <- 1
-  for(i in var_quan){
-    frm <- stats::as.formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
-    mod  <- rms::cph(frm, data=workdata)
-    summ <- summary(mod)
+    if (nrow(analysis_data) < 2L) {
+      row <- empty_row(variable, "fewer than two complete observations")
+      if (is_quantitative) quantitative_rows[[variable]] <- row
+      else categorical_rows[[variable]] <- row
+      next
+    }
 
-    HR <- formatz_p(summ[2,4])
-    CI.l <- formatz_p(summ[2,6])
-    CI.u <- formatz_p(summ[2,7])
-    pg <- stats::anova(mod)[1,3]
-    p <- formatz_p(stats::anova(mod)[1,3])
-    CI <- paste0(CI.l, "-", CI.u)
-    CI <- gsub(" ", "", CI)
+    if (is_categorical) {
+      if (is.factor(x_original)) {
+        analysis_data$.predictor <- factor(
+          as.character(analysis_data$.predictor),
+          levels = levels(x_original),
+          ordered = FALSE
+        )
+      } else {
+        analysis_data$.predictor <- factor(analysis_data$.predictor)
+      }
+      analysis_data$.predictor <- droplevels(analysis_data$.predictor)
 
-    cox_model_q[k, "Var"] <- colnames(workdata)[i]
-    cox_model_q[k, "HR"] <- HR
-    cox_model_q[k, "95%CI"] <- CI
-    cox_model_q[k, "pval_raw"] <- pg
-    cox_model_q[k, "pvalue"] <- p
-    k <- k+1
-  }
-
-  # Variabili categoriche in univariata
-
-  cox_model_cat <- data.frame(Var = as.character(NA),
-                              HR = as.character(NA),
-                              "95%CI"= as.character(NA),
-                              pvalue= as.character(NA),
-                              pval_raw = as.numeric(NA),
-                              check.names = F)
-
-  for(i in var_cat){
-
-    frm <- stats::as.formula(paste0("survival::Surv(", ptime, ",", pevent, ")~", colnames(workdata)[i]))
-    mod  <- survival::coxph(frm, data= workdata)
-    summ <- summary(mod)
-    lev <- nlevels(workdata[,i])
-    name_lev <- levels(workdata[,i])
-    ref <- name_lev[1]
-
-    if(lev == 2){
-      p <- summ$coefficients[,5]
-      row_cat <- c(colnames(workdata)[i], "-", "-", formatz_p(p), p)
+      if (nlevels(analysis_data$.predictor) < 2L) {
+        categorical_rows[[variable]] <- empty_row(
+          variable, "fewer than two observed factor levels"
+        )
+        next
+      }
+      analysis_data$.predictor <- stats::`contrasts<-`(
+        analysis_data$.predictor,
+        value = stats::contr.treatment(levels(analysis_data$.predictor))
+      )
     } else {
-      row_cat <- c(colnames(workdata)[i], "-", "-", formatz_p(summ$logtest["pvalue"]), summ$logtest["pvalue"])
+      if (length(unique(analysis_data$.predictor)) < 2L) {
+        quantitative_rows[[variable]] <- empty_row(
+          variable, "the numeric predictor is constant"
+        )
+        next
+      }
     }
 
-    row_ref <- c(ref, "ref", "ref", "ref", "ref")
+    fit <- tryCatch(
+      survival::coxph(
+        survival::Surv(.time, .event) ~ .predictor,
+        data = analysis_data,
+        ties = "efron"
+      ),
+      error = function(e) {
+        warning(sprintf("Cox model failed for '%s': %s",
+                        variable, conditionMessage(e)), call. = FALSE)
+        NULL
+      }
+    )
+    if (is.null(fit)) {
+      if (is_quantitative) quantitative_rows[[variable]] <- make_row(variable)
+      else categorical_rows[[variable]] <- make_row(variable)
+      next
+    }
 
-    HR <- formatz_p(exp(mod$coefficients))
-    CI.l <- formatz_p(summ$conf.int[, "lower .95"])
-    CI.u <- formatz_p(summ$conf.int[, "upper .95"])
-    CI <- paste0(CI.l, "-", CI.u)
-    CI <- gsub(" ", "", CI)
-    p <- summ$coefficients[, "Pr(>|z|)"]
-    pg <- p
-    p <- formatz_p(p)
+    fit_summary <- summary(fit)
+    global_p <- as.numeric(fit_summary$logtest["pvalue"])
+    beta <- stats::coef(fit)
+    standard_errors <- sqrt(diag(stats::vcov(fit)))
+    z <- stats::qnorm(0.975)
 
-    cox_model_cat <- rbind(cox_model_cat, row_cat)
-    cox_model_cat <- rbind(cox_model_cat, row_ref)
+    if (is_quantitative) {
+      delta <- if (continuous_contrast == "IQR") {
+        unname(diff(stats::quantile(
+          analysis_data$.predictor,
+          probs = c(0.25, 0.75),
+          na.rm = TRUE
+        )))
+      } else {
+        1
+      }
 
-    for (i in 1:(lev-1)) {
-      row_lev <- c(name_lev[i+1], HR[i], CI[i], p[i], pg[i])
-      cox_model_cat <- rbind(cox_model_cat, row_lev)
+      if (!is.finite(delta) || delta <= 0) {
+        warning(sprintf(
+          "For '%s', the requested contrast is zero/undefined: HR and CI set to NA.",
+          variable
+        ), call. = FALSE)
+        quantitative_rows[[variable]] <- make_row(variable, p = global_p)
+        next
+      }
+
+      if (length(beta) < 1L || !is.finite(beta[1]) ||
+          length(standard_errors) < 1L || !is.finite(standard_errors[1])) {
+        quantitative_rows[[variable]] <- make_row(variable, p = global_p)
+        next
+      }
+
+      hr <- exp(beta[1] * delta)
+      lower <- exp((beta[1] - z * standard_errors[1]) * delta)
+      upper <- exp((beta[1] + z * standard_errors[1]) * delta)
+
+      quantitative_rows[[variable]] <- make_row(
+        variable,
+        hr = fmt_value(hr),
+        ci = paste0(fmt_value(lower), "-", fmt_value(upper)),
+        p = global_p
+      )
+
+    } else {
+      category_levels <- levels(analysis_data$.predictor)
+      coefficient_p <- fit_summary$coefficients[, "Pr(>|z|)"]
+
+      rows <- list(
+        make_row(variable, hr = "-", ci = "-", p = global_p),
+        make_row(category_levels[1], hr = "ref", ci = "ref",
+                 p_label = "ref")
+      )
+
+      for (j in seq_along(category_levels)[-1L]) {
+        coefficient_index <- j - 1L
+        b <- beta[coefficient_index]
+        se <- standard_errors[coefficient_index]
+        p <- as.numeric(coefficient_p[coefficient_index])
+
+        if (is.finite(b) && is.finite(se)) {
+          hr <- fmt_value(exp(b))
+          ci <- paste0(
+            fmt_value(exp(b - z * se)), "-",
+            fmt_value(exp(b + z * se))
+          )
+        } else {
+          hr <- NA_character_
+          ci <- NA_character_
+        }
+        rows[[length(rows) + 1L]] <- make_row(
+          category_levels[j], hr = hr, ci = ci, p = p
+        )
+      }
+      categorical_rows[[variable]] <- do.call(rbind, rows)
     }
   }
-  cox_model_cat <- cox_model_cat[-1, ]
-
-  if(length(var_quan)==0){
-    cox_model <- cox_model_cat
-  } else if(length(var_cat)==0){
-    cox_model <- cox_model_q
-  }else{
-    cox_model <- rbind(cox_model_q, cox_model_cat)
-  }
-
-  return(cox_model)
+  result <- do.call(rbind, c(quantitative_rows, categorical_rows))
+  rownames(result) <- NULL
+  return(result)
 }

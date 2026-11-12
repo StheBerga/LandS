@@ -4,7 +4,7 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# LandS
+# LandS <a href="https://stheberga.github.io/LandS/"><img src="man/figures/logo.png" align="right" height="139" alt="LandS website" /></a>
 
 LandS is an R package designed to make everyday biomarker, clinical, and survival analysis workflows easier to run, easier to interpret, and easier to reuse.
 

@@ -129,7 +129,8 @@ Tests <- LandS::cont_var_test(data = data01,
                               variables = c("Marker_1", "Marker_2"), 
                               group = "Time_fac", 
                               paired = TRUE, 
-                              p.adjust.method = "bonferroni")
+                              p_adjust_method = "fdr" 
+                              )
 
 Lineplots(data = data01, time = "Time", variables = "Marker_1", Overall = TRUE, Test_results = Tests[[3]], 
              Posthoc = TRUE, posthoc_test_size = 2, threshold_posthoc = 1)
