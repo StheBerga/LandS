@@ -2,220 +2,262 @@
 % Please edit documentation in R/Boxplot.R
 \name{Boxplot}
 \alias{Boxplot}
-\title{Create boxplots for multiple continuous variables}
+\title{Create comparative distribution plots for multiple continuous variables}
 \usage{
 Boxplot(
   data,
   variables,
   group,
-  ID = "ID",
-  rm.outliers = F,
+  type = "boxplot",
+  rm.outliers = FALSE,
   th.outliers = 1.5,
-  Point = F,
-  size_point = 0.3,
-  alpha_point = 0.3,
-  alpha_box = 0.1,
-  width_box = 0.2,
-  lwd_box = 0.1,
-  notch = F,
+  lwd = 1,
+  alpha = 0.5,
+  width = 0.35,
   notchwidth = 0.5,
-  Median_line = F,
-  lwd_median_line = 0.8,
-  col_median_line = "red",
-  ID_lines = FALSE,
-  lwd_ID_line = 0.2,
-  alpha_ID_line = 0.3,
-  Overall = F,
+  statistic = NULL,
+  points = FALSE,
+  id_lines = FALSE,
+  id = "ID",
+  Overall = FALSE,
   Posthoc = FALSE,
   Test_results = NULL,
   threshold_posthoc = 0.05,
-  posthoc_test_size = 3.88,
-  bracket_shorten = 0,
-  bracket.nudge.y = 0,
-  axis_x_title = NULL,
-  size_axis_x = 6,
-  axis_y_title = NULL,
-  size_axis_y = 6,
+  overall_p = "Overall.padj",
+  palette = rep("transparent", nlevels(data[[group]])),
+  grid = TRUE,
+  pptx = FALSE,
+  target = "Boxplot.pptx",
+  label_legend_title = paste0("Distribution by ", group, "\\n", format(Sys.Date(),
+    "\%d/\%m/\%Y")),
+  extra = FALSE,
+  extra_text = NULL,
   col_title = FALSE,
-  alpha_fill_title = 0.2,
   fill_title = NULL,
   title_leg = FALSE,
   title_legend = NULL,
-  size_title = 8,
-  breaks_axis_x = levels(data[, group]),
-  labels_axis_x = levels(data[, group]),
-  grid = TRUE,
-  PPTX = FALSE,
-  pptx_width = 7.5,
-  pptx_height = 5.5,
-  extra = FALSE,
-  extra_text = NULL,
-  palette = rep("transparent", nlevels(data[, group])),
-  label_legend_title = paste0("Boxplots by ", group, "\\n", format(Sys.Date(),
-    "\%d/\%m/\%Y")),
-  size_legend_title = 3,
-  size_legend_text = 3,
-  size_legend_circle = 4,
-  target = "Output/Boxplot.pptx",
-  ratio = 1,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
-\item{data}{Dataframe containing numeric variables to plot.}
+\item{data}{A data frame containing numeric variables to plot.}
 
 \item{variables}{Character vector containing all numeric variables of interest.}
 
-\item{group}{Column name identifying factor grouping variable for split
-boxplots, or 1 for no grouping.}
+\item{group}{Factor identifying the grouping variable. Use \code{"Overall"}
+to generate a single distribution without stratification. \cr By default
+the labels are set as the unique values of \code{group}, however they are
+customisable by setting the \code{labels} argument as a character vector
+with length equal to the number of categories in \code{group}. The size
+text of \code{labels} is customisable by setting the \code{size_axis_x}
+argument (Default = 6).}
 
-\item{ID}{Column name of ID variable used to connect paired observations. Default = "ID".}
+\item{type}{Character string defining the plot geometry. One of:
+\itemize{
+  \item \code{"boxplot"} or \code{"box"}: Standard boxplot
+  \item \code{"notch"}: Notched boxplot, enables the \code{notchwidth} parameter
+  \item \code{"violin"}: Violin plot
+}}
 
-\item{rm.outliers}{Whether to remove outliers from display. Default = FALSE.}
+\item{rm.outliers}{Logical. If \code{TRUE} removes outliers from display
+(Default = \code{FALSE}).}
 
 \item{th.outliers}{Numeric multiplier of the interquartile range (IQR) used
-to define outlier thresholds; observations outside [Q1−th.outliers×IQR,Q3+th.outliers×IQR]
-are treated as outliers. Default = 1.5.}
+  to define outlier thresholds; observations outside
 
-\item{Point}{Whether to display observation points. Default = FALSE.}
+  \eqn{[Q_1 - \text{th.outliers} \times \text{IQR}, Q_3 + \text{th.outliers} \times
+  \text{IQR}]}{[Q1 - th.outliers * IQR, Q3 + th.outliers * IQR]}
 
-\item{size_point}{Size for points. Default = 0.3}
+  are treated as outliers (Default = 1.5).}
 
-\item{alpha_point}{Alpha for points transparency. Default = 0.3}
+\item{lwd}{Numeric. Line width for the plot (Default = 1).}
 
-\item{alpha_box}{Alpha parameter for the boxes transparency. Default = 0.1.}
+\item{alpha}{Numeric. Transparency of the plot (Default = 0.5).}
 
-\item{width_box}{Width parameter for the boxes. Default = 0.2.}
+\item{width}{Numeric. Width parameter for the plot (Default = 0.35).}
 
-\item{lwd_box}{Linewidth for the boxes. Default = 0.1.}
+\item{notchwidth}{Numeric. For a notched box plot, width of the notch
+relative to the body (Default = 0.5).}
 
-\item{notch}{Whether to display notches for the boxes. Default = FALSE.}
+\item{statistic}{Character string indicating the summary statistic to plot.
+Allowed values are \code{"median"} and \code{"mean"} (Default =
+\code{NULL}). \cr Additional characteristic can be specified with the
+\code{col_statistic} and the \code{lwd_statistic} parameters.}
 
-\item{notchwidth}{Width parameter of the notch. Default = 0.5.}
+\item{points}{Logical. If \code{TRUE}, adds observed data points (Default =
+\code{FALSE}). \cr Additional characteristic can be specified with the
+\code{alpha_point} and the \code{size_point} parameters.}
 
-\item{Median_line}{Whether to display the line connecting boxes median values. Default = FALSE.}
+\item{id_lines}{Logical. If \code{TRUE}, adds individual subject trajectories
+(Default = \code{FALSE}). \cr Additional characteristic can be specified
+with the \code{alpha_id_lines} and the \code{lwd_id_lines} parameters.}
 
-\item{lwd_median_line}{Median line linewidth. Default = 0.8.}
+\item{id}{Column name of id variable used to connect paired observations
+(Default = \code{"ID"}).}
 
-\item{col_median_line}{Colour for the median line. Default = "red".}
+\item{Overall}{Logical. If \code{TRUE}, annotates each plot with an overall
+p-value from \code{Test_results} in the upper-left corner (Default =
+\code{FALSE}). \cr Text size for p-value annotations can be customised with
+the \code{posthoc_test_size} argument (Default = 3.88).}
 
-\item{ID_lines}{Whether to display the lines connecting paired observations. Default = FALSE.}
+\item{Posthoc}{Logical. If \code{TRUE}, adds post-hoc comparison annotations
+(Default = \code{FALSE}). \cr Text size for p-value annotations can be
+customised with the \code{posthoc_test_size} argument (Default = 3.88).
+Additional customisation for brackets can be set with the
+\code{bracket_shorten} and the \code{bracket.nudge.y} parameters (Default =
+0, for both).}
 
-\item{lwd_ID_line}{Linewidth parameter for lines connecting paired observations. Default = 0.2.}
+\item{Test_results}{Data frame containing overall and/or post-hoc test
+results generated by \code{LandS::cont_var_test()} and formatted using
+\code{LandS::posthoc_df()} (Default = \code{NULL}). \cr Required when
+either \code{Overall = TRUE} or \code{Posthoc = TRUE}.}
 
-\item{alpha_ID_line}{Alpha parameter for paired observations lines transparency. Default = 0.3.}
+\item{threshold_posthoc}{Numeric. P-value threshold used to filter post-hoc
+comparisons (Default = 0.05).}
 
-\item{Overall}{Whether to display overall test in the upper-left corner. Default = FALSE.}
+\item{overall_p}{Character identifying the p-value column of
+\code{Test_results} to display as overall test (Default =
+\code{"Overall.padj"}).}
 
-\item{Posthoc}{Whether to display posthoc tests brackets. Default = FALSE.}
+\item{palette}{Character vector of colours used as fill for the plots. Its
+length must match the number of group levels when \code{group} is not set
+to \code{"Overall"} (Default = \code{rep("transparent",
+nlevels(data[[group]]))}).}
 
-\item{Test_results}{Dataframe containing the results of global and posthoc tests computed
-using LandS::cont_var_test() function, in particular objects "KW_ph_pval" or "Friedman_ph_pval"
-or "no_corrected_ph". Default = NULL.}
+\item{grid}{Logical. If \code{TRUE}, uses the default grid-oriented theme
+(Default = \code{TRUE}). If \code{TRUE}, aspect ratio of the plot can be
+set with the \code{ratio} parameter (Default = 1).}
 
-\item{threshold_posthoc}{Threshold for displaying post-hoc tests brackets. Default = 0.05.}
+\item{pptx}{Logical. If \code{TRUE}, saves the plots to a PowerPoint file
+instead of returning them (Default = \code{FALSE}). \cr Plot dimensions in
+inches can be specified with the \code{pptx_width} and the
+\code{pptx_height} parameters (Numeric with default = 8.5 and 5.5,
+respectively).}
 
-\item{posthoc_test_size}{Font size for annotations of post-hoc p-values. Default = 3.88.}
+\item{target}{Character string giving the output path for the PowerPoint file
+(Default = \code{"Distribution.pptx"}).}
 
-\item{bracket_shorten}{Width of the bracket in range [0,1]. Default = 0.}
+\item{label_legend_title}{A title for your list. Default sets "Distribution
+by grouping variable" and the current date. The size of the title text can
+be specified with the \code{size_legend_title} parameter.}
 
-\item{bracket.nudge.y}{Vertical adjustment to nudge brackets by.
-Useful to move up or move down the bracket. If positive value, brackets will be moved up;
-if negative value, brackets are moved down. Default = 0.}
+\item{extra}{Logical. If \code{TRUE}, adds extra ggplot layers returned by
+\code{extra_text} (Default = \code{FALSE}).}
 
-\item{axis_x_title}{Title for the x-axis. Default = NULL.}
+\item{extra_text}{Function taking a variable name and returning one or more
+ggplot layers (Default = \code{NULL}).}
 
-\item{size_axis_x}{Font size for the x-axis title. Default = 6.}
+\item{col_title}{Logical. If \code{TRUE}, fills plot-title boxes using
+colours (Default = \code{FALSE}).}
 
-\item{axis_y_title}{Title for the y-axis. Default = NULL.}
+\item{fill_title}{Function returning a fill colour for each variable name.
+\cr Required when \code{col_title = TRUE} (Default = \code{NULL}).
+Additional transparency of the fill colour can be specified with the
+\code{alpha_fill_title} parameter (Default = 0.2).}
 
-\item{size_axis_y}{Font size for the y-axis title. Default = 6.}
+\item{title_leg}{Logical. If \code{TRUE}, takes a variable name and matches a
+custom title for the corresponding plot (Default = \code{FALSE}).}
 
-\item{col_title}{Whether to personalize the colour background fill of boxplots title.
-Default = FALSE.}
+\item{title_legend}{Function taking a variable name and returning the title
+to display. \cr Required when \code{title_leg = TRUE} (Default =
+\code{NULL}). Additional size of the title can be set with the
+\code{size_title} parameter (Default = 7).}
 
-\item{alpha_fill_title}{Alpha value for title background. Default = 0.2.}
+\item{verbose}{Print progress bar and messages (Default = \code{TRUE}).}
 
-\item{fill_title}{A function to personalize the fill of each boxplot title background.
-The argument fill_title is defined as a function mapping for each variable the
-background color. See examples for further information. JG: AGGIUNGERE ESEMPIO.}
-
-\item{title_leg}{Whether to personalize the title of the variables. Default = FALSE.}
-
-\item{title_legend}{A function to personalize the title of the variables.
-The argument title_legend is defined as a function mapping for each variable the
-novel name to be displayed as title. Default = NULL.
-See examples for further information. JG: AGGIUNGERE ESEMPIO.}
-
-\item{size_title}{Font size for the title. Default = 8.}
-
-\item{breaks_axis_x}{Character vector defining the subset and order of factor
-levels to display on the x-axis (passed to scale_x_discrete(breaks = ...)).
-Default = levels(data[, group]).}
-
-\item{labels_axis_x}{Character vector defining the subset and order labels to
-display on the x-axis (passed to scale_x_discrete(labels = ...)).
-Default = levels(data[, group]).}
-
-\item{grid}{Logical. If TRUE and 'PPTX = FALSE', returns plots as a list
-suitable for grid display. Default=TRUE.}
-
-\item{PPTX}{Logical. If TRUE, plots are exported to a PowerPoint file and
-no plots are returned. This option takes precedence over 'grid argument.
-Default=FALSE.}
-
-\item{pptx_width}{Plot width dimension for PPTX in inches. Default = 7.5.}
-
-\item{pptx_height}{Plot height dimension for PPTX in inches. Default = 5.5.}
-
-\item{extra}{Whether to add an extra text function. Default = FALSE.}
-
-\item{extra_text}{A function of one argument (variable) that returns one or
-more ggplot2 layers to be added to each plot (e.g., annotations or custom geoms).
-The function is evaluated inside the plotting loop.
-See examples for further information. JG: AGGIUNGERE ESEMPIO.}
-
-\item{palette}{Colours for the boxes. Character vector of colors with length
-equal to number of groups. Default = rep("transparent", nlevels(data[, group])).}
-
-\item{label_legend_title}{A title for your list.
-Default sets "Boxplot by grouping variable" and the current date.}
-
-\item{size_legend_title}{Font size for the list's title. Default = 3.}
-
-\item{size_legend_text}{Font size for the list's text. Default = 3.}
-
-\item{size_legend_circle}{Font size for the list's circles defining groups legend.
-Default = 4.}
-
-\item{target}{Path where to save the PPTX file.}
-
-\item{ratio}{Aspect ratio when grid = TRUE. Default = 1.}
-
-\item{verbose}{Print progress bar and messages (Default=TRUE).}
+\item{...}{Additional arguments passed to \code{theme_lands_grid()} or
+\code{theme_lands_pptx()}}
 }
 \value{
-If length(variables) > 1 returns a list of boxplot where the first one is
-coverpage. Otherwise returns a ggplot. When grid = TRUE returns a list of ggplots.
-When PPTX = TRUE and grid = FALSE returns a PPTX file in the target path.
+If \code{grid = TRUE}, returns a list of ggplot objects. When
+\code{length(variables) > 1}, the first element is a cover page
+containing the legend and plot metadata, followed by one plot
+per variable. \cr
+When a single variable is supplied, a single ggplot object is returned. \cr
+If \code{pptx = TRUE}, a PowerPoint presentation is written to \code{target}
+and the plots are not returned.
 }
 \description{
-Creates one boxplot per numeric variable in 'variables', optionally stratified
-by a grouping variable. Observation-level points, paired-observation lines,
-median trends, global test annotations, and post-hoc comparison brackets can
-be added. Multiple plots are returned as a list and can optionally be exported
-to a PowerPoint file.
+Creates a plot for each continuous variable supplied in \code{variables}.
+Variables can be displayed as standard boxplots, notched boxplots,
+or violin plots and can be stratified by a grouping factor.
+
+Additional layers can be added including:
+\itemize{
+ \item{Individual observations}
+ \item{Paired-observation trajectories}
+ \item{Median trend lines}
+ \item{Test annotations}
+}
+
+Multiple plots are returned as a list of ggplots and can optionally be exported
+to a PowerPoint presentation.
 }
 \details{
 Overall and post-hoc tests can be displayed, but they need to be computed using
-LandS::cont_var_test() and then formatted using LandS::posthoc_df() function.
-Boxplots can be saved in a panel image using pptx format or as a list of
-ggplots for later saving in pdf format.
+\code{LandS::cont_var_test()} and then formatted using \code{LandS::posthoc_df()}.
+Plots can be exported to PowerPoint format or returned as a list of ggplot
+objects for subsequent arrangement and export.
+
+\strong{Expected data structure}
+
+Data must be provided in a "long" format \code{data.frame}, where each row
+represent a single observation. Variables listed in \code{variables} must be
+numeric and stored as separate columns. When \code{id_lines = TRUE}, the
+variable specified in \code{id} must uniquely identify paired or repeated
+observations across groups.
+
+Example:
+
+\preformatted{
+   ID   Visit     CRP    IL6
+   01   Baseline  4.5    2.1
+   01   Post      2.8    1.3
+   02   Baseline  6.1    3.2
+   02   Post      4.9    2.5
+}
 }
 \examples{
+# Overall boxplot
+Boxplot(data = mtcars, variables = "mpg", group = "Overall", palette = "goldenrod", verbose = FALSE)
+
+# Boxplot split by a categorical variable
 mtcars$vs <- factor(mtcars$vs)
-Boxplot(mtcars, c('mpg', 'disp'), 'vs')
+Boxplot(data = mtcars, variables = c("mpg", "disp"), group = "vs", verbose = FALSE)
+
+# Violin plot
+Boxplot(data = mtcars, variables = c("mpg"), group = "vs", type = "violin", verbose = FALSE)
+
+# Boxplot and individual observations
+Boxplot(data = mtcars, variables = c("mpg"), group = "vs", points = TRUE, verbose = FALSE)
+
+# Adding custom titles
+par(mfrow = c(1, 3))
+box <-
+  Boxplot(data = mtcars, variables = c("mpg", "disp"), group = "vs",
+            title_leg = TRUE, title_legend = function(x) {
+            c(mpg = "Fuel Consumption", disp = "Engine Displacement")[x]
+         }, verbose = FALSE)
+box[[1]]; box[[2]]; box[[3]]
+
+# Adding custom title background colors
+par(mfrow = c(1, 3))
+box <-
+  Boxplot(data = mtcars, variables = c("mpg", "disp"), group = "vs",
+          col_title = TRUE, fill_title = function(x) {
+                c(mpg = "lightblue", disp = "tomato")[x]
+         }, verbose = FALSE)
+box[[1]]; box[[2]]; box[[3]]
+
+# Export to PowerPoint
+Boxplot(data = mtcars, variables = c("mpg", "disp"), group = "vs",
+  grid = FALSE, pptx = TRUE, verbose = FALSE)
+}
+\seealso{
+\code{\link{cont_var_test}},
+\code{\link{posthoc_df}}
 }
 \author{
-Luca Lalli, Stefano Bergamini
+Stefano Bergamini, Luca Lalli
 }
