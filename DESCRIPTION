@@ -47,7 +47,9 @@ Imports:
     rstudioapi, 
     scales, 
     stringr, 
-    writexl
+    writexl, 
+    tidyr,
+    ggh4x
 Suggests: 
     knitr,
     rmarkdown,
