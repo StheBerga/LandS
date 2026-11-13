@@ -76,10 +76,9 @@
 #' @param overall_p Character identifying the p-value column of
 #'   \code{Test_results} to display as overall test (Default =
 #'   \code{"Overall.padj"}).
-#' @param palette Character vector of colours used as fill for the plots. Its
-#'   length must match the number of group levels when \code{group} is not set
-#'   to \code{"Overall"} (Default = \code{rep("transparent",
-#'   nlevels(data[[group]]))}).
+#' @param palette A \pkg{ggsci} palette name or vector of colors used as fill
+#'   for the plots. A single color is repeated for all groups;
+#'   \code{"Overall"} uses one color (Default = \code{"transparent"}).
 #' @param grid Logical. If \code{TRUE}, uses the default grid-oriented theme
 #'   (Default = \code{TRUE}). If \code{TRUE}, aspect ratio of the plot can be
 #'   set with the \code{ratio} parameter (Default = 1).
@@ -216,7 +215,7 @@ Boxplot <- function (data,
                      threshold_posthoc = 0.05,
                      overall_p = "Overall.padj",
 
-                     palette = rep("transparent", nlevels(data[[group]])),
+                     palette = NULL,
 
                      grid = TRUE,
                      pptx = FALSE,
@@ -238,6 +237,12 @@ Boxplot <- function (data,
   start_time <- Sys.time()
 
   type <- match.arg(type, c("boxplot", "box", "notch", "violin"))
+
+  palette <- get_palette_colors(
+    group = if (group == "Overall") NULL else data[[group]],
+    palette = palette,
+    default = "transparent"
+  )
 
   if((Overall || Posthoc) && is.null(Test_results)){
     stop("Test_results must be supplied when Overall or Posthoc are TRUE.")

@@ -36,6 +36,9 @@
 #'   `"KMunicate"` applies
 #'   [ggsurvfit::theme_ggsurvfit_KMunicate()], whereas
 #'   `"grey-scale"` uses grey colour and fill scales.
+#' @param palette Optional \pkg{ggsci} palette name or vector of colors. A
+#'   single color is repeated for all groups. When `NULL`, overall curves are
+#'   black and grouped curves use the selected theme's default colors.
 #' @param check_ph Logical; whether to display a complementary log-log survival plot alongside the Kaplan-Meier curve to facilitate the graphical assessment of the proportional hazards assumption (Default = \code{FALSE}).
 #' @param rho A scalar parameter that controls the type of test, check function details for more.
 #' @param pvalue_position Character string indicating where to place p-value. Must be one of \code{c("caption", "annotation")} (Default = "annotation").
@@ -110,6 +113,7 @@ plot_km_curve <- function(data,
                           risktable_group = "auto", # risktable_stats = "n.risk",
                           risktable_symbol = NULL,
                           theme = NULL,
+                          palette = NULL,
                           check_ph = FALSE,
                           rho = 0,
                           pvalue_position = "annotation",
@@ -128,6 +132,15 @@ plot_km_curve <- function(data,
     stop("The grouping variable must be a factor. Please convert the grouping variable to a factor before proceeding.")
   } else if (!group == "Overall" & pvalue && length(unique(data[[group]])) < 2) {
     stop("The grouping variable must have at least two levels. Please ensure that the grouping variable has at least two distinct levels before proceeding.")
+  }
+
+  if (!is.null(palette) || group == "Overall") {
+    palette <- get_palette_colors(
+      group = if (group == "Overall") NULL else data[[group]],
+      palette = palette,
+      default = "black"
+    )
+    palette <- unname(palette)
   }
 
   if (group == "Overall"){
@@ -180,6 +193,31 @@ plot_km_curve <- function(data,
   } else if (!is.null(theme) && theme == "grey-scale") {
     p <- p + ggplot2::scale_color_grey() + ggplot2::scale_fill_grey()
     q <- q + ggplot2::scale_color_grey() + ggplot2::scale_fill_grey()
+  }
+
+  if (!is.null(palette)) {
+    p <- p +
+      ggplot2::scale_color_manual(values = palette) +
+      ggplot2::scale_fill_manual(values = palette)
+    q <- q +
+      ggplot2::scale_color_manual(values = palette) +
+      ggplot2::scale_fill_manual(values = palette)
+
+    if (group == "Overall") {
+      set_overall_color <- function(plot) {
+        for (i in seq_along(plot$layers)) {
+          if (inherits(plot$layers[[i]]$geom, "GeomStep") || inherits(plot$layers[[i]]$geom, "GeomPoint")) {
+            plot$layers[[i]]$aes_params$colour <- unname(palette[[1L]])
+          }
+          if (inherits(plot$layers[[i]]$geom, "GeomRibbon")) {
+            plot$layers[[i]]$aes_params$fill <- unname(palette[[1L]])
+          }
+        }
+        plot
+      }
+      p <- set_overall_color(p)
+      q <- set_overall_color(q)
+    }
   }
 
   p <- ggsurvfit::ggsurvfit_build(p)

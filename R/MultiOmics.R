@@ -14,7 +14,7 @@
 #' @param metadata Optional character vector used for nested faceting and
 #'  point fill.
 #' @param size Numeric of size of points. Defaults to `3`.
-#' @param palette Character vector containing fill colours for points.
+#' @param palette A \pkg{ggsci} palette name or vector of fill colors for points.
 #' @param ncol Number of facet columns. Defaults to `4`.
 #'
 #' @section Recommended Data Structure:
@@ -124,6 +124,11 @@ plot_assay_availability <- function(
         .data$Assay
       )
     )
+
+  palette <- get_palette_colors(
+    group = if (is.null(metadata)) NULL else plot_data[[metadata]],
+    palette = palette
+  )
 
   p <- ggplot2::ggplot(
     plot_data,

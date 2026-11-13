@@ -87,7 +87,7 @@ mydata <- data.frame(
   Gender = rep(c("M", "M", "F"), times = 3),
   A = rnorm(9),
   B = c(NA, rnorm(1), NA, NA, rnorm(5))
-  )
+)
 
 # Subject-level missingness
 missing_matrix(

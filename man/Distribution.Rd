@@ -4,7 +4,7 @@
 \alias{Distribution}
 \title{Plot the distribution of a variable}
 \usage{
-Distribution(data, variable, split = FALSE, cutoff = NULL, palette = "black")
+Distribution(data, variable, split = FALSE, cutoff = NULL, palette = NULL)
 }
 \arguments{
 \item{data}{A data frame containing the variable to plot.}
@@ -38,7 +38,12 @@ library(ggplot2)
 Distribution(data = mtcars, variable = "mpg", palette = "forestgreen")
 
 # Compare values with a cutoff
-Distribution(data = mtcars, variable = "mpg", split = TRUE, cutoff = 23, palette = c("salmon", "cornflowerblue"))
+Distribution(data = mtcars,
+variable = "mpg",
+split = TRUE,
+cutoff = 23,
+palette = c("salmon", "cornflowerblue")
+)
 }
 \author{
 Luca Lalli, Stefano Bergamini

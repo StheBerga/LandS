@@ -32,7 +32,7 @@ point fill.}
 
 \item{size}{Numeric of size of points. Defaults to `3`.}
 
-\item{palette}{Character vector containing fill colours for points.}
+\item{palette}{A \pkg{ggsci} palette name or vector of fill colors for points.}
 
 \item{ncol}{Number of facet columns. Defaults to `4`.}
 }

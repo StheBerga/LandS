@@ -68,7 +68,6 @@ Imports:
     hms, 
     lubridate, 
     tibble, 
-    ggsci, 
     patchwork
 Suggests: 
     knitr,

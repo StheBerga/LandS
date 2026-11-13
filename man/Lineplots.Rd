@@ -25,7 +25,7 @@ Lineplots(
   Test_results = NULL,
   threshold_posthoc = 0.05,
   overall_p = "Overall.padj",
-  palette = "black",
+  palette = NULL,
   grid = TRUE,
   pptx = FALSE,
   target = "Lineplots.pptx",
@@ -113,9 +113,9 @@ comparisons (Default = 0.05).}
 \code{Test_results} to display as overall test (Default =
 \code{"Overall.padj"}).}
 
-\item{palette}{Character vector of colours used for groups. Its length must
-match the number of group levels when \code{group} is not set to
-\code{"Overall"} (Default = \code{"black"}).}
+\item{palette}{A \pkg{ggsci} palette name or vector of colors. A single
+color is repeated for all groups; \code{"Overall"} uses one color
+(Default = \code{"black"}).}
 
 \item{grid}{Logical. If \code{TRUE}, uses the default grid-oriented theme
 (Default = \code{TRUE}). If \code{TRUE}, aspect ratio of the plot can be

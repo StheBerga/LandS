@@ -20,6 +20,7 @@ plot_km_curve(
   risktable_group = "auto",
   risktable_symbol = NULL,
   theme = NULL,
+  palette = NULL,
   check_ph = FALSE,
   rho = 0,
   pvalue_position = "annotation",
@@ -66,6 +67,10 @@ When `NULL` (default), the standard
 `"KMunicate"` applies
 [ggsurvfit::theme_ggsurvfit_KMunicate()], whereas
 `"grey-scale"` uses grey colour and fill scales.}
+
+\item{palette}{Optional \pkg{ggsci} palette name or vector of colors. A
+single color is repeated for all groups. When `NULL`, overall curves are
+black and grouped curves use the selected theme's default colors.}
 
 \item{check_ph}{Logical; whether to display a complementary log-log survival plot alongside the Kaplan-Meier curve to facilitate the graphical assessment of the proportional hazards assumption (Default = \code{FALSE}).}
 

@@ -524,7 +524,7 @@ posthoc_df <- function(Test_results, data, group, p_method = "padj",
   posthoc_df <- posthoc_df %>% dplyr::filter(!.data[["pvalue"]] >= threshold_posthoc)
   if (nrow(posthoc_df) == 0) {
   } else {
-    posthoc_df$pvalue <- LandS::formatz_p(posthoc_df$pvalue)
+    posthoc_df$pvalue <- formatz_p(posthoc_df$pvalue)
   }
   return(posthoc_df)
 }
@@ -560,12 +560,22 @@ posthoc_df <- function(Test_results, data, group, p_method = "padj",
 #' Distribution(data = mtcars, variable = "mpg", palette = "forestgreen")
 #'
 #' # Compare values with a cutoff
-#' Distribution(data = mtcars, variable = "mpg", split = TRUE, cutoff = 23, palette = c("salmon", "cornflowerblue"))
-Distribution <- function(data, variable, split = FALSE, cutoff = NULL, palette = "black") {
+#' Distribution(data = mtcars,
+#' variable = "mpg",
+#' split = TRUE,
+#' cutoff = 23,
+#' palette = c("salmon", "cornflowerblue")
+#' )
+Distribution <- function(data, variable, split = FALSE, cutoff = NULL, palette = NULL) {
 
   if(split && is.null(cutoff)) {
     stop("Please provide a cutoff value if you use split = TRUE")
   }
+
+  palette <- get_palette_colors(
+    group = if (split) data[[variable]] > cutoff else NULL,
+    palette = palette
+  )
 
   ggplot2::ggplot(data = data, ggplot2::aes(x = .data[[variable]], y = 1)) +
     {

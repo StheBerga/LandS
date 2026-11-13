@@ -61,9 +61,9 @@
 #' @param overall_p Character identifying the p-value column of
 #'   \code{Test_results} to display as overall test (Default =
 #'   \code{"Overall.padj"}).
-#' @param palette Character vector of colours used for groups. Its length must
-#'   match the number of group levels when \code{group} is not set to
-#'   \code{"Overall"} (Default = \code{"black"}).
+#' @param palette A \pkg{ggsci} palette name or vector of colors. A single
+#'   color is repeated for all groups; \code{"Overall"} uses one color
+#'   (Default = \code{"black"}).
 #' @param grid Logical. If \code{TRUE}, uses the default grid-oriented theme
 #'   (Default = \code{TRUE}). If \code{TRUE}, aspect ratio of the plot can be
 #'   set with the \code{ratio} parameter (Default = 1).
@@ -183,7 +183,7 @@ Lineplots <- function (data,
                        threshold_posthoc = 0.05,
                        overall_p = "Overall.padj",
 
-                       palette = "black",
+                       palette = NULL,
 
                        grid = TRUE,
                        pptx = FALSE,
@@ -211,6 +211,11 @@ Lineplots <- function (data,
   if (!is.numeric(data[[time]])) {
     stop("`time` must be numeric because the function uses scale_x_continuous().")
   }
+
+  palette <- get_palette_colors(
+    group = if (group == "Overall") NULL else data[[group]],
+    palette = palette
+  )
 
   start_time <- Sys.time()
   lineplots <- list()
@@ -246,19 +251,9 @@ Lineplots <- function (data,
       } + {
         if (group == "Overall")
           ggplot2::geom_point(alpha = 0, na.rm = TRUE, show.legend = TRUE)
-      } + {
-        if (!group == "Overall")
-          ggplot2::scale_color_manual(values = palette)
-      } + {
-        if (group == "Overall")
-          ggplot2::scale_color_manual(values = palette[1])
-      } + {
-        if (!group == "Overall")
-          ggplot2::scale_fill_manual(values = palette)
-      } + {
-        if (group == "Overall")
-          ggplot2::scale_fill_manual(values = palette[1])
       } +
+      ggplot2::scale_color_manual(values = palette) +
+      ggplot2::scale_fill_manual(values = palette) +
       ggpubr::theme_transparent() +
       ggplot2::theme(legend.text = ggplot2::element_text(size = graph_params[["size_legend_text"]], face = "bold")) +
       ggplot2::annotate(geom = "text", x = 1, y = 1.001,
