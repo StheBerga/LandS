@@ -290,3 +290,167 @@ plot_assay_availability <- function(
 
   return(p)
 }
+
+#' Plot assay availability as a heatmap
+#'
+#' Creates a heatmap showing whether each selected assay is available for each
+#' subject-timepoint combination. An assay is available when its value is not
+#' missing.
+#'
+#' @param data A data frame where each row represents a unique
+#'   subject-timepoint combination.
+#' @param assays Character vector containing assay column names.
+#' @param id Character string identifying the subject identifier variable.
+#'   Defaults to `"ID"`.
+#' @param time Character string identifying the timepoint variable.
+#'   Defaults to `"Time"`.
+#' @param by_time Logical value indicating the facet variable. When `TRUE`,
+#'   the heatmap is faceted by timepoint and assays are shown on the x-axis.
+#'   When `FALSE`, it is faceted by assay and timepoints are shown on the
+#'   x-axis. Defaults to `TRUE`.
+#' @param nrow Optional positive whole number specifying the number of facet
+#'   rows. Defaults to `NULL` to let ggplot2 determine the number.
+#' @param ncol Optional positive whole number specifying the number of facet
+#'   columns. Defaults to `NULL`, which lets ggplot2 determine the number.
+#'
+#' @aliases Jessica Gliozzo
+#'
+#' @return
+#' A ggplot object that can be further customized using standard ggplot2
+#' syntax.
+#'
+#' @examples
+#' multiomics <- data.frame(
+#'   ID = rep(c("1", "2", "3"), times = 2),
+#'   Time = rep(c("Pre", "Post"), each = 3),
+#'   Assay1 = c(1, 1, NA, 1, NA, 1),
+#'   Assay2 = c(NA, 1, 1, 1, 1, NA)
+#' )
+#'
+#' plot_assays_avaliability_heatmap(
+#'   data = multiomics,
+#'   assays = c("Assay1", "Assay2")
+#' )
+#'
+#' plot_assays_avaliability_heatmap(
+#'   data = multiomics,
+#'   assays = c("Assay1", "Assay2"),
+#'   by_time = FALSE
+#' )
+#'
+#' @export
+plot_assays_avaliability_heatmap <- function(
+    data,
+    assays,
+    id = "ID",
+    time = "Time",
+    by_time = TRUE,
+    nrow = NULL,
+    ncol = NULL
+) {
+
+  if (!is.data.frame(data)) {
+    stop("'data' must be a data.frame.", call. = FALSE)
+  }
+
+  if (!is.character(assays) || length(assays) == 0L ||
+      anyNA(assays) || any(!nzchar(assays))) {
+    stop("'assays' must be a non-empty character vector of column names.",
+         call. = FALSE)
+  }
+
+  if (!is.character(id) || length(id) != 1L || is.na(id) || !nzchar(id)) {
+    stop("'id' must name exactly one column.", call. = FALSE)
+  }
+
+  if (!is.character(time) || length(time) != 1L || is.na(time) || !nzchar(time)) {
+    stop("'time' must name exactly one column.", call. = FALSE)
+  }
+
+  if (!is.logical(by_time) || length(by_time) != 1L || is.na(by_time)) {
+    stop("'by_time' must be TRUE or FALSE.", call. = FALSE)
+  }
+
+  if (!is.null(nrow) &&
+      (!is.numeric(nrow) || length(nrow) != 1L || is.na(nrow) ||
+       !is.finite(nrow) || nrow <= 0 || nrow != as.integer(nrow))) {
+    stop("'nrow' must be NULL or a positive whole number.", call. = FALSE)
+  }
+
+  if (!is.null(ncol) &&
+      (!is.numeric(ncol) || length(ncol) != 1L || is.na(ncol) || !is.finite(ncol) ||
+       ncol <= 0 || ncol != as.integer(ncol))) {
+    stop("'ncol' must be NULL or a positive whole number.", call. = FALSE)
+  }
+
+  if (anyDuplicated(assays)) {
+    stop("'assays' must not contain duplicate names.", call. = FALSE)
+  }
+
+  required_columns <- c(id, time, assays)
+  missing_columns <- setdiff(required_columns, names(data))
+
+  if (length(missing_columns) > 0L) {
+    stop(
+      "The following columns were not found in 'data': ",
+      paste(missing_columns, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  if (any(assays %in% c(id, time))) {
+    stop("'assays' cannot include the ID or time columns.", call. = FALSE)
+  }
+
+  if (anyDuplicated(data[c(id, time)])) {
+    stop("Each ID-time combination must occur at most once.", call. = FALSE)
+  }
+
+  plot_data <- data %>%
+    tidyr::pivot_longer(
+      cols = dplyr::all_of(assays),
+      names_to = "Assay",
+      values_to = "AvailabilityValue"
+    ) %>%
+    dplyr::mutate(
+      Assay = factor(.data$Assay, levels = assays),
+      Availability = factor(
+        dplyr::if_else(is.na(.data$AvailabilityValue), "Missing", "Available"),
+        levels = c("Available", "Missing")
+      )
+    )
+
+  if (by_time) {
+    p <- ggplot2::ggplot(
+      plot_data,
+      ggplot2::aes(x = .data$Assay, y = .data[[id]], fill = .data$Availability)
+    ) +
+      ggplot2::facet_wrap(stats::reformulate(time), nrow = nrow, ncol = ncol)
+  } else {
+    p <- ggplot2::ggplot(
+      plot_data,
+      ggplot2::aes(x = .data[[time]], y = .data[[id]], fill = .data$Availability)
+    ) +
+      ggplot2::facet_wrap(~Assay, nrow = nrow, ncol = ncol)
+  }
+
+  p +
+    ggplot2::geom_tile(colour = "white", linewidth = 0.1) +
+    ggplot2::scale_fill_manual(
+      values = c("Available" = "#457B9D", "Missing" = "#D9D9D9")
+    ) +
+    ggplot2::labs(
+      title = "Assay availability",
+      x = NULL,
+      y = "Subject",
+      fill = NULL
+    ) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 7),
+      axis.text.y = ggplot2::element_text(size = 7),
+      strip.background = ggplot2::element_blank(),
+      legend.position = "bottom",
+      plot.title = ggplot2::element_text(hjust = 0.5)
+    )
+}
