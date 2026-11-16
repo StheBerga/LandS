@@ -27,12 +27,14 @@ Defaults to `"ID"`.}
 \item{time}{Character string identifying the timepoint variable.
 Defaults to `"Time"`.}
 
-\item{metadata}{Optional character vector used for nested faceting and
-point fill.}
+\item{metadata}{Optional character string identifying one metadata variable
+used for nested faceting and point fill.}
 
 \item{size}{Numeric of size of points. Defaults to `3`.}
 
-\item{palette}{Character vector containing fill colours for points.}
+\item{palette}{Character vector containing fill colours for points. It must
+contain one colour when `metadata = NULL`; otherwise, it must provide a
+colour for each observed metadata level.}
 
 \item{ncol}{Number of facet columns. Defaults to `4`.}
 }
@@ -54,19 +56,20 @@ indicators:
   \item missing value (`NA`) = assay unavailable.
 }
 
-When metadata variables are supplied, nested subject panels are
-generated using \code{ggh4x::facet_nested_wrap()}.
+When metadata variables are supplied, subject panels are grouped and
+labelled hierarchically by their metadata values using
+\code{ggh4x::facet_nested_wrap()}.
 }
 \section{Recommended Data Structure}{
 
 
-The function assumes that each row represents a unique combination of
-subject and timepoint.
+Each row must represent a unique combination of subject and timepoint.
+When supplied, metadata must be constant within each subject.
 
 A complete subject-timepoint grid is recommended when visualizing
 longitudinal assay availability, as subject-timepoint combinations
 absent from the source dataset cannot be distinguished from omitted
-visits.
+timepoints.
 
 Example:
 

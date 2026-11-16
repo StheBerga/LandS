@@ -11,21 +11,23 @@
 #'   Defaults to `"ID"`.
 #' @param time Character string identifying the timepoint variable.
 #'   Defaults to `"Time"`.
-#' @param metadata Optional character vector used for nested faceting and
-#'  point fill.
+#' @param metadata Optional character string identifying one metadata variable
+#'   used for nested faceting and point fill.
 #' @param size Numeric of size of points. Defaults to `3`.
-#' @param palette Character vector containing fill colours for points.
+#' @param palette Character vector containing fill colours for points. It must
+#'   contain one colour when `metadata = NULL`; otherwise, it must provide a
+#'   colour for each observed metadata level.
 #' @param ncol Number of facet columns. Defaults to `4`.
 #'
 #' @section Recommended Data Structure:
 #'
-#' The function assumes that each row represents a unique combination of
-#' subject and timepoint.
+#' Each row must represent a unique combination of subject and timepoint.
+#' When supplied, metadata must be constant within each subject.
 #'
 #' A complete subject-timepoint grid is recommended when visualizing
 #' longitudinal assay availability, as subject-timepoint combinations
 #' absent from the source dataset cannot be distinguished from omitted
-#' visits.
+#' timepoints.
 #'
 #' Example:
 #'
@@ -47,9 +49,10 @@
 #'   \item missing value (`NA`) = assay unavailable.
 #' }
 #'
-#' When metadata variables are supplied, nested subject panels are
-#' generated using \code{ggh4x::facet_nested_wrap()}.
-
+#' When metadata variables are supplied, subject panels are grouped and
+#' labelled hierarchically by their metadata values using
+#' \code{ggh4x::facet_nested_wrap()}.
+#'
 #'
 #' @return
 #' A ggplot object that can be further customized using standard
@@ -110,6 +113,89 @@ plot_assay_availability <- function(
 
   if (!is.data.frame(data)) {
     stop("'data' must be a data.frame.", call. = FALSE)
+  }
+
+  if (!is.character(assays) || length(assays) == 0L ||
+      anyNA(assays) || any(!nzchar(assays))) {
+    stop("'assays' must be a non-empty character vector of column names.",
+         call. = FALSE)
+  }
+
+  if (!is.character(id) || length(id) != 1L || is.na(id) || !nzchar(id)) {
+    stop("'id' must name exactly one column.", call. = FALSE)
+  }
+
+  if (!is.character(time) || length(time) != 1L || is.na(time) || !nzchar(time)) {
+    stop("'time' must name exactly one column.", call. = FALSE)
+  }
+
+  if (!is.null(metadata) &&
+      (!is.character(metadata) || length(metadata) != 1L ||
+       is.na(metadata) || !nzchar(metadata))) {
+    stop("'metadata' must be NULL or name exactly one column.", call. = FALSE)
+  }
+
+  if (anyDuplicated(assays)) {
+    stop("'assays' must not contain duplicate names.", call. = FALSE)
+  }
+
+  required_columns <- c(id, time, assays, metadata)
+  missing_columns <- setdiff(required_columns, names(data))
+
+  if (length(missing_columns) > 0L) {
+    stop(
+      "The following columns were not found in 'data': ",
+      paste(missing_columns, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  if (any(assays %in% c(id, time, metadata))) {
+    stop("'assays' cannot include the ID, time, or metadata columns.",
+         call. = FALSE)
+  }
+
+  if (!is.character(palette) || length(palette) == 0L || anyNA(palette)) {
+    stop("'palette' must be a non-empty character vector of colours.",
+         call. = FALSE)
+  }
+
+  if (is.null(metadata) && length(palette) != 1L) {
+    stop("'palette' must contain exactly one colour when 'metadata' is NULL.",
+         call. = FALSE)
+  }
+
+  if (anyDuplicated(data[c(id, time)])) {
+    stop("Each ID-time combination must occur at most once.", call. = FALSE)
+  }
+
+  if (!is.null(metadata)) {
+    metadata_per_id <- data %>%
+      dplyr::group_by(.data[[id]]) %>%
+      dplyr::summarise(
+        n_metadata = dplyr::n_distinct(.data[[metadata]], na.rm = FALSE),
+        .groups = "drop"
+      )
+
+    if (any(metadata_per_id$n_metadata > 1L)) {
+      stop("'metadata' must be constant within each subject.", call. = FALSE)
+    }
+
+    metadata_levels <- unique(data[[metadata]][!is.na(data[[metadata]])])
+
+    if (is.null(names(palette)) && length(palette) < length(metadata_levels)) {
+      stop("'palette' must provide at least one colour for each metadata level.",
+           call. = FALSE)
+    }
+
+    if (!is.null(names(palette))) {
+      missing_colours <- setdiff(as.character(metadata_levels), names(palette))
+
+      if (length(missing_colours) > 0L) {
+        stop("'palette' is missing colours for: ",
+             paste(missing_colours, collapse = ", "), call. = FALSE)
+      }
+    }
   }
 
   plot_data <- data %>%
