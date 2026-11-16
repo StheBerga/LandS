@@ -4,72 +4,49 @@
 \alias{univariate_cox}
 \title{Run univariate Cox proportional hazards models}
 \usage{
-univariate_cox(data, vars, ptime, pevent)
+univariate_cox(
+  data,
+  vars,
+  ptime,
+  pevent,
+  continuous_contrast = c("IQR", "unit")
+)
 }
 \arguments{
-\item{data}{A dataframe containing the survival outcome and predictor variables.}
+\item{data}{Data frame containing survival outcomes and predictors.}
 
-\item{vars}{Character vector of predictor variable names to test.}
+\item{vars}{Character vector of predictor names.}
 
-\item{ptime}{Character string giving the survival time variable name.}
+\item{ptime}{Name of the survival time column.}
 
-\item{pevent}{Character string giving the event indicator variable name.
-Typically coded as 0/1, where 1 indicates the event occurred.}
+\item{pevent}{Name of the event indicator column (typically 0/1).}
+
+\item{continuous_contrast}{Contrast for numeric predictors: "IQR" (75th vs
+25th percentile; default) or "unit" (one-unit increase).}
 }
 \value{
-A dataframe with one or more rows per variable:
-\describe{
-  \item{Var}{Variable name or factor level.}
-  \item{HR}{Hazard ratio, or "ref" for the reference level.}
-  \item{95\%CI}{Formatted 95\% confidence interval.}
-  \item{pvalue}{Formatted p-value.}
-  \item{pval_raw}{Raw numeric p-value where available.}
-}
+Data frame with columns `Var`, `HR`, `95%CI`, `pvalue` and numeric
+  `pval_raw`. Numeric predictors have one row. For categorical predictors,
+  a global test row is followed by the reference level and other levels.
 }
 \description{
-Fits separate univariate Cox proportional hazards models for a set of
-candidate predictors and returns formatted hazard ratios, 95% confidence
-intervals, and p-values.
+Fits separate Cox models for numeric and categorical predictors and returns
+formatted hazard ratios, 95% confidence intervals and p-values.
 }
 \details{
-Numeric variables are modeled as continuous predictors. Character, logical,
-and factor variables are converted to unordered factors and modeled as
-categorical predictors using treatment contrasts, with the first factor level
-used as the reference category.
-
-
-For categorical variables, the first row contains the global variable-level
-p-value, followed by a reference row and one row per non-reference level.
-For binary categorical variables, the variable-level p-value is currently the
-Wald p-value for the single coefficient. For variables with more than two
-levels, the likelihood-ratio test p-value is used.
+The IQR is computed using complete cases for each univariate model.
+  All global p-values use likelihood-ratio tests; p-values of individual
+  non-reference categorical levels use Wald tests. Changing the contrast
+  for numeric predictors changes HRs and CIs, not p-values.
+  Categorical factors use their first observed level as reference.
+  Unordered factors are used even when the original factor is ordered.
 }
 \examples{
-data(cancer, package = "survival")
-
-bladder_first <- subset(bladder, enum == 1)
-bladder_first$rx <- factor(
-  bladder_first$rx,
-  levels = c(1, 2),
-  labels = c("placebo", "thiotepa")
-)
-
-# Continuous variable example
-univariate_cox(
-  data = bladder_first,
-  vars = c("number", "size"),
-  ptime = "stop",
-  pevent = "event"
-)
-
-# Categorical variable example
-univariate_cox(
-  data = bladder_first,
-  vars = c("rx"),
-  ptime = "stop",
-  pevent = "event"
-)
-
+data(cancer, package="survival")
+d <- subset(bladder, enum == 1)
+d$rx <- factor(d$rx, levels = c(1, 2), labels = c("placebo", "thiotepa"))
+univariate_cox(d, c("number", "size", "rx"), "stop", "event", "IQR")
+univariate_cox(d, c("number", "size", "rx"), "stop", "event", "unit")
 }
 \author{
 Luca Lalli
