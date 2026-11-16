@@ -37,37 +37,40 @@ should also be exported as an Excel file. Defaults to `FALSE`.}
 file to create when `excel = TRUE`.}
 }
 \value{
-A data frame containing missingness counts. If a time variable is
-supplied, the output contains one row per subject and one column per
-timepoint. Otherwise, a single missingness count is returned for each
-subject.
+A data frame containing missingness counts and percentages. If a time
+variable is supplied, the output contains one row per subject and a
+`TotalMissing_<timepoint>` and `PercentageMissing_<timepoint>` column for
+each timepoint. Otherwise, `TotalMissing` and `PercentageMissing` are
+returned for each subject.
 
 If `excel = TRUE`, the resulting data frame is additionally exported
 as an Excel file, named according to the `excel_path` argument.
 }
 \description{
-Generates a missing data matrix by counting missing values across a
-user-specified set of variables. The matrix can be created either at
-the subject level or at the subject-timepoint level for longitudinal
-datasets. Selected metadata variables can optionally be retained in
-the output.
+Generates a missing data matrix by calculating missing-value counts and
+percentages across a user-specified set of variables. The matrix can be
+created either at the subject level or at the subject-timepoint level for
+longitudinal datasets. Selected metadata variables can optionally be
+retained in the output.
 }
 \details{
-For each observation, the function counts the number of missing values
-across the variables specified in `variables`.
+For each aggregation group, the function calculates `TotalMissing`, the
+number of missing values, and `PercentageMissing`, the percentage of all
+selected values that are missing. `PercentageMissing` ranges from 0 to 100.
 
-When `time = NULL`, missing value counts are aggregated at the subject
-level, producing a single missingness score for each subject.
+When `time = NULL`, missing values are aggregated at the subject level,
+producing one count and one percentage for each subject.
 
-When a time variable is supplied, missing value counts are aggregated
-within each unique combination of subject (`id`) and timepoint
-(`time`) and reshaped into a wide matrix where columns represent
-timepoints; in this scenario it's preferrable to set the `time` variable
-as a factor, otherwise timepoint columns will be alphabetically sorted.
+When a time variable is supplied, missing values are aggregated within each
+unique combination of subject (`id`) and timepoint (`time`) and reshaped
+into a wide matrix. The matrix has a `TotalMissing_<timepoint>` and a
+`PercentageMissing_<timepoint>` column for each timepoint; in this scenario
+it is preferable to set the `time` variable as a factor, otherwise
+timepoint columns will be alphabetically sorted.
 
 Only subject-timepoint combinations present in the source dataset are
 evaluated, therefore, values in the resulting matrix should be
-interpreted as follows:
+interpreted as follows for `TotalMissing`:
 \itemize{
   \item `0`: the observation exists and no selected variables are missing.
   \item Integer values greater than `0`: the observation exists and one
@@ -75,9 +78,11 @@ interpreted as follows:
   \item `NA`: the corresponding subject-timepoint combination is absent
     from the original dataset and could not be evaluated.
 }
+`PercentageMissing` expresses the same missingness as a percentage of all
+selected values in the aggregation group.
 
 When `metadata` variables are supplied, the first observed value
-within each aggregation group is retained in the output.
+within each aggregation group (i.e. ID or ID+time) is retained in the output.
 }
 \examples{
 set.seed(123)
@@ -87,7 +92,7 @@ mydata <- data.frame(
   Gender = rep(c("M", "M", "F"), times = 3),
   A = rnorm(9),
   B = c(NA, rnorm(1), NA, NA, rnorm(5))
-  )
+)
 
 # Subject-level missingness
 missing_matrix(
@@ -104,5 +109,5 @@ missing_matrix(
 )
 }
 \author{
-Stefano Bergamini
+Stefano Bergamini, Jessica Gliozzo
 }
