@@ -138,7 +138,7 @@ missing_matrix <- function(data,
       dplyr::group_by(.data[[id]]) %>%
       dplyr::summarise(
         TotalMissing = sum(rowSums(is.na(dplyr::across(dplyr::all_of(variables))))),
-        PercentageMissing = 100 * TotalMissing / (dplyr::n() * length(variables)),
+        PercentageMissing = 100 * .data[["TotalMissing"]] / (dplyr::n() * length(variables)),
         dplyr::across(dplyr::all_of(metadata), dplyr::first),
         .groups = "drop") %>%
       dplyr::relocate(
@@ -151,7 +151,7 @@ missing_matrix <- function(data,
       dplyr::group_by(dplyr::across(dplyr::all_of(c(id, time)))) %>%
       dplyr::summarise(
         TotalMissing = sum(rowSums(is.na(dplyr::across(dplyr::all_of(variables))))),
-        PercentageMissing = 100 * TotalMissing / (dplyr::n() * length(variables)),
+        PercentageMissing = 100 * .data[["TotalMissing"]] / (dplyr::n() * length(variables)),
         dplyr::across(dplyr::all_of(metadata), dplyr::first),
         .groups = "drop") %>%
       tidyr::pivot_wider(

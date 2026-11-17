@@ -11,6 +11,7 @@ plot_assays_avaliability_heatmap(
   assays,
   id = "ID",
   time = "Time",
+  metadata = NULL,
   by_time = TRUE,
   nrow = NULL,
   ncol = NULL
@@ -27,6 +28,11 @@ Defaults to `"ID"`.}
 
 \item{time}{Character string identifying the timepoint variable.
 Defaults to `"Time"`.}
+
+\item{metadata}{Optional character string specifying a categorical metadata
+column used to colour available assays. Each metadata category is assigned
+a different colour. Missing assay values remain grey. When `NULL`,
+available assays are displayed using a single colour. Defaults to `NULL`.}
 
 \item{by_time}{Logical value indicating the facet variable. When `TRUE`,
 the heatmap is faceted by timepoint and assays are shown on the x-axis.
@@ -52,6 +58,7 @@ missing.
 multiomics <- data.frame(
   ID = rep(c("1", "2", "3"), times = 2),
   Time = rep(c("Pre", "Post"), each = 3),
+  Therapy = factor(rep(c("ctr", "ctr", "trt"), times = 2)),
   Assay1 = c(1, 1, NA, 1, NA, 1),
   Assay2 = c(NA, 1, 1, 1, 1, NA)
 )
@@ -64,7 +71,8 @@ plot_assays_avaliability_heatmap(
 plot_assays_avaliability_heatmap(
   data = multiomics,
   assays = c("Assay1", "Assay2"),
-  by_time = FALSE
+  by_time = FALSE,
+  metadata = "Therapy"
 )
 
 }

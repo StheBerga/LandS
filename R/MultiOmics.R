@@ -304,6 +304,10 @@ plot_assay_availability <- function(
 #'   Defaults to `"ID"`.
 #' @param time Character string identifying the timepoint variable.
 #'   Defaults to `"Time"`.
+#' @param metadata Optional character string specifying a categorical metadata
+#'   column used to colour available assays. Each metadata category is assigned
+#'   a different colour. Missing assay values remain grey. When `NULL`,
+#'   available assays are displayed using a single colour. Defaults to `NULL`.
 #' @param by_time Logical value indicating the facet variable. When `TRUE`,
 #'   the heatmap is faceted by timepoint and assays are shown on the x-axis.
 #'   When `FALSE`, it is faceted by assay and timepoints are shown on the
@@ -323,6 +327,7 @@ plot_assay_availability <- function(
 #' multiomics <- data.frame(
 #'   ID = rep(c("1", "2", "3"), times = 2),
 #'   Time = rep(c("Pre", "Post"), each = 3),
+#'   Therapy = factor(rep(c("ctr", "ctr", "trt"), times = 2)),
 #'   Assay1 = c(1, 1, NA, 1, NA, 1),
 #'   Assay2 = c(NA, 1, 1, 1, 1, NA)
 #' )
@@ -335,7 +340,8 @@ plot_assay_availability <- function(
 #' plot_assays_avaliability_heatmap(
 #'   data = multiomics,
 #'   assays = c("Assay1", "Assay2"),
-#'   by_time = FALSE
+#'   by_time = FALSE,
+#'   metadata = "Therapy"
 #' )
 #'
 #' @export
@@ -344,6 +350,7 @@ plot_assays_avaliability_heatmap <- function(
     assays,
     id = "ID",
     time = "Time",
+    metadata = NULL,
     by_time = TRUE,
     nrow = NULL,
     ncol = NULL
@@ -367,6 +374,15 @@ plot_assays_avaliability_heatmap <- function(
     stop("'time' must name exactly one column.", call. = FALSE)
   }
 
+  if (!is.null(metadata) &&
+      (!is.character(metadata) ||
+       length(metadata) != 1L ||
+       is.na(metadata) ||
+       !nzchar(metadata))) {
+    stop("'metadata' must be NULL or a character string naming one column.",
+         call. = FALSE)
+  }
+
   if (!is.logical(by_time) || length(by_time) != 1L || is.na(by_time)) {
     stop("'by_time' must be TRUE or FALSE.", call. = FALSE)
   }
@@ -387,7 +403,7 @@ plot_assays_avaliability_heatmap <- function(
     stop("'assays' must not contain duplicate names.", call. = FALSE)
   }
 
-  required_columns <- c(id, time, assays)
+  required_columns <- c(id, time, metadata, assays)
   missing_columns <- setdiff(required_columns, names(data))
 
   if (length(missing_columns) > 0L) {
@@ -413,38 +429,124 @@ plot_assays_avaliability_heatmap <- function(
       values_to = "AvailabilityValue"
     ) %>%
     dplyr::mutate(
-      Assay = factor(.data$Assay, levels = assays),
-      Availability = factor(
-        dplyr::if_else(is.na(.data$AvailabilityValue), "Missing", "Available"),
-        levels = c("Available", "Missing")
-      )
+      Assay = factor(.data$Assay, levels = assays)
     )
+
+  if (is.null(metadata)) {
+
+    # Original behaviour
+    plot_data <- plot_data %>%
+      dplyr::mutate(
+        FillCategory = dplyr::if_else(
+          is.na(.data$AvailabilityValue),
+          "assay_missing",
+          "available"
+        )
+      )
+
+    fill_values <- c(
+      "available" = "#457B9D",
+      "assay_missing" = "#D9D9D9"
+    )
+
+    fill_breaks <- c("available", "assay_missing")
+    fill_labels <- c("Available", "Missing")
+
+  } else {
+
+    metadata_values <- data[[metadata]]
+
+    # Preserve factor ordering when metadata is a factor
+    metadata_levels <- if (is.factor(metadata_values)) {
+      levels(droplevels(metadata_values))
+    } else {
+      unique(as.character(metadata_values[!is.na(metadata_values)]))
+    }
+
+    # Generate internal identifiers for metadata categories
+    metadata_keys <- paste0("metadata_", seq_along(metadata_levels))
+    names(metadata_keys) <- metadata_levels
+
+    plot_data <- plot_data %>%
+      dplyr::mutate(
+        MetadataValue = as.character(.data[[metadata]]),
+        FillCategory = dplyr::case_when(
+          is.na(.data$AvailabilityValue) ~ "assay_missing",
+          is.na(.data$MetadataValue) ~ "metadata_missing",
+          TRUE ~ unname(metadata_keys[.data$MetadataValue])
+        )
+      )
+
+    # Determine whether available assays have missing metadata
+    has_missing_metadata <- any(
+      !is.na(plot_data$AvailabilityValue) &
+        is.na(plot_data$MetadataValue)
+    )
+
+    # Generate a distinct colour for each metadata category
+    metadata_colours <- if (length(metadata_levels) > 0L) {
+      grDevices::hcl.colors(
+        length(metadata_levels),
+        palette = "Dynamic"
+      )
+    } else {
+      character(0)
+    }
+
+    fill_values <- c(
+      stats::setNames(metadata_colours, unname(metadata_keys)),
+      if (has_missing_metadata) {
+        c("metadata_missing" = "#A6A6A6")
+      },
+      "assay_missing" = "#D9D9D9"
+    )
+
+    fill_breaks <- c(
+      unname(metadata_keys),
+      if (has_missing_metadata) "metadata_missing",
+      "assay_missing"
+    )
+
+    fill_labels <- c(
+      metadata_levels,
+      if (has_missing_metadata) "Metadata missing",
+      "Missing assay"
+    )
+  }
+
+  plot_data$FillCategory <- factor(
+    plot_data$FillCategory,
+    levels = fill_breaks
+  )
 
   if (by_time) {
     p <- ggplot2::ggplot(
       plot_data,
-      ggplot2::aes(x = .data$Assay, y = .data[[id]], fill = .data$Availability)
+      ggplot2::aes(x = .data[["Assay"]], y = .data[[id]], fill = .data[["FillCategory"]])
     ) +
       ggplot2::facet_wrap(stats::reformulate(time), nrow = nrow, ncol = ncol)
   } else {
     p <- ggplot2::ggplot(
       plot_data,
-      ggplot2::aes(x = .data[[time]], y = .data[[id]], fill = .data$Availability)
+      ggplot2::aes(x = .data[[time]], y = .data[[id]], fill = .data[["FillCategory"]])
     ) +
-      ggplot2::facet_wrap(~Assay, nrow = nrow, ncol = ncol)
+      ggplot2::facet_wrap(~.data[["Assay"]], nrow = nrow, ncol = ncol)
   }
 
   p +
-    ggplot2::geom_tile(colour = "white", linewidth = 0.1) +
+    ggplot2::geom_tile(colour = "black", linewidth = 0.1) +
     ggplot2::scale_fill_manual(
-      values = c("Available" = "#457B9D", "Missing" = "#D9D9D9")
+      values = fill_values,
+      breaks = fill_breaks,
+      labels = fill_labels,
+      drop = FALSE
     ) +
-    ggplot2::labs(
-      title = "Assay availability",
-      x = NULL,
-      y = "Subject",
-      fill = NULL
-    ) +
+  ggplot2::labs(
+    title = "Assay availability",
+    x = NULL,
+    y = "Subject",
+    fill = NULL
+  ) +
     ggplot2::theme_bw() +
     ggplot2::theme(
       axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, size = 7),
