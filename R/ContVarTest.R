@@ -224,19 +224,23 @@ cont_var_test <- function(data,
         # names(post) <- data_filtered %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(id)
 
         paired_data <- data_filtered %>%
-          dplyr::select(dplyr::all_of(c(.data[[id]], .data[[group]], .data[[name]]))) %>%
+          dplyr::select(dplyr::all_of(c(id, group, name))) %>%
           tidyr::pivot_wider(names_from = dplyr::all_of(group),
                              values_from = dplyr::all_of(name))
         group1 <- paired_data[[levels[1]]]
         group2 <- paired_data[[levels[2]]]
 
-        stopifnot("IDs are not sorted in the appropriate order within group variable. \n Please refer to function description for details" =
-                    identical(names(pre), names(post)))
+        if (anyNA(group1) || anyNA(group2)) {
+          stop(
+            "Each subject must have one non-missing observation in both group levels.",
+            call. = FALSE
+          )
+        }
 
         table.p[table.p$Variable == name, 2] <- stats[1]
         table.p[table.p$Variable == name, 3] <- stats[2]
         # table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(pre, post, paired = TRUE)$p.value
-        table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(group1, group2, paired = TRUE)
+        table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(group1, group2, paired = TRUE)$p.value
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
                                          total = length(variables), start_time = start_time,
