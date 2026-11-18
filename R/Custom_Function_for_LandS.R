@@ -56,29 +56,17 @@ formatz_p <- function (x, digits = 4, prepend_p = FALSE, na = NA_character_, ...
 }
 
 
-#' Print a vector as a quoted, delimited sequence
+#' Collapse a vector into a formatted string
 #'
-#' @description
-#' Prints the elements of a vector to the console, separated by a
-#' customizable delimiter. Optionally encloses each element in double
-#' quotation marks.
+#' @description Format a vector as a single string with a custom separator,
+#' optionally unquoting each element. The result is printed to the console.
 #'
-#' @param vect An atomic vector containing the values to print.
-#' @param sym A character string used to separate consecutive elements.
-#'   Default is \code{", "}.
-#' @param quote Logical. If \code{TRUE} (default), each element is
-#'   enclosed in double quotation marks. If \code{FALSE}, elements
-#'   are printed without quotes.
+#' @param vect A vector containing the values to print.
+#' @param sym A character string used to separate consecutive elements (Default = \code{", "}).
+#' @param quote Logical. If \code{FALSE}, elements are printed without quotation marks. 
+#' When \code{TRUE}, each element is wrapped in double quotes (Deafult = \code{TRUE}).  
 #'
-#' @details
-#' The function prints directly to the console without appending
-#' a newline.
-#'
-#' @return Invisibly returns \code{NULL}.
-#'
-#' @seealso \code{\link[base]{cat}},
-#'   \code{\link[base]{dQuote}}
-#'
+#' @return Invisibly returns \code{NULL}. The formatted string is printed to the console.
 #' @export
 #'
 #' @examples
@@ -96,7 +84,7 @@ formatz_p <- function (x, digits = 4, prepend_p = FALSE, na = NA_character_, ...
 
 vect.quoted <- function(vect, sym = ", ", quote = TRUE) {
   if (quote) {
-    cat(dQuote(vect, q = FALSE), sep = sym)
+    cat(dQuote(vect, q = '"'), sep = sym)
   } else {
     cat(vect, sep = sym)
   }

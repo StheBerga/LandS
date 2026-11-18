@@ -4,25 +4,33 @@
 \alias{vect.quoted}
 \title{Collapse a vector into a formatted string}
 \usage{
-vect.quoted(vect, sym = ", ", quote = T)
+vect.quoted(vect, sym = ", ", quote = TRUE)
 }
 \arguments{
-\item{vect}{A vector of values to format.}
+\item{vect}{A vector containing the values to print.}
 
-\item{sym}{A character string used as separator between elements.
-Defaults to \code{", "}.}
+\item{sym}{A character string used to separate consecutive elements (Default = \code{", "}).}
 
-\item{quote}{Logical. If TRUE, each element is wrapped in double quotes
-(Default = \code{TRUE}).}
+\item{quote}{Logical. If \code{FALSE}, elements are printed without quotation marks. 
+When \code{TRUE}, each element is wrapped in double quotes (Deafult = \code{TRUE}).}
 }
 \value{
 Invisibly returns \code{NULL}. The formatted string is printed to the console.
 }
 \description{
 Format a vector as a single string with a custom separator,
-optionally quoting each element. The result is printed to the console.
+optionally unquoting each element. The result is printed to the console.
 }
 \examples{
+# Quoted numeric values
+vect.quoted(1:3)
+
+# Unquoted values with a custom separator
 vect.quoted(1:3, sym = " + ", quote = FALSE)
-vect.quoted(1:3, sym = " | ", quote = TRUE)
+
+# Quoted character values
+vect.quoted(c("A", "B", "C"), sym = " | ")
+
+# Unquoted character values
+vect.quoted(c("A", "B", "C"), quote = FALSE)
 }
