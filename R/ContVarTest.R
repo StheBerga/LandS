@@ -43,7 +43,8 @@
 #' as well as Pairwise Wilcoxon Rank Sum tests and Pairwise Wilcoxon Signed Rank Tests.
 #' By default is set the Exact All-Pairs Comparisons Test when `paired=TRUE`,
 #' and the Dunn's All-Pairs Rank Comparison Test when `paired=FALSE`.
-#' @param overall_threshold Sets a threhold to not perform posthoc comparisons when the overall test's raw p-value is over (Default = 0.1).
+#' @param overall_threshold Threshold below which post-hoc comparisons are
+#'   performed, based on the adjusted overall p-value. Defaults to `0.1`.
 #'
 #' @return
 #' A named list of data frames. The exact elements depend on the selected test:

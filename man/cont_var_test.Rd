@@ -46,7 +46,8 @@ required when `paired = TRUE`. Default = "ID".}
 
 \item{num_dec}{Decimal number for summary statistics (Default = 2).}
 
-\item{overall_threshold}{Sets a threhold to not perform posthoc comparisons when the overall test's raw p-value is over (Default = 0.1).}
+\item{overall_threshold}{Threshold below which post-hoc comparisons are
+performed, based on the adjusted overall p-value. Defaults to `0.1`.}
 
 \item{p_adjust_method}{Character string specifying the multiplicity
 adjustment method used for overall and post-hoc tests. Supports all methods
