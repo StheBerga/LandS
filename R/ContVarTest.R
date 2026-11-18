@@ -341,7 +341,7 @@ cont_var_test <- function(data,
             mat_posthoc <- PMCMRplus::frdAllPairsMillerTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Millers's All-Pairs Comparisons Test"
           } else if(type == "w" || type == "wilcoxon") {
-            listIDs <- base::split(data_filtered, data_filtered[[group]]) %>% base::lapply(function(x) stats::setNames(x[[name]], x$id))
+            listIDs <- base::split(data_filtered, data_filtered[[group]]) %>% base::lapply(function(x) stats::setNames(x[[name]], x[[id]]))
             stopifnot("IDs are not sorted in the appropriate order within group variable. \n Please refer to function description for details" =
                         all(vapply(listIDs[-1], function(x) identical(names(x), names(listIDs[[1]])), logical(1))))
             mat_posthoc <- stats::pairwise.wilcox.test(data_filtered[[name]], g = data_filtered[[group]], p.adjust.method = p_adjust_method, paired = TRUE)$p.value
