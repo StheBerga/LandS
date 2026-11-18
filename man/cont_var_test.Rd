@@ -49,8 +49,10 @@ required when `paired = TRUE`. Default = "ID".}
 \item{overall_threshold}{Sets a threhold to not perform posthoc comparisons when the overall test's raw p-value is over (Default = 0.1).}
 
 \item{p_adjust_method}{Character string specifying the multiplicity
-adjustment method used for overall and post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
-Passed to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), "fdr" is used.}
+adjustment method used for overall and post-hoc tests. Supports all methods
+in `stats::p.adjust.methods`, including `"none"` for no adjustment. Passed
+to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), `"fdr"` is
+used.}
 
 \item{excel}{Logical. If `TRUE`, writes the result list to an Excel workbook
 with one sheet per result table (Default = `FALSE`).}
@@ -80,8 +82,8 @@ whether observations are paired:
   \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests by default.
 }
 
-You can also perform post-hoc tests without correcting for test multiplicity (option `type = "none"`),
-even if it is not recommended.
+Set `p_adjust_method = "none"` to return unadjusted p-values for both
+overall and post-hoc tests.
 The following summary statistics can be computed:
 `median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
 For paired analyses, the summary statistics will be computed only for

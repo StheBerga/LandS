@@ -10,8 +10,8 @@
 #'   \item >2 groups, paired: Friedman rank-sum test, with exact post-hoc tests by default.
 #' }
 #'
-#' You can also perform post-hoc tests without correcting for test multiplicity (option `type = "none"`),
-#' even if it is not recommended.
+#' Set `p_adjust_method = "none"` to return unadjusted p-values for both
+#' overall and post-hoc tests.
 #' The following summary statistics can be computed:
 #' `median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
 #' For paired analyses, the summary statistics will be computed only for
@@ -30,8 +30,10 @@
 #' required when `paired = TRUE`. Default = "ID".
 #' @param num_dec Decimal number for summary statistics (Default = 2).
 #' @param p_adjust_method Character string specifying the multiplicity
-#' adjustment method used for overall and post-hoc tests. Supports all adjustment methods passed to `stats::p.adjust.method`.
-#' Passed to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), "fdr" is used.
+#' adjustment method used for overall and post-hoc tests. Supports all methods
+#' in `stats::p.adjust.methods`, including `"none"` for no adjustment. Passed
+#' to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), `"fdr"` is
+#' used.
 #' @param excel Logical. If `TRUE`, writes the result list to an Excel workbook
 #' with one sheet per result table (Default = `FALSE`).
 #' @param excel_path Path where you want to save the Excel file (Default "Results.xlsx").
@@ -115,6 +117,15 @@ cont_var_test <- function(data,
 
   if (is.null(p_adjust_method)) {
     p_adjust_method = "fdr"
+  }
+
+  if (!is.character(p_adjust_method) || length(p_adjust_method) != 1L ||
+      is.na(p_adjust_method) || !p_adjust_method %in% stats::p.adjust.methods) {
+    stop(
+      "'p_adjust_method' must be one of: ",
+      paste(stats::p.adjust.methods, collapse = ", "),
+      call. = FALSE
+    )
   }
 
   start_time <- Sys.time()
