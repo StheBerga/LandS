@@ -21,16 +21,19 @@ cont_var_test(
 )
 }
 \arguments{
-\item{data}{dataframe containing the variables to test.}
+\item{data}{A base `data.frame` containing the variables to test. Tibbles
+are not supported; convert them with `as.data.frame()` before calling the
+function.}
 
 \item{variables}{Character vector with the names of continuous numeric
-variables to test.}
+variables to test. Every named column must exist in `data` and be numeric.}
 
-\item{paired}{Logical. If `TRUE`, observations are treated as paired or
-repeated measures across levels of group. (Default=`FALSE`).}
+\item{paired}{A single logical value. If `TRUE`, observations are treated as
+paired or repeated measures across levels of `group`. Defaults to `FALSE`.}
 
 \item{group}{Character string giving the name of the grouping variable.
-This column must be a factor with at least two levels.}
+This column must exist in `data` and be a factor with at least two observed
+levels.}
 
 \item{type}{Choose the posthoc test to perform when `levels(group)>2`.
 The function supports all the tests from the `PMCMRplus` package,
@@ -42,7 +45,8 @@ and the Dunn's All-Pairs Rank Comparison Test when `paired=FALSE`.}
 Format is defined by `gtsummary` package.}
 
 \item{id}{Character string giving the name of the subject identifier column,
-required when `paired = TRUE`. Default = "ID".}
+required when `paired = TRUE`. The column must exist in `data`. Defaults to
+`"ID"`.}
 
 \item{num_dec}{Decimal number for summary statistics (Default = 2).}
 
@@ -132,5 +136,5 @@ cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'cyl',
 paired = FALSE, verbose = FALSE)
 }
 \author{
-Stefano Bergamini, Luca Lalli
+Stefano Bergamini, Luca Lalli, Jessica Gliozzo
 }

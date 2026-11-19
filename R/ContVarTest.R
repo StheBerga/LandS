@@ -17,17 +17,21 @@
 #' For paired analyses, the summary statistics will be computed only for
 #' complete observations.
 #'
-#' @param data dataframe containing the variables to test.
+#' @param data A base `data.frame` containing the variables to test. Tibbles
+#'   are not supported; convert them with `as.data.frame()` before calling the
+#'   function.
 #' @param variables Character vector with the names of continuous numeric
-#' variables to test.
-#' @param paired Logical. If `TRUE`, observations are treated as paired or
-#' repeated measures across levels of group. (Default=`FALSE`).
+#'   variables to test. Every named column must exist in `data` and be numeric.
+#' @param paired A single logical value. If `TRUE`, observations are treated as
+#'   paired or repeated measures across levels of `group`. Defaults to `FALSE`.
 #' @param group Character string giving the name of the grouping variable.
-#' This column must be a factor with at least two levels.
+#'   This column must exist in `data` and be a factor with at least two observed
+#'   levels.
 #' @param statistic Specifies summary statistics to display for each variable. Default = "\{mean\} (\{sd\})".
 #' Format is defined by `gtsummary` package.
 #' @param id Character string giving the name of the subject identifier column,
-#' required when `paired = TRUE`. Default = "ID".
+#'   required when `paired = TRUE`. The column must exist in `data`. Defaults to
+#'   `"ID"`.
 #' @param num_dec Decimal number for summary statistics (Default = 2).
 #' @param p_adjust_method Character string specifying the multiplicity
 #' adjustment method used for overall and post-hoc tests. Supports all methods
@@ -92,7 +96,7 @@
 #' This operation creates all expected subject-group combinations and
 #' makes any missing observations explicit, allowing them to be identified
 #' and handled before running the analysis.
-#' @author Stefano Bergamini, Luca Lalli
+#' @author Stefano Bergamini, Luca Lalli, Jessica Gliozzo
 #'
 #' @examples
 #' mtcars$vs <- factor(mtcars$vs)
@@ -132,19 +136,85 @@ cont_var_test <- function(data,
   start_time <- Sys.time()
   res <- list()
 
-  # Check if data is a data frame
-  if ("tbl_df" %in% base::class(data)) {
-    stop(paste(base::substitute(data), "is not a data frame, please make it a data frame!"))
+  # Accept only objects of class dataframe as input
+  if (!is.data.frame(data)) {
+    stop("'data' must be a data frame.", call. = FALSE)
   }
 
-  # Error check: split variable numeric
+  # Check if data is a tibble
+  if (inherits(data, "tbl_df")) {
+    stop(
+      "'data' must be a base data.frame; tibbles are not supported. ",
+      "Convert it with as.data.frame().",
+      call. = FALSE
+    )
+  }
+
+  if (!is.logical(paired) || length(paired) != 1L || is.na(paired)) {
+    stop("'paired' must be a single TRUE or FALSE value.", call. = FALSE)
+  }
+
+  if (!is.character(variables) || length(variables) == 0L ||
+      anyNA(variables) || any(!nzchar(variables))) {
+    stop("'variables' must be a non-empty character vector of column names.",
+         call. = FALSE)
+  }
+
+  missing_variables <- setdiff(variables, names(data))
+
+  if (length(missing_variables) > 0L) {
+    stop(
+      "The following variables were not found in 'data': ",
+      paste(missing_variables, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  non_numeric_variables <- variables[
+    !vapply(data[variables], is.numeric, logical(1))
+  ]
+
+  if (length(non_numeric_variables) > 0L) {
+    stop(
+      "The following variables must be numeric: ",
+      paste(non_numeric_variables, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  if (missing(group) || !is.character(group) || length(group) != 1L ||
+      is.na(group) || !nzchar(group)) {
+    stop("'group' must name exactly one column.", call. = FALSE)
+  }
+
+  if (!group %in% names(data)) {
+    stop("The grouping variable '", group, "' was not found in 'data'.",
+         call. = FALSE)
+  }
+
   if (!is.factor(data[[group]])) {
-    stop(paste("Variable", group, "is not factor, please make it factor"))
+    stop("The grouping variable '", group, "' must be a factor.",
+         call. = FALSE)
   }
 
-  # Error check: split variable with just one level
-  if (nlevels(data[[group]]) == 1) {
-    stop(paste("Variable", group, "has just 1 level"))
+  # Drop unused levels (levels with no observations)
+  data[[group]] <- droplevels(data[[group]])
+
+  if (nlevels(data[[group]]) < 2L) {
+    stop("The grouping variable '", group,
+         "' must have at least two observed levels.", call. = FALSE)
+  }
+
+  if (paired) {
+    if (!is.character(id) || length(id) != 1L || is.na(id) || !nzchar(id)) {
+      stop("'id' must name exactly one column when 'paired = TRUE'.",
+           call. = FALSE)
+    }
+
+    if (!id %in% names(data)) {
+      stop("The ID variable '", id, "' was not found in 'data'.",
+           call. = FALSE)
+    }
   }
 
   statistic <- stringr::str_to_lower(statistic)
