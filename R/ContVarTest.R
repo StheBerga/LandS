@@ -264,6 +264,8 @@ cont_var_test <- function(data,
 
   } else {
 
+    posthoc <- NULL
+
     # Posthoc test to perform
     if (!is.null(type)) {
       type <- tolower(type)
@@ -285,7 +287,6 @@ cont_var_test <- function(data,
     if (paired == TRUE) {
       if (is.null(type)) {
         type <- "e"
-        posthoc = "Exact All-Pairs Comparisons Test"
       }
 
       if (sum(is.na(data[, variables])) > 0) {
@@ -363,14 +364,22 @@ cont_var_test <- function(data,
                                          bar_fill = "\u2588", bar_void = "\u2591")
       }
 
-      if (verbose) message(paste("Friedman rank sum overall and", posthoc, "were used"))
+      if (verbose) {
+        if (is.null(posthoc)) {
+          message(
+            "Friedman rank sum test used; no post-hoc comparisons were ",
+            "performed because no adjusted overall p-value met the threshold."
+          )
+        } else {
+          message(paste("Friedman rank sum overall and", posthoc, "were used"))
+        }
+      }
     }
 
     # Kruskal Wallis and post hoc tests
     if(paired == FALSE) {
       if (is.null(type)) {
         type <- "d"
-        posthoc = "Dunn's All-Pairs Rank Comparison Test"
       }
 
       table.p[["Overall.raw"]] <- sapply(variables, FUN = function(x) stats::kruskal.test(data[[x]], data[[group]])$p.value)
@@ -416,7 +425,16 @@ cont_var_test <- function(data,
                                          bar_fill = "\u2588", bar_void = "\u2591")
       }
 
-      if (verbose) message(paste("Kruskal-Wallis rank sum overall and", posthoc, "were used"))
+      if (verbose) {
+        if (is.null(posthoc)) {
+          message(
+            "Kruskal-Wallis rank sum test used; no post-hoc comparisons were ",
+            "performed because no adjusted overall p-value met the threshold."
+          )
+        } else {
+          message(paste("Kruskal-Wallis rank sum overall and", posthoc, "were used"))
+        }
+      }
     }
   }
 
