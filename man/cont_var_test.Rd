@@ -13,7 +13,7 @@ cont_var_test(
   statistic = "{mean} ({sd})",
   id = "ID",
   num_dec = 2,
-  overall_threshold = 0.1,
+  omnibus_threshold = 0.1,
   p_adjust_method = NULL,
   excel = FALSE,
   excel_path = "Results.xlsx",
@@ -50,11 +50,11 @@ required when `paired = TRUE`. The column must exist in `data`. Defaults to
 
 \item{num_dec}{Decimal number for summary statistics (Default = 2).}
 
-\item{overall_threshold}{Threshold below which post-hoc comparisons are
-performed, based on the adjusted overall p-value. Defaults to `0.1`.}
+\item{omnibus_threshold}{Threshold below which post-hoc comparisons are
+performed, based on the adjusted omnibus p-value. Defaults to `0.1`.}
 
 \item{p_adjust_method}{Character string specifying the multiplicity
-adjustment method used for overall and post-hoc tests. Supports all methods
+adjustment method used for omnibus and post-hoc tests. Supports all methods
 in `stats::p.adjust.methods`, including `"none"` for no adjustment. Passed
 to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), `"fdr"` is
 used.}
@@ -75,7 +75,7 @@ A named list of data frames. The exact elements depend on the selected test:
   \item{FR or KW _type_p_adjust_method}{Global test with raw and adjusted p-values,
   adjusted p-values for post-hoc comparisons; returned for analyses with more than two groups.}
 }
-The name of the last data frame is given by the overall test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
+The name of the last data frame is given by the omnibus test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
 }
 \description{
 The test is selected automatically according to the number of groups and
@@ -88,7 +88,7 @@ whether observations are paired:
 }
 
 Set `p_adjust_method = "none"` to return unadjusted p-values for both
-overall and post-hoc tests.
+omnibus and post-hoc tests.
 The following summary statistics can be computed:
 `median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
 For paired analyses, the summary statistics will be computed only for
@@ -125,6 +125,23 @@ data_complete <- dplyr::left_join(
 This operation creates all expected subject-group combinations and
 makes any missing observations explicit, allowing them to be identified
 and handled before running the analysis.
+
+By default, each variable is analysed using all available observations.
+Consequently, the number of observations may differ across variables
+depending on their missingness patterns.
+
+If you want all variables to be analysed using the same set of complete
+observations, you can remove rows containing at least one missing value
+before calling the function by passing \code{na.omit(data)} as the \code{data}
+argument. For example:
+
+\preformatted{
+cont_var_test(
+  data = na.omit(your_data),
+  variables = c("var1", "var2", "var3"),
+  group = "group"
+)
+}
 }
 \examples{
 mtcars$vs <- factor(mtcars$vs)
@@ -134,6 +151,9 @@ paired = FALSE, verbose = FALSE)
 mtcars$cyl <- factor(mtcars$cyl)
 cont_var_test(data = mtcars, variables = c('mpg', 'disp'), group = 'cyl',
 paired = FALSE, verbose = FALSE)
+}
+\references{
+Eisinga R, Heskes T, Pelzer B, Te Grotenhuis M. (2017) \emph{\href{https://doi.org/10.1186/s12859-017-1486-2}{Exact p-values for pairwise comparison of Friedman rank sums, with application to comparing classifiers}}. BMC Bioinformatics.
 }
 \author{
 Stefano Bergamini, Luca Lalli, Jessica Gliozzo

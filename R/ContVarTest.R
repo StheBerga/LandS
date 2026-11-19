@@ -11,7 +11,7 @@
 #' }
 #'
 #' Set `p_adjust_method = "none"` to return unadjusted p-values for both
-#' overall and post-hoc tests.
+#' omnibus and post-hoc tests.
 #' The following summary statistics can be computed:
 #' `median`, `mean`, `sd`, `min`, `max`, `q1`, `q3`, `n`, and `range`.
 #' For paired analyses, the summary statistics will be computed only for
@@ -34,7 +34,7 @@
 #'   `"ID"`.
 #' @param num_dec Decimal number for summary statistics (Default = 2).
 #' @param p_adjust_method Character string specifying the multiplicity
-#' adjustment method used for overall and post-hoc tests. Supports all methods
+#' adjustment method used for omnibus and post-hoc tests. Supports all methods
 #' in `stats::p.adjust.methods`, including `"none"` for no adjustment. Passed
 #' to the `PMCMRplus` post-hoc test functions. If `NULL` (Default), `"fdr"` is
 #' used.
@@ -47,8 +47,8 @@
 #' as well as Pairwise Wilcoxon Rank Sum tests and Pairwise Wilcoxon Signed Rank Tests.
 #' By default is set the Exact All-Pairs Comparisons Test when `paired=TRUE`,
 #' and the Dunn's All-Pairs Rank Comparison Test when `paired=FALSE`.
-#' @param overall_threshold Threshold below which post-hoc comparisons are
-#'   performed, based on the adjusted overall p-value. Defaults to `0.1`.
+#' @param omnibus_threshold Threshold below which post-hoc comparisons are
+#'   performed, based on the adjusted omnibus p-value. Defaults to `0.1`.
 #'
 #' @return
 #' A named list of data frames. The exact elements depend on the selected test:
@@ -59,7 +59,7 @@
 #'   \item{FR or KW _type_p_adjust_method}{Global test with raw and adjusted p-values,
 #'   adjusted p-values for post-hoc comparisons; returned for analyses with more than two groups.}
 #' }
-#' The name of the last data frame is given by the overall test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
+#' The name of the last data frame is given by the omnibus test, `type` of post-hoc comparisons if performed, and `p_adjust_method`
 #' @export
 #'
 #' @importFrom magrittr %>%
@@ -96,6 +96,26 @@
 #' This operation creates all expected subject-group combinations and
 #' makes any missing observations explicit, allowing them to be identified
 #' and handled before running the analysis.
+#'
+#' By default, each variable is analysed using all available observations.
+#' Consequently, the number of observations may differ across variables
+#' depending on their missingness patterns.
+#'
+#' If you want all variables to be analysed using the same set of complete
+#' observations, you can remove rows containing at least one missing value
+#' before calling the function by passing \code{na.omit(data)} as the \code{data}
+#' argument. For example:
+#'
+#' \preformatted{
+#' cont_var_test(
+#'   data = na.omit(your_data),
+#'   variables = c("var1", "var2", "var3"),
+#'   group = "group"
+#' )
+#' }
+#'
+#' @references
+#' Eisinga R, Heskes T, Pelzer B, Te Grotenhuis M. (2017) \emph{\href{https://doi.org/10.1186/s12859-017-1486-2}{Exact p-values for pairwise comparison of Friedman rank sums, with application to comparing classifiers}}. BMC Bioinformatics.
 #' @author Stefano Bergamini, Luca Lalli, Jessica Gliozzo
 #'
 #' @examples
@@ -114,7 +134,7 @@ cont_var_test <- function(data,
                           statistic = "{mean} ({sd})",
                           id = "ID",
                           num_dec = 2,
-                          overall_threshold = 0.1,
+                          omnibus_threshold = 0.1,
                           p_adjust_method = NULL,
                           excel = FALSE,
                           excel_path = "Results.xlsx",
@@ -300,11 +320,6 @@ cont_var_test <- function(data,
 
         stats <- compute.stats(data = data_filtered, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
-        # pre <- data_filtered %>% dplyr::filter(.data[[group]] == levels[1]) %>% dplyr::pull(name)
-        # names(pre) <- data_filtered %>% dplyr::filter(.data[[group]] == levels[1]) %>% dplyr::pull(id)
-        # post <- data_filtered %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(name)
-        # names(post) <- data_filtered %>% dplyr::filter(.data[[group]] == levels[2]) %>% dplyr::pull(id)
-
         paired_data <- data_filtered %>%
           dplyr::select(dplyr::all_of(c(id, group, name))) %>%
           tidyr::pivot_wider(names_from = dplyr::all_of(group),
@@ -321,7 +336,6 @@ cont_var_test <- function(data,
 
         table.p[table.p$Variable == name, 2] <- stats[1]
         table.p[table.p$Variable == name, 3] <- stats[2]
-        # table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(pre, post, paired = TRUE)$p.value
         table.p[table.p$Variable == name, "pvalue"] <- stats::wilcox.test(group1, group2, paired = TRUE)$p.value
 
         if (verbose) LandS::Progress_bar(current = which(name == variables),
@@ -350,7 +364,7 @@ cont_var_test <- function(data,
       as.data.frame %>%
       `colnames<-`(c("Variable",
                      paste0(stringr::str_to_sentence(gsub("[{}]", "", statistic)), ": ", levels(data[[group]])),
-                     "Overall.raw", "Overall.padj", vett_contrasts)) %>%
+                     "Omnibus.raw", "Omnibus.padj", vett_contrasts)) %>%
       dplyr::mutate(Variable = variables)
 
     # Friedman test and post hoc tests
@@ -374,9 +388,11 @@ cont_var_test <- function(data,
           dplyr::pull("complete") %>%
           all()
       )
-
-      table.p[["Overall.raw"]] <- sapply(variables, FUN = function(x) stats::friedman.test(y = data[[x]], groups = data[[group]], blocks = data[[id]])$p.value)
-      table.p[["Overall.padj"]] <- stats::p.adjust(table.p[["Overall.raw"]], method = p_adjust_method)
+      # Compute Friedman test
+      # Friedman test is computed on `data` and not on `data_filtered` because the function
+      # automatically excludes IDs with NA in the complete-block design
+      table.p[["Omnibus.raw"]] <- sapply(variables, FUN = function(x) stats::friedman.test(y = data[[x]], groups = data[[group]], blocks = data[[id]])$p.value)
+      table.p[["Omnibus.padj"]] <- stats::p.adjust(table.p[["Omnibus.raw"]], method = p_adjust_method)
 
 
       for (i in seq_along(variables)) {
@@ -392,14 +408,12 @@ cont_var_test <- function(data,
         if (nrow(data_filtered) > 0) {
           table.p[table.p$Variable == name, 1+(1:nlevels(data[[group]]))] <-
             compute.stats(data = data_filtered, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
-          # Compute Friedman test
-          # table.p[table.p$Variable == name, "Overall.raw"] <- stats::friedman.test(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]])$p.value
         } else {
-          # table.p[table.p$Variable == name, "Overall.raw"] <- NA
+
         }
 
-        if(!is.na(table.p[table.p$Variable == name, "Overall.padj"]) && table.p[table.p$Variable == name, "Overall.padj"] <= overall_threshold) {
-          # If the overall test is significant, perform pairwise comparisons
+        if(!is.na(table.p[table.p$Variable == name, "Omnibus.padj"]) && table.p[table.p$Variable == name, "Omnibus.padj"] <= omnibus_threshold) {
+          # If the omnibus test is significant, perform pairwise comparisons
           if (type == "c" || type == "conover") {
             mat_posthoc <- PMCMRplus::frdAllPairsConoverTest(y = data_filtered[[name]], groups = data_filtered[[group]], blocks = data_filtered[[id]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Conover's All-Pairs Rank Comparison Test"
@@ -427,7 +441,7 @@ cont_var_test <- function(data,
             table.p[table.p$Variable == name, contrast] <- mat_posthoc[x[2], x[1]]
           }
         } else {
-          # If the overall test is not significant, do not perform pairwise comparisons
+          # If the omnibus test is not significant, do not perform pairwise comparisons
         }
         if (verbose) LandS::Progress_bar(current = i,
                                          total = length(variables), start_time = start_time,
@@ -438,10 +452,10 @@ cont_var_test <- function(data,
         if (is.null(posthoc)) {
           message(
             "Friedman rank sum test used; no post-hoc comparisons were ",
-            "performed because no adjusted overall p-value met the threshold."
+            "performed because no adjusted omnibus p-value met the threshold."
           )
         } else {
-          message(paste("Friedman rank sum overall and", posthoc, "were used"))
+          message(paste("Friedman rank sum omnibus and", posthoc, "were used"))
         }
       }
     }
@@ -451,9 +465,9 @@ cont_var_test <- function(data,
       if (is.null(type)) {
         type <- "d"
       }
-
-      table.p[["Overall.raw"]] <- sapply(variables, FUN = function(x) stats::kruskal.test(data[[x]], data[[group]])$p.value)
-      table.p[["Overall.padj"]] <- stats::p.adjust(table.p[["Overall.raw"]], method = p_adjust_method)
+      # Kruskal-Wallis test
+      table.p[["Omnibus.raw"]] <- sapply(variables, FUN = function(x) stats::kruskal.test(data[[x]], data[[group]])$p.value)
+      table.p[["Omnibus.padj"]] <- stats::p.adjust(table.p[["Omnibus.raw"]], method = p_adjust_method)
 
       for (i in seq_along(variables)) {
         name <- variables[i]
@@ -461,10 +475,8 @@ cont_var_test <- function(data,
         table.p[table.p$Variable == name, 1+(1:nlevels(data[[group]]))] <-
           compute.stats(data = data, group = group, name = name, levels = levels, statistic = statistic, num_dec = num_dec)
 
-        # Kruskal-Wallis test
-        # table.p[table.p$Variable == name, "Overall.raw"] <- stats::kruskal.test(x = data[[name]], g = data[[group]])$p.value
-
-        if(!is.na(table.p[table.p$Variable == name, "Overall.padj"]) && table.p[table.p$Variable == name, "Overall.padj"] <= overall_threshold) {          # If the overall test is significant, perform pairwise comparisons
+        if(!is.na(table.p[table.p$Variable == name, "Omnibus.padj"]) && table.p[table.p$Variable == name, "Omnibus.padj"] <= omnibus_threshold) {
+          # If the omnibus test is significant, perform pairwise comparisons
           if (type == "c" || type == "conover") {
             mat_posthoc <- PMCMRplus::kwAllPairsConoverTest(x = data[[name]], g = data[[group]], p.adjust.method = p_adjust_method)$p.value
             posthoc = "Conover's All-Pairs Rank Comparison Test"
@@ -487,7 +499,7 @@ cont_var_test <- function(data,
           }
 
         } else {
-          # If the overall test is not significant, do not perform pairwise comparisons
+          # If the omnibus test is not significant, do not perform pairwise comparisons
         }
 
         if (verbose) LandS::Progress_bar(current = i,
@@ -499,25 +511,25 @@ cont_var_test <- function(data,
         if (is.null(posthoc)) {
           message(
             "Kruskal-Wallis rank sum test used; no post-hoc comparisons were ",
-            "performed because no adjusted overall p-value met the threshold."
+            "performed because no adjusted omnibus p-value met the threshold."
           )
         } else {
-          message(paste("Kruskal-Wallis rank sum overall and", posthoc, "were used"))
+          message(paste("Kruskal-Wallis rank sum omnibus and", posthoc, "were used"))
         }
       }
     }
   }
 
   res[["Raw_tests"]] <- table.p %>%
-    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
+    dplyr::mutate(dplyr::across(dplyr::any_of("Omnibus.padj"), ~stats::p.adjust(.data[["Omnibus.raw"]], p_adjust_method)),
                   dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method)))
   res[["Form_tests"]] <- table.p %>%
-    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(.data[["Overall.raw"]], p_adjust_method)),
+    dplyr::mutate(dplyr::across(dplyr::any_of("Omnibus.padj"), ~stats::p.adjust(.data[["Omnibus.raw"]], p_adjust_method)),
                   dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(.data[["pvalue"]], p_adjust_method))) %>%
-    dplyr::arrange(.data[[if ("Overall.padj" %in% names(table.p)) "Overall.padj" else "padj"]]) %>%
+    dplyr::arrange(.data[[if ("Omnibus.padj" %in% names(table.p)) "Omnibus.padj" else "padj"]]) %>%
     dplyr::mutate(dplyr::across((2+length(levels)):dplyr::last_col(), function(x) LandS::formatz_p(x)))
   res[[3]] <- table.p %>%
-    dplyr::mutate(dplyr::across(dplyr::any_of("Overall.padj"), ~stats::p.adjust(Overall.raw, p_adjust_method)),
+    dplyr::mutate(dplyr::across(dplyr::any_of("Omnibus.padj"), ~stats::p.adjust(Omnibus.raw, p_adjust_method)),
                   dplyr::across(dplyr::any_of("padj"), ~stats::p.adjust(pvalue, p_adjust_method))) %>%
     dplyr::select(.data[["Variable"]], (2+length(levels)):dplyr::last_col())
 
